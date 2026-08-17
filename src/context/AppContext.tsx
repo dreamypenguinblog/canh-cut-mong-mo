@@ -45,7 +45,7 @@ interface AppContextType {
   canManageNovels: boolean;
   loginAsGoogleUser: (user: User) => void;
   quickGoogleLogin: (email: string, name: string) => void;
-  updateUserProfile: (updates: { name?: string; avatar?: string }) => void;
+  updateUserProfile: (updates: { name?: string; avatar?: string }) => Promise<void>;
   logout: () => void;
 
   globalTheme: 'light' | 'dark';

@@ -131,7 +131,7 @@ export const Navbar: React.FC<{ onOpenAuth: () => void; onOpenProfile?: () => vo
           >
             <div className="text-left">
               <span className="font-pinyon text-2xl sm:text-3xl lg:text-[32px] text-[#1E1B1D] dark:text-[#FFFFFF] block leading-none tracking-wide group-hover:scale-[1.02] transition-transform">
-                Cánh Cụt Mộng Mơ
+                Dreamy Penguin
               </span>
               <div className="flex items-center gap-1 mt-0.5">
                 <span className="font-playfair italic text-[11px] sm:text-xs text-[#8F7D85] dark:text-[#E8DFE3] block tracking-widest uppercase font-medium">

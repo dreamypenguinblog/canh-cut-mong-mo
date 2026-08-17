@@ -540,54 +540,59 @@ export const ReaderView: React.FC = () => {
       {/* Floating Bottom Quick Controls for Mobile Readers (Hidden in Chế độ Tập trung) */}
       {!zenMode && (
         <div
-          className={`md:hidden fixed bottom-0 left-0 right-0 z-30 border-t backdrop-blur-md px-3 py-2 flex items-center justify-between ${
+          className={`md:hidden fixed bottom-0 left-0 right-0 z-30 border-t backdrop-blur-md px-2 py-2 grid grid-cols-5 gap-1 ${
             themeStyles.card
           }`}
         >
           <button
             disabled={!prevChapter}
             onClick={() => prevChapter && openReader(novel.id, prevChapter.id)}
-            className={`min-h-[38px] px-3 py-1 rounded-lg border text-xs flex items-center gap-1 ${
-              prevChapter ? 'border-current' : 'opacity-30 border-transparent'
+            aria-label="Chương trước"
+            title="Chương trước"
+            className={`h-10 w-full rounded-lg border flex items-center justify-center transition-all ${
+              prevChapter ? 'border-current hover:opacity-80' : 'opacity-30 border-transparent'
             }`}
           >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Trước</span>
+            <ArrowLeft className="w-4 h-4" />
           </button>
 
           <button
             onClick={() => setShowChapterDrawer(true)}
-            className="min-h-[38px] px-3 py-1 rounded-lg border border-current text-xs flex items-center gap-1"
+            aria-label="Mục lục"
+            title="Mục lục"
+            className="h-10 w-full rounded-lg border border-current flex items-center justify-center transition-all hover:opacity-80"
           >
-            <List className="w-3.5 h-3.5" />
-            <span>Mục lục</span>
+            <List className="w-4 h-4" />
           </button>
 
           <button
             onClick={handleToggleZenMode}
-            className="min-h-[38px] px-3 py-1 rounded-lg border border-current text-xs flex items-center gap-1"
+            aria-label="Chế độ tập trung"
+            title="Chế độ tập trung"
+            className="h-10 w-full rounded-lg border border-current flex items-center justify-center transition-all hover:opacity-80"
           >
-            <Maximize2 className="w-3.5 h-3.5" />
-            <span>Tập trung</span>
+            <Maximize2 className="w-4 h-4" />
           </button>
 
           <button
             onClick={() => setShowSettings(true)}
-            className="min-h-[38px] px-3 py-1 rounded-lg border border-current text-xs flex items-center gap-1"
+            aria-label="Cài đặt đọc"
+            title="Cài đặt đọc"
+            className="h-10 w-full rounded-lg border border-current flex items-center justify-center transition-all hover:opacity-80"
           >
-            <SlidersHorizontal className="w-3.5 h-3.5" />
-            <span>Cài đặt</span>
+            <SlidersHorizontal className="w-4 h-4" />
           </button>
 
           <button
             disabled={!nextChapter}
             onClick={() => nextChapter && openReader(novel.id, nextChapter.id)}
-            className={`min-h-[38px] px-3 py-1 rounded-lg border text-xs flex items-center gap-1 ${
-              nextChapter ? 'bg-[#1E1B1D] text-white dark:bg-white dark:text-black' : 'opacity-30 border-transparent'
+            aria-label="Chương tiếp theo"
+            title="Chương tiếp theo"
+            className={`h-10 w-full rounded-lg border flex items-center justify-center transition-all ${
+              nextChapter ? 'bg-[#1E1B1D] text-white dark:bg-white dark:text-black border-[#1E1B1D] dark:border-white hover:opacity-90' : 'opacity-30 border-transparent'
             }`}
           >
-            <span>Sau</span>
-            <ArrowRight className="w-3.5 h-3.5" />
+            <ArrowRight className="w-4 h-4" />
           </button>
         </div>
       )}
