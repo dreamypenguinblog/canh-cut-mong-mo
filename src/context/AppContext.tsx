@@ -40,6 +40,62 @@ import { auth, db, googleProvider } from '../lib/firebase';
 
 export type AppView = 'home' | 'leaderboard' | 'library' | 'community' | 'author_dashboard' | 'reader' | 'novel_detail';
 
+// --- Lightweight hash-based routing -----------------------------------
+// No server rewrite is required for hash URLs, so refreshing the page
+// (or sharing a link) always lands back on the exact same screen instead
+// of resetting to Home. Parsing the URL also tells the initial data-load
+// effect exactly which Firestore documents are actually needed, instead
+// of eagerly loading the entire catalog on every boot.
+type AppRoute =
+  | { view: 'home' | 'leaderboard' | 'community' | 'library' | 'author_dashboard' }
+  | { view: 'novel_detail'; novelId: string }
+  | { view: 'reader'; novelId: string; chapterId?: string };
+
+const parseHash = (hash: string): AppRoute => {
+  const clean = hash.replace(/^#\/?/, '');
+  const parts = clean.split('/').filter(Boolean).map((p) => {
+    try {
+      return decodeURIComponent(p);
+    } catch {
+      return p;
+    }
+  });
+
+  if (parts[0] === 'truyen' && parts[1]) return { view: 'novel_detail', novelId: parts[1] };
+  if (parts[0] === 'doc' && parts[1]) return { view: 'reader', novelId: parts[1], chapterId: parts[2] };
+  if (parts[0] === 'bang-xep-hang') return { view: 'leaderboard' };
+  if (parts[0] === 'cong-dong') return { view: 'community' };
+  if (parts[0] === 'tu-sach') return { view: 'library' };
+  if (parts[0] === 'tac-gia') return { view: 'author_dashboard' };
+  return { view: 'home' };
+};
+
+const buildHash = (route: AppRoute): string => {
+  switch (route.view) {
+    case 'novel_detail':
+      return `#/truyen/${encodeURIComponent(route.novelId)}`;
+    case 'reader':
+      return `#/doc/${encodeURIComponent(route.novelId)}${route.chapterId ? `/${encodeURIComponent(route.chapterId)}` : ''}`;
+    case 'leaderboard':
+      return '#/bang-xep-hang';
+    case 'community':
+      return '#/cong-dong';
+    case 'library':
+      return '#/tu-sach';
+    case 'author_dashboard':
+      return '#/tac-gia';
+    default:
+      return '#/';
+  }
+};
+
+const updateHash = (hash: string) => {
+  if (typeof window === 'undefined') return;
+  if (window.location.hash !== hash) {
+    window.location.hash = hash;
+  }
+};
+
 interface AppContextType {
   currentUser: User | null;
   canManageNovels: boolean;
@@ -66,6 +122,11 @@ interface AppContextType {
   selectedChapterId: string | null;
   activeView: AppView;
   setActiveView: (view: AppView) => void;
+  // True only until the data needed for the very first screen (the one
+  // encoded in the URL on load) has been fetched. Lets Reader/NovelDetail
+  // show a loading state instead of a false "not found" while their
+  // scoped Firestore query is still in flight.
+  initializing: boolean;
 
   openReader: (novelId: string, chapterId?: string, paragraphIndex?: number) => void;
   openNovelDetail: (novelId: string) => void;
@@ -162,11 +223,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [readingHistory, setReadingHistory] = useState<ReadingHistoryItem[]>([]);
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
 
-  const [activeView, setActiveView] = useState<AppView>('home');
-  const [selectedNovelId, setSelectedNovelId] = useState<string | null>(null);
-  const [selectedChapterId, setSelectedChapterId] = useState<string | null>(null);
+  // The initial screen (and which novel/chapter, if any) comes straight
+  // from the URL hash so a page reload re-opens exactly where the reader
+  // left off, instead of always bouncing back to Home.
+  const initialRouteRef = React.useRef<AppRoute>(
+    parseHash(typeof window !== 'undefined' ? window.location.hash : '')
+  );
+
+  const [activeView, setActiveViewState] = useState<AppView>(() => initialRouteRef.current.view);
+  const [selectedNovelId, setSelectedNovelId] = useState<string | null>(() => {
+    const r = initialRouteRef.current;
+    return r.view === 'novel_detail' || r.view === 'reader' ? r.novelId : null;
+  });
+  const [selectedChapterId, setSelectedChapterId] = useState<string | null>(() => {
+    const r = initialRouteRef.current;
+    return r.view === 'reader' ? r.chapterId || null : null;
+  });
   const [modalNovelId, setModalNovelId] = useState<string | null>(null);
   const [targetParagraphIndex, setTargetParagraphIndex] = useState<number | null>(null);
+  const [initializing, setInitializing] = useState(true);
 
   const [readerSettings, setReaderSettings] = useState<ReaderSettings>(() => {
     try {
@@ -230,29 +305,166 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } catch {}
   }, [readerSettings]);
 
-  // Public catalog is loaded once. Comments are deliberately LAZY:
-  // loading every comment on every page view can create thousands of reads.
-  // A chapter's comments are fetched only when that chapter is opened, while
-  // the community feed can explicitly request the full feed when needed.
-  useEffect(() => {
-    let mounted = true;
+  // --- Scoped, cached Firestore loaders --------------------------------
+  // Novels and chapters are no longer fetched in bulk on every boot. Each
+  // helper below fetches only what a given screen actually needs and
+  // caches the result, so re-visiting a view (or a view another component
+  // already warmed up) costs zero extra reads.
 
-    const loadPublicData = async () => {
+  const novelsLoadedRef = React.useRef(false);
+  const novelsLoadPromiseRef = React.useRef<Promise<void> | null>(null);
+  const novelsByIdRef = React.useRef<Map<string, Novel>>(new Map());
+
+  useEffect(() => {
+    const map = new Map<string, Novel>();
+    novels.forEach((n) => map.set(n.id, n));
+    novelsByIdRef.current = map;
+  }, [novels]);
+
+  // Fetches the full novels catalog exactly once (cached afterwards).
+  // Needed by any screen that lists/filters across novels: home grid,
+  // leaderboard, community filter dropdown, personal library, author dashboard.
+  const ensureNovelsLoaded = (): Promise<void> => {
+    if (novelsLoadedRef.current) return Promise.resolve();
+    if (novelsLoadPromiseRef.current) return novelsLoadPromiseRef.current;
+    const p = (async () => {
       try {
-        const [novelsSnap, chaptersSnap] = await Promise.all([
-          getDocs(collection(db, 'novels')),
-          getDocs(collection(db, 'chapters')),
-        ]);
-        if (!mounted) return;
-        setNovels(novelsSnap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<Novel, 'id'>) })));
-        setChapters(chaptersSnap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<Chapter, 'id'>) })));
+        const snap = await getDocs(collection(db, 'novels'));
+        setNovels(snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<Novel, 'id'>) })));
+        novelsLoadedRef.current = true;
       } catch (e) {
-        console.error('Public Firestore load:', e);
+        console.error('ensureNovelsLoaded:', e);
+      } finally {
+        novelsLoadPromiseRef.current = null;
+      }
+    })();
+    novelsLoadPromiseRef.current = p;
+    return p;
+  };
+
+  // Fetches a single novel document. Used when deep-linking straight into
+  // a novel's detail or reader page, so we never need to download the
+  // entire novels collection just to show one of them.
+  const novelLoadPromisesRef = React.useRef<Map<string, Promise<Novel | null>>>(new Map());
+  const ensureNovelById = (novelId: string): Promise<Novel | null> => {
+    if (!novelId) return Promise.resolve(null);
+    const cached = novelsByIdRef.current.get(novelId);
+    if (cached) return Promise.resolve(cached);
+    if (novelsLoadedRef.current) return Promise.resolve(null);
+    const inFlight = novelLoadPromisesRef.current.get(novelId);
+    if (inFlight) return inFlight;
+
+    const p = (async () => {
+      try {
+        const snap = await getDoc(doc(db, 'novels', novelId));
+        if (!snap.exists()) return null;
+        const novel = { id: snap.id, ...(snap.data() as Omit<Novel, 'id'>) } as Novel;
+        setNovels((prev) => (prev.some((n) => n.id === novelId) ? prev : [...prev, novel]));
+        return novel;
+      } catch (e) {
+        console.error('ensureNovelById:', e);
+        return null;
+      } finally {
+        novelLoadPromisesRef.current.delete(novelId);
+      }
+    })();
+    novelLoadPromisesRef.current.set(novelId, p);
+    return p;
+  };
+
+  // Fetches chapters for exactly one novel (cached per novel). This is the
+  // single biggest cost-saver: chapter documents hold full paragraph text,
+  // so downloading every chapter of every novel on boot was by far the
+  // largest source of Firestore reads. Now a novel's chapters are only
+  // ever read when that specific novel is actually opened.
+  const chaptersByNovelRef = React.useRef<Map<string, Chapter[]>>(new Map());
+  const chapterLoadPromisesRef = React.useRef<Map<string, Promise<Chapter[]>>>(new Map());
+  const ensureChaptersForNovel = (novelId: string): Promise<Chapter[]> => {
+    if (!novelId) return Promise.resolve([]);
+    const cached = chaptersByNovelRef.current.get(novelId);
+    if (cached) return Promise.resolve(cached);
+    const inFlight = chapterLoadPromisesRef.current.get(novelId);
+    if (inFlight) return inFlight;
+
+    const p = (async () => {
+      try {
+        const snap = await getDocs(query(collection(db, 'chapters'), where('novelId', '==', novelId)));
+        const loaded = snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<Chapter, 'id'>) }));
+        chaptersByNovelRef.current.set(novelId, loaded);
+        setChapters((prev) => [...prev.filter((c) => c.novelId !== novelId), ...loaded]);
+        return loaded;
+      } catch (e) {
+        console.error('ensureChaptersForNovel:', e);
+        return [];
+      } finally {
+        chapterLoadPromisesRef.current.delete(novelId);
+      }
+    })();
+    chapterLoadPromisesRef.current.set(novelId, p);
+    return p;
+  };
+
+  const ensureChaptersForNovels = (novelIds: string[]): Promise<void> =>
+    Promise.all(Array.from(new Set(novelIds.filter(Boolean))).map((id) => ensureChaptersForNovel(id))).then(
+      () => undefined
+    );
+
+  // Loads whatever the *current* screen needs (and nothing else). Runs on
+  // boot for the URL's initial route, and again on every subsequent
+  // navigation performed via setActiveView/openNovelDetail/openReader.
+  // All the loaders above are cached, so re-running this on every view
+  // change costs no extra reads once a view has already been visited.
+  useEffect(() => {
+    if (!authReady) return;
+    let cancelled = false;
+
+    (async () => {
+      if (activeView === 'novel_detail' || activeView === 'reader') {
+        if (selectedNovelId) {
+          await Promise.all([ensureNovelById(selectedNovelId), ensureChaptersForNovel(selectedNovelId)]);
+        }
+      } else {
+        // home, leaderboard, community, library, author_dashboard
+        await ensureNovelsLoaded();
+      }
+      if (!cancelled) setInitializing(false);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeView, selectedNovelId, authReady]);
+
+  // The author dashboard additionally needs the chapters of every novel the
+  // signed-in user (or, for admins, every novel) actually owns — loaded
+  // only once that dashboard is opened, never as part of the normal
+  // reader flow.
+  useEffect(() => {
+    if (activeView !== 'author_dashboard' || !currentUser) return;
+    const authoredIds = currentUser.role === 'admin'
+      ? novels.map((n) => n.id)
+      : novels.filter((n) => n.authorId === currentUser.id).map((n) => n.id);
+    if (authoredIds.length > 0) void ensureChaptersForNovels(authoredIds);
+  }, [activeView, currentUser, novels]);
+
+  // Keeps the app in sync with browser back/forward and manually-edited
+  // hash URLs.
+  useEffect(() => {
+    const handleHashChange = () => {
+      const route = parseHash(window.location.hash);
+      if (route.view === 'reader') {
+        setSelectedNovelId(route.novelId);
+        setSelectedChapterId(route.chapterId || null);
+        setActiveViewState('reader');
+      } else if (route.view === 'novel_detail') {
+        setSelectedNovelId(route.novelId);
+        setActiveViewState('novel_detail');
+      } else {
+        setActiveViewState(route.view);
       }
     };
-
-    loadPublicData();
-    return () => { mounted = false; };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
   const COMMENT_PAGE_SIZE = 20;
@@ -435,29 +647,52 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setDoc(doc(db, 'users', currentUser.id), next, { merge: true }).catch((e) => console.error('profile:', e));
   };
 
-  const openReader = (novelId: string, chapterId?: string, paragraphIndex?: number) => {
+  const openReader = async (novelId: string, chapterId?: string, paragraphIndex?: number) => {
     setSelectedNovelId(novelId);
-    let targetChId = chapterId;
-    if (!targetChId) {
-      const novelChs = chapters.filter((c) => c.novelId === novelId).sort((a, b) => a.chapterNumber - b.chapterNumber);
-      targetChId = novelChs[0]?.id;
-    }
-    setSelectedChapterId(targetChId || null);
     setTargetParagraphIndex(paragraphIndex === undefined ? null : paragraphIndex);
     setModalNovelId(null);
-    setActiveView('reader');
-    if (targetChId) void loadCommentsForChapter(targetChId);
+    setActiveViewState('reader');
     window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    await ensureNovelById(novelId);
+    const novelChapters = await ensureChaptersForNovel(novelId);
+
+    let targetChId = chapterId;
+    if (!targetChId) {
+      const sorted = [...novelChapters].sort((a, b) => a.chapterNumber - b.chapterNumber);
+      targetChId = sorted[0]?.id;
+    }
+    setSelectedChapterId(targetChId || null);
+    updateHash(buildHash({ view: 'reader', novelId, chapterId: targetChId }));
+    if (targetChId) void loadCommentsForChapter(targetChId);
   };
 
-  const openNovelDetail = (novelId: string) => {
+  const openNovelDetail = async (novelId: string) => {
     setSelectedNovelId(novelId);
     setModalNovelId(null);
-    setActiveView('novel_detail');
+    setActiveViewState('novel_detail');
+    updateHash(buildHash({ view: 'novel_detail', novelId }));
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    await Promise.all([ensureNovelById(novelId), ensureChaptersForNovel(novelId)]);
   };
 
   const closeDetailModal = () => setModalNovelId(null);
+
+  // Public navigation setter for the "simple" views (home, leaderboard,
+  // community, library, author_dashboard — none of which carry an id).
+  // Keeps the URL hash in sync so a reload lands back on the same screen.
+  const setActiveView = (view: AppView) => {
+    setActiveViewState(view);
+    updateHash(buildHash({ view } as AppRoute));
+  };
+
+  // Deep-linking makes the author dashboard reachable by typing its URL
+  // directly, which previously required clicking the Navbar button that
+  // only ever renders for users with permission. Guard the route itself.
+  useEffect(() => {
+    if (!authReady || activeView !== 'author_dashboard') return;
+    if (!canManageNovels) setActiveView('home');
+  }, [authReady, activeView, canManageNovels]);
 
   const createNovel = (novelData: Omit<Novel, 'id' | 'createdAt' | 'updatedAt' | 'totalViews' | 'totalHearts' | 'totalComments' | 'rating' | 'chaptersCount'>) => {
     if (!currentUser || !canManageNovels) throw new Error('Bạn không có quyền đăng truyện.');
@@ -843,6 +1078,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       selectedChapterId,
       activeView,
       setActiveView,
+      initializing,
       openReader,
       openNovelDetail,
       closeDetailModal,

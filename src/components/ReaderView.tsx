@@ -37,6 +37,7 @@ export const ReaderView: React.FC = () => {
     comments,
     recordReadingProgress,
     globalTheme,
+    initializing,
   } = useApp();
 
   const [showSettings, setShowSettings] = useState(false);
@@ -122,6 +123,13 @@ export const ReaderView: React.FC = () => {
   };
 
   if (!novel || !chapter) {
+    if (initializing) {
+      return (
+        <div className="min-h-screen flex items-center justify-center p-8 text-center bg-[#FAF5F6] dark:bg-[#121113] text-[#1E1B1D] dark:text-[#FAF5F6]">
+          <p className="text-sm opacity-70">Đang mở trình đọc...</p>
+        </div>
+      );
+    }
     return (
       <div className="min-h-screen flex items-center justify-center p-8 text-center bg-[#FAF5F6] dark:bg-[#121113] text-[#1E1B1D] dark:text-[#FAF5F6]">
         <div>

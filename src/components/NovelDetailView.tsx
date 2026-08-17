@@ -12,12 +12,20 @@ export const NovelDetailView: React.FC = () => {
     toggleLibraryNovel,
     setActiveView,
     globalTheme,
+    initializing,
   } = useApp();
 
   const isDark = globalTheme === 'dark';
   const novel = novels.find((n) => n.id === selectedNovelId) || novels[0];
 
   if (!novel) {
+    if (initializing) {
+      return (
+        <div className="py-16 text-center max-w-xl mx-auto px-4">
+          <p className="text-sm text-[#8F7D85] opacity-70">Đang tải...</p>
+        </div>
+      );
+    }
     return (
       <div className="py-16 text-center max-w-xl mx-auto px-4">
         <p className="font-playfair text-lg text-[#8F7D85]">Không tìm thấy thông tin tác phẩm</p>

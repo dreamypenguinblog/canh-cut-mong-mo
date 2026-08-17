@@ -4,7 +4,7 @@ import { Heart, ArrowRight } from 'lucide-react';
 import { auth } from '../lib/firebase';
 
 export const GlobalCommunityFeed: React.FC = () => {
-  const { comments, novels, chapters, likeComment, openReader, globalTheme, currentUser, loadAllComments, loadMoreAllComments, hasMoreAllComments } = useApp();
+  const { comments, novels, likeComment, openReader, globalTheme, currentUser, loadAllComments, loadMoreAllComments, hasMoreAllComments } = useApp();
   useEffect(() => {
     void loadAllComments();
   }, []);
@@ -52,7 +52,6 @@ export const GlobalCommunityFeed: React.FC = () => {
         {filteredComments.length > 0 ? (
           filteredComments.map((comment) => {
             const novel = novels.find((n) => n.id === comment.novelId);
-            const chapter = chapters.find((c) => c.id === comment.chapterId);
             const viewerId = currentUser?.id || auth.currentUser?.uid;
             const isLiked = !!viewerId && comment.likedBy?.includes(viewerId);
 
@@ -71,7 +70,7 @@ export const GlobalCommunityFeed: React.FC = () => {
                     </span>
                     <span className="text-[#8F7D85] dark:text-[#D5CBD0]">•</span>
                     <span className="text-[#8F7D85] dark:text-[#D5CBD0]">
-                      {chapter?.title || comment.chapterTitle || 'Chương truyện'} (Đoạn #{comment.paragraphIndex + 1})
+                      {comment.chapterTitle || 'Chương truyện'} (Đoạn #{comment.paragraphIndex + 1})
                     </span>
                   </div>
 
