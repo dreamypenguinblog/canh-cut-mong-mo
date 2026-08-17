@@ -1,0 +1,8 @@
+{
+  "name": "Cánh Cụt Mộng Mơ",
+  "description": "Trang web đọc và sáng tác tiểu thuyết với thống kê từng chương, bình luận theo đoạn văn và tủ sách cá nhân.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

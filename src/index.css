@@ -1,0 +1,93 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  :root {
+    --font-pinyon: 'Pinyon Script', cursive;
+    --font-playfair: 'Playfair Display', Georgia, serif;
+    --font-lora: 'Lora', Georgia, serif;
+    --font-cormorant: 'Cormorant Garamond', Garamond, serif;
+    --font-alegreya: 'Alegreya', Georgia, serif;
+    --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+
+  html,
+  body {
+    font-family: var(--font-lora), Georgia, serif;
+  }
+
+  input,
+  textarea,
+  button,
+  select {
+    font-family: inherit;
+  }
+}
+
+.font-pinyon {
+  font-family: var(--font-pinyon);
+}
+
+.font-playfair {
+  font-family: var(--font-playfair);
+}
+
+.font-lora {
+  font-family: var(--font-lora);
+}
+
+.font-cormorant {
+  font-family: var(--font-cormorant);
+}
+
+.font-alegreya {
+  font-family: var(--font-alegreya);
+}
+
+.font-luxury-sans {
+  font-family: var(--font-sans);
+}
+
+/* Custom delicate luxury scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(180, 160, 168, 0.35);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(180, 160, 168, 0.6);
+}
+
+/* Luxury line decorations */
+.luxury-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: #9C8F96;
+}
+
+.luxury-divider::before,
+.luxury-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid currentColor;
+  opacity: 0.25;
+}
+
+.luxury-divider:not(:empty)::before {
+  margin-right: 1.25em;
+}
+
+.luxury-divider:not(:empty)::after {
+  margin-left: 1.25em;
+}

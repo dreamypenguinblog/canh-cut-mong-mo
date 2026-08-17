@@ -1,0 +1,126 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return signedIn()
+        && request.auth.token.email == 'canhcutmongmoeditor@gmail.com';
+    }
+
+    function userDoc(uid) {
+      return get(/databases/$(database)/documents/users/$(uid));
+    }
+
+    function isAuthor() {
+      return signedIn()
+        && (isAdmin()
+          || userDoc(request.auth.uid).data.role == 'author'
+          || userDoc(request.auth.uid).data.role == 'admin'
+          || userDoc(request.auth.uid).data.canPublish == true);
+    }
+
+    function ownsNovel(novelId) {
+      return signedIn()
+        && (isAdmin()
+          || get(/databases/$(database)/documents/novels/$(novelId)).data.authorId == request.auth.uid);
+    }
+
+    function onlyChapterLikeChanged() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['hearts', 'likedBy']);
+    }
+
+    function onlyNovelCountersChanged() {
+      return request.resource.data.diff(resource.data).affectedKeys()
+        .hasOnly(['totalHearts', 'totalViews', 'totalComments']);
+    }
+
+    function onlyCommentCountersChanged() {
+      return request.resource.data.diff(resource.data).affectedKeys()
+        .hasOnly(['commentsCount']);
+    }
+
+    function onlyCommentLikeChanged() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'likedBy']);
+    }
+
+    match /users/{uid} {
+      allow read: if signedIn() && (request.auth.uid == uid || isAdmin());
+      allow create: if signedIn() && request.auth.uid == uid;
+      allow update: if signedIn() && (
+        isAdmin() ||
+        (request.auth.uid == uid
+          && request.resource.data.role == resource.data.role
+          && request.resource.data.canPublish == resource.data.canPublish)
+      );
+      allow delete: if isAdmin();
+
+      match /library/{novelId} {
+        allow read, write: if signedIn() && (request.auth.uid == uid || isAdmin());
+      }
+
+      match /history/{historyId} {
+        allow read, write: if signedIn() && (request.auth.uid == uid || isAdmin());
+      }
+
+      match /bookmarks/{bookmarkId} {
+        allow read, write: if signedIn() && (request.auth.uid == uid || isAdmin());
+      }
+    }
+
+    match /novels/{novelId} {
+      allow read: if true;
+      allow create: if isAuthor() && request.resource.data.authorId == request.auth.uid || isAdmin();
+      allow update: if isAdmin()
+        || (ownsNovel(novelId) && !onlyNovelCountersChanged())
+        || (signedIn() && onlyNovelCountersChanged());
+      allow delete: if ownsNovel(novelId);
+    }
+
+    match /chapters/{chapterId} {
+      allow read: if true;
+      allow create: if isAuthor()
+        && ownsNovel(request.resource.data.novelId);
+      allow update: if isAdmin()
+        || (ownsNovel(resource.data.novelId) && !onlyChapterLikeChanged())
+        || (signedIn() && onlyChapterLikeChanged())
+        || (signedIn() && onlyCommentCountersChanged())
+        || (signedIn()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['views']));
+      allow delete: if ownsNovel(resource.data.novelId);
+    }
+
+    match /comments/{commentId} {
+      allow read: if true;
+      allow create: if signedIn()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.userName is string
+        && request.resource.data.content is string;
+      allow update: if isAdmin()
+        || (signedIn() && resource.data.userId == request.auth.uid)
+        || (signedIn() && onlyCommentLikeChanged());
+      allow delete: if isAdmin()
+        || (signedIn() && resource.data.userId == request.auth.uid)
+        || (signedIn() && ownsNovel(resource.data.novelId));
+    }
+
+    match /viewEvents/{eventId} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.chapterId is string
+        && request.resource.data.novelId is string;
+      // A chapter owner/admin may clean up real view events when deleting a chapter.
+      allow delete: if signedIn() && ownsNovel(resource.data.novelId);
+      allow update: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
