@@ -227,24 +227,14 @@ export const AuthorDashboard: React.FC = () => {
       {/* Profile Modal */}
       <ProfileModal isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
 
-      {/* Dashboard Top Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-[#ECE0E4] dark:border-[#2E2833] pb-4 gap-4">
-        <div>
-          <div className="flex items-center gap-2 text-xs">
-            <span className="tracking-wider uppercase font-semibold text-[#8F7D85] dark:text-[#E0D8DC]">
-              Quản Trị Tác Giả
-            </span>
-          </div>
-          <h1 className="font-playfair italic text-2xl sm:text-3xl font-normal text-[#1E1B1D] dark:text-[#FFFFFF] mt-1">
-            Quản Lý & Đăng Truyện
-          </h1>
-          <p className="text-xs text-[#8F7D85] dark:text-[#D5CBD0] font-light mt-0.5">
-            Quản trị các tác phẩm độc quyền, viết chương và theo dõi lượng tương tác độc giả
-          </p>
-        </div>
+      {/* Dashboard Top Header — matches the centered style used on Bảng Xếp Hạng */}
+      <div className="text-center max-w-2xl mx-auto space-y-2">
+        <h1 className="font-playfair italic text-2xl sm:text-4xl font-normal text-[#1E1B1D] dark:text-[#FFFFFF]">
+          Quản Lý & Đăng Truyện
+        </h1>
 
         {/* Author info & Quick action buttons */}
-        <div className="flex flex-wrap items-center gap-2.5">
+        <div className="flex flex-wrap items-center justify-center gap-2.5 pt-2">
           {currentUser && (
             <button
               type="button"

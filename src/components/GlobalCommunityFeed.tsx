@@ -25,9 +25,6 @@ export const GlobalCommunityFeed: React.FC = () => {
         <h1 className="font-playfair italic text-2xl sm:text-4xl font-normal text-[#1E1B1D] dark:text-[#FFFFFF]">
           Tổng Hợp Bình Luận Toàn Web
         </h1>
-        <p className="text-xs text-[#8F7D85] dark:text-[#D5CBD0] font-light">
-          Cảm xúc và suy nghĩ của độc giả trên từng đoạn văn trong các tác phẩm
-        </p>
 
         {/* Filter controls */}
         <div className="flex items-center justify-center pt-2">

@@ -3,23 +3,7 @@ import { useApp } from '../context/AppContext';
 import { NovelCard } from './NovelCard';
 import { Bookmark, Clock, Trash2, ArrowRight, UserCog } from 'lucide-react';
 import { ProfileModal } from './ProfileModal';
-
-// Turns the raw ISO timestamp stored in Firestore into a soft, human
-// Vietnamese relative label ("5 phút trước", "Hôm qua"...) instead of a
-// technical date string.
-const formatRelativeTime = (iso: string): string => {
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return '';
-  const diffMin = Math.floor((Date.now() - date.getTime()) / 60000);
-  if (diffMin < 1) return 'Vừa xong';
-  if (diffMin < 60) return `${diffMin} phút trước`;
-  const diffHour = Math.floor(diffMin / 60);
-  if (diffHour < 24) return `${diffHour} giờ trước`;
-  const diffDay = Math.floor(diffHour / 24);
-  if (diffDay === 1) return 'Hôm qua';
-  if (diffDay < 7) return `${diffDay} ngày trước`;
-  return date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
-};
+import { formatRelativeTime } from '../lib/formatTime';
 
 export const PersonalLibrary: React.FC = () => {
   const {
@@ -42,43 +26,35 @@ export const PersonalLibrary: React.FC = () => {
 
   return (
     <div className="py-6 sm:py-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-[#ECE0E4] dark:border-[#383040] pb-4 gap-4">
-        <div>
-          <div className="text-xs">
-            <span className="tracking-wider uppercase font-semibold text-[#8F7D85] dark:text-[#E0D8DC]">
-              Không Gian Cá Nhân
-            </span>
-          </div>
-          <h1 className="font-playfair italic text-2xl sm:text-3xl font-normal text-[#1E1B1D] dark:text-[#FFFFFF] mt-1">
-            Tủ Sách & Lịch Sử Đọc
-          </h1>
-          <p className="text-xs text-[#8F7D85] dark:text-[#D5CBD0] font-light mt-0.5">
-            Lưu giữ những tác phẩm bạn yêu thích và tiến độ đọc gần nhất
-          </p>
-        </div>
+      {/* Header — matches the centered style used on Bảng Xếp Hạng */}
+      <div className="text-center max-w-2xl mx-auto space-y-2">
+        <h1 className="font-playfair italic text-2xl sm:text-4xl font-normal text-[#1E1B1D] dark:text-[#FFFFFF]">
+          Tủ Sách & Lịch Sử Đọc
+        </h1>
 
         {currentUser && (
-          <div className="flex items-center gap-3 p-2.5 rounded-xl border border-[#ECE0E4] dark:border-[#383040] bg-[#FFFFFF]/60 dark:bg-[#1A1720]/60 self-start md:self-auto">
-            <img
-              src={currentUser.avatar}
-              alt={currentUser.name}
-              className="w-10 h-10 rounded-xl object-cover border border-[#DAC8CE] dark:border-[#5A4E68]"
-            />
-            <div className="text-left pr-2">
-              <span className="text-xs font-bold block text-[#1E1B1D] dark:text-[#FFFFFF] leading-tight">
-                {currentUser.name}
-              </span>
-              <span className="text-[10px] text-[#8F7D85] block font-mono">
-                {currentUser.email}
-              </span>
+          <div className="flex items-center justify-center pt-2">
+            <div className="flex items-center gap-3 p-2.5 rounded-xl border border-[#ECE0E4] dark:border-[#383040] bg-[#FFFFFF]/60 dark:bg-[#1A1720]/60">
+              <img
+                src={currentUser.avatar}
+                alt={currentUser.name}
+                className="w-10 h-10 rounded-xl object-cover border border-[#DAC8CE] dark:border-[#5A4E68]"
+              />
+              <div className="text-left pr-2">
+                <span className="text-xs font-bold block text-[#1E1B1D] dark:text-[#FFFFFF] leading-tight">
+                  {currentUser.name}
+                </span>
+                <span className="text-[10px] text-[#8F7D85] block font-mono">
+                  {currentUser.email}
+                </span>
+              </div>
+              <button
+                onClick={() => setIsProfileOpen(true)}
+                className="px-3 py-1.5 rounded-lg border text-[11px] font-medium transition-colors bg-[#FAF5F6] dark:bg-[#251E2B] border-[#DAC8CE] dark:border-[#4B3E52] text-[#1E1B1D] dark:text-[#FAF5F6] hover:border-[#1E1B1D] dark:hover:border-white shadow-2xs"
+              >
+                <span>Sửa hồ sơ</span>
+              </button>
             </div>
-            <button
-              onClick={() => setIsProfileOpen(true)}
-              className="px-3 py-1.5 rounded-lg border text-[11px] font-medium transition-colors bg-[#FAF5F6] dark:bg-[#251E2B] border-[#DAC8CE] dark:border-[#4B3E52] text-[#1E1B1D] dark:text-[#FAF5F6] hover:border-[#1E1B1D] dark:hover:border-white shadow-2xs"
-            >
-              <span>Sửa hồ sơ</span>
-            </button>
           </div>
         )}
       </div>
