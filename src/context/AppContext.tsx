@@ -536,7 +536,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       const snap = await getDocs(query(
         collection(db, 'comments'),
-        orderBy(documentId(), 'asc'),
+        orderBy('createdAt', 'desc'),
         limit(COMMENT_PAGE_SIZE),
       ));
       setComments(snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<ParagraphComment, 'id'>) })));
@@ -555,7 +555,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       const snap = await getDocs(query(
         collection(db, 'comments'),
-        orderBy(documentId(), 'asc'),
+        orderBy('createdAt', 'desc'),
         startAfter(allCommentsCursor.current),
         limit(COMMENT_PAGE_SIZE),
       ));
@@ -984,8 +984,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (!currentUser) return;
     const ref = doc(db, 'users', currentUser.id, 'library', novelId);
     const exists = libraryNovelIds.includes(novelId);
+    // Update the local list immediately so the button (and the Library tab)
+    // reflect the change right away, instead of only updating after the
+    // next full reload — the Firestore write below still happens the same
+    // as before, this just stops the UI from lagging behind it.
+    setLibraryNovelIds((prev) => (exists ? prev.filter((id) => id !== novelId) : [...prev, novelId]));
     (exists ? deleteDoc(ref) : setDoc(ref, { novelId, addedAt: safeDate() }))
-      .catch((e) => console.error('library:', e));
+      .catch((e) => {
+        console.error('library:', e);
+        // Roll back the optimistic update if the write actually failed.
+        setLibraryNovelIds((prev) => (exists ? [...prev, novelId] : prev.filter((id) => id !== novelId)));
+      });
   };
 
   const isInLibrary = (novelId: string) => libraryNovelIds.includes(novelId);

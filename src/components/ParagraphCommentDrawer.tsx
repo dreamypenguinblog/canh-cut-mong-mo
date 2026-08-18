@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { auth } from '../lib/firebase';
 import { MessageSquare, Heart, X, Send } from 'lucide-react';
+import { formatRelativeTime } from '../lib/formatTime';
 
 interface ParagraphCommentDrawerProps {
   isOpen: boolean;
@@ -118,7 +119,7 @@ export const ParagraphCommentDrawer: React.FC<ParagraphCommentDrawerProps> = ({
                         </span>
                       )}
                     </div>
-                    <span className="text-[10px] text-[#8F7D85] dark:text-[#D5CBD0]">{c.createdAt}</span>
+                    <span className="text-[10px] text-[#8F7D85] dark:text-[#D5CBD0]">{formatRelativeTime(c.createdAt)}</span>
                   </div>
 
                   <p className="font-lora text-xs leading-relaxed text-[#2C272A] dark:text-[#FAF5F6]">{c.content}</p>

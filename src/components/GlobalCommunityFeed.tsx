@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { Heart, ArrowRight } from 'lucide-react';
 import { auth } from '../lib/firebase';
+import { formatRelativeTime } from '../lib/formatTime';
 
 export const GlobalCommunityFeed: React.FC = () => {
   const { comments, novels, likeComment, openReader, globalTheme, currentUser, loadAllComments, loadMoreAllComments, hasMoreAllComments } = useApp();
@@ -124,7 +125,7 @@ export const GlobalCommunityFeed: React.FC = () => {
                             Tác Giả
                           </span>
                         )}
-                        <span className="text-[10px] text-[#8F7D85] dark:text-[#D5CBD0]">{comment.createdAt}</span>
+                        <span className="text-[10px] text-[#8F7D85] dark:text-[#D5CBD0]">{formatRelativeTime(comment.createdAt)}</span>
                       </div>
                       <p className="font-lora text-xs sm:text-sm leading-relaxed text-[#2D282B] dark:text-[#FAF5F6]">
                         {comment.content}

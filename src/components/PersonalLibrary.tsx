@@ -4,6 +4,23 @@ import { NovelCard } from './NovelCard';
 import { Bookmark, Clock, Trash2, ArrowRight, UserCog } from 'lucide-react';
 import { ProfileModal } from './ProfileModal';
 
+// Turns the raw ISO timestamp stored in Firestore into a soft, human
+// Vietnamese relative label ("5 phút trước", "Hôm qua"...) instead of a
+// technical date string.
+const formatRelativeTime = (iso: string): string => {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return '';
+  const diffMin = Math.floor((Date.now() - date.getTime()) / 60000);
+  if (diffMin < 1) return 'Vừa xong';
+  if (diffMin < 60) return `${diffMin} phút trước`;
+  const diffHour = Math.floor(diffMin / 60);
+  if (diffHour < 24) return `${diffHour} giờ trước`;
+  const diffDay = Math.floor(diffHour / 24);
+  if (diffDay === 1) return 'Hôm qua';
+  if (diffDay < 7) return `${diffDay} ngày trước`;
+  return date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+};
+
 export const PersonalLibrary: React.FC = () => {
   const {
     currentUser,
@@ -131,7 +148,7 @@ export const PersonalLibrary: React.FC = () => {
             {readingHistory.length > 0 && (
               <button
                 onClick={clearHistory}
-                className="text-xs text-rose-500 hover:underline flex items-center gap-1"
+                className="min-h-[32px] px-3 py-1 rounded-lg text-[11px] font-medium flex items-center gap-1.5 border border-[#DAC8CE] dark:border-[#38323D] text-[#8F7D85] dark:text-[#D5CBD0] hover:border-[#E0A8B6] hover:text-[#C97F91] dark:hover:text-[#E0A8B6] transition-colors"
               >
                 <Trash2 className="w-3 h-3" />
                 <span>Xóa lịch sử</span>
@@ -140,33 +157,56 @@ export const PersonalLibrary: React.FC = () => {
           </div>
 
           {readingHistory.length > 0 ? (
-            <div className="divide-y divide-[#EADCE1] dark:divide-[#2E2833] rounded-2xl border overflow-hidden">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {readingHistory.map((item, idx) => (
                 <div
                   key={idx}
-                  className={`p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors ${
-                    isDark ? 'bg-[#18161B] hover:bg-[#201C24]' : 'bg-[#FFFFFF] hover:bg-[#FAF4F6]'
+                  className={`group rounded-2xl border p-3.5 flex items-center gap-3.5 transition-all ${
+                    isDark
+                      ? 'bg-[#18161B] border-[#2E2833] hover:border-[#4E4456]'
+                      : 'bg-[#FFFFFF] border-[#ECE0E4] shadow-2xs hover:border-[#DAC8CE] hover:shadow-xs'
                   }`}
                 >
-                  <div className="flex items-center gap-3">
-                    <img src={item.novelCover} alt="" className="w-10 h-14 object-cover rounded shadow-xs border" />
-                    <div>
-                      <h4 className="font-playfair font-medium text-sm sm:text-base text-[#1E1B1D] dark:text-[#FAF5F6]">
+                  <img
+                    src={item.novelCover}
+                    alt={item.novelTitle}
+                    className="w-12 h-16 object-cover rounded-lg border border-[#EADCE1] dark:border-[#38323D] shrink-0"
+                  />
+
+                  <div className="min-w-0 flex-1 space-y-1.5">
+                    <div className="min-w-0">
+                      <h4 className="font-playfair text-sm font-medium text-[#1E1B1D] dark:text-[#FAF5F6] truncate">
                         {item.novelTitle}
                       </h4>
-                      <p className="text-xs text-[#8F7D85] dark:text-[#D5CBD0]">
-                        Đang đọc: <span className="text-[#1E1B1D] dark:text-[#FAF5F6] font-medium">{item.chapterTitle}</span>
+                      <p className="text-[11px] text-[#8F7D85] dark:text-[#D5CBD0] truncate mt-0.5">
+                        {item.chapterTitle}
                       </p>
-                      <p className="text-[11px] text-[#8F7D85] dark:text-[#D5CBD0] mt-0.5">Lần đọc cuối: {item.lastReadAt}</p>
                     </div>
+
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 h-1 rounded-full bg-[#EADCE1] dark:bg-[#38323D] overflow-hidden">
+                        <div
+                          className="h-full rounded-full bg-[#E0A8B6] transition-all"
+                          style={{ width: `${item.progressPercent || 0}%` }}
+                        />
+                      </div>
+                      <span className="text-[10px] text-[#8F7D85] dark:text-[#D5CBD0] shrink-0">
+                        {item.progressPercent || 0}%
+                      </span>
+                    </div>
+
+                    <p className="text-[10px] text-[#B3A3AA] dark:text-[#8F7D85] flex items-center gap-1">
+                      <Clock className="w-2.5 h-2.5" />
+                      <span>{formatRelativeTime(item.lastReadAt)}</span>
+                    </p>
                   </div>
 
                   <button
                     onClick={() => openReader(item.novelId, item.chapterId, item.paragraphIndex)}
-                    className="min-h-[36px] px-3.5 py-1.5 rounded-lg bg-[#1E1B1D] text-[#FAF5F6] dark:bg-[#FAF5F6] dark:text-[#121113] text-xs font-semibold self-end sm:self-center flex items-center gap-1.5"
+                    aria-label="Đọc tiếp"
+                    className="w-9 h-9 rounded-full bg-[#1E1B1D] text-[#FAF5F6] dark:bg-[#FAF5F6] dark:text-[#121113] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform"
                   >
-                    <span>Đọc tiếp</span>
-                    <ArrowRight className="w-3 h-3" />
+                    <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
               ))}
