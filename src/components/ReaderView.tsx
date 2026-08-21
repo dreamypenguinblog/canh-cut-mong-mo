@@ -38,6 +38,7 @@ export const ReaderView: React.FC = () => {
     recordReadingProgress,
     globalTheme,
     initializing,
+    ensureChaptersForNovel,
   } = useApp();
 
   const [showSettings, setShowSettings] = useState(false);
@@ -63,17 +64,35 @@ export const ReaderView: React.FC = () => {
 
   const chapter = novelChapters.find((c) => c.id === selectedChapterId) || novelChapters[0];
 
+  // The Reader normally only loads the current chapter (+ neighbors), not
+  // the novel's full chapter list. The "Danh Sách Chương" drawer needs the
+  // full list, so fetch it only at the moment the reader actually opens
+  // the drawer — not eagerly on every chapter open.
+  useEffect(() => {
+    if (showChapterDrawer && novel) {
+      void ensureChaptersForNovel(novel.id);
+    }
+  }, [showChapterDrawer, novel?.id]);
+
   const currentChapterIdx = novelChapters.findIndex((c) => c.id === chapter?.id);
   const prevChapter = currentChapterIdx > 0 ? novelChapters[currentChapterIdx - 1] : null;
   const nextChapter = currentChapterIdx < novelChapters.length - 1 ? novelChapters[currentChapterIdx + 1] : null;
 
-  // A view is only eligible after the reader has stayed on this chapter for 10 seconds.
-  // Refreshing immediately does not create a new view.
+  // A view is only eligible after the reader has stayed on this chapter for
+  // roughly 10 seconds. Refreshing immediately does not create a new view.
+  // A small random delay (0–6s extra) is added on top: when many readers
+  // open the same promoted chapter within the same few seconds (e.g. right
+  // after a PR post), their 10s timers would otherwise all fire in the same
+  // instant, all trying to write to the SAME chapter/novel counter document
+  // at once — which is exactly what Firestore's per-document write-rate
+  // limit rejects. Spreading those writes out over a few extra seconds
+  // meaningfully reduces how many land in the same instant.
   useEffect(() => {
     if (!chapter) return;
+    const jitter = Math.floor(Math.random() * 6_000);
     const timer = window.setTimeout(() => {
       recordView(chapter.id);
-    }, 10_000);
+    }, 10_000 + jitter);
     return () => window.clearTimeout(timer);
   }, [chapter?.id]);
 
@@ -86,20 +105,62 @@ export const ReaderView: React.FC = () => {
     }
   }, [targetParagraphIndex, chapter?.id]);
 
-  // Track scroll progress
+  // Keeps a shared ref up to date with whichever chapter/position is
+  // currently on screen. Runs on every chapter change, but never talks to
+  // Firestore — switching chapters *within the same novel* is still "still
+  // reading this story", so there's nothing worth persisting yet (it would
+  // just get overwritten moments later anyway, since history is keyed by
+  // novel, one record per novel).
+  const latestReadRef = useRef<{ novelId: string; chapterId: string; progress: number } | null>(null);
+
   useEffect(() => {
-    const handleScroll = () => {
-      if (!chapter || !novel) return;
+    if (!novel || !chapter) return;
+
+    const computeProgress = () => {
       const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
-      if (totalHeight > 0) {
-        const progress = Math.min(100, Math.max(0, (window.scrollY / totalHeight) * 100));
-        recordReadingProgress(novel.id, chapter.id, 0, progress);
-      }
+      return totalHeight > 0 ? Math.min(100, Math.max(0, (window.scrollY / totalHeight) * 100)) : 0;
+    };
+
+    latestReadRef.current = { novelId: novel.id, chapterId: chapter.id, progress: computeProgress() };
+
+    const handleScroll = () => {
+      latestReadRef.current = { novelId: novel.id, chapterId: chapter.id, progress: computeProgress() };
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, [novel?.id, chapter?.id]);
+
+  // Persists the last-known position to Firestore only when the reader
+  // actually leaves THIS NOVEL — switching to a different novel, leaving
+  // the reader entirely, hiding the tab, or closing it. Moving between
+  // chapters of the same novel never triggers a write on its own.
+  useEffect(() => {
+    if (!novel) return;
+    const novelIdAtMount = novel.id;
+
+    const flush = () => {
+      const latest = latestReadRef.current;
+      if (latest && latest.novelId === novelIdAtMount && latest.progress > 0) {
+        recordReadingProgress(latest.novelId, latest.chapterId, 0, latest.progress);
+      }
+    };
+
+    const handleVisibility = () => {
+      if (document.visibilityState === 'hidden') flush();
+    };
+
+    document.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('pagehide', flush);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('pagehide', flush);
+      // Leaving this novel (switched to a different novel, or left the
+      // reader entirely) — save the final position once.
+      flush();
+    };
+  }, [novel?.id]);
 
   const handleToggleZenMode = () => {
     const nextZen = !zenMode;
@@ -671,4 +732,3 @@ export const ReaderView: React.FC = () => {
     </div>
   );
 };
-

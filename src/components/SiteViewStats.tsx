@@ -12,10 +12,14 @@ interface SiteStats {
 }
 
 export const SiteViewStats: React.FC = () => {
-  const { novels, globalTheme } = useApp();
+  const { globalTheme } = useApp();
   const isDark = globalTheme === 'dark';
   const [stats, setStats] = useState<SiteStats>({ today: 0, month: 0, year: 0, allTime: 0 });
 
+  // Loads exactly once per page load/tab open. No timer, no re-fetch on tab
+  // focus — this footer widget is decorative, so it only needs to reflect
+  // whatever the numbers were when the reader opened the site, not stay
+  // continuously live for as long as a tab happens to stay open.
   useEffect(() => {
     let cancelled = false;
 
@@ -48,12 +52,11 @@ export const SiteViewStats: React.FC = () => {
     };
 
     load();
-    const timer = window.setInterval(load, 5 * 60_000);
+
     return () => {
       cancelled = true;
-      window.clearInterval(timer);
     };
-  }, [novels.length]);
+  }, []);
 
   const items = [
     { label: 'Hôm nay', sublabel: 'Lượt xem thực', value: stats.today, icon: Eye },

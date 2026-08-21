@@ -111,6 +111,11 @@ interface AppContextType {
   chapters: Chapter[];
   comments: ParagraphComment[];
   loadCommentsForChapter: (chapterId: string) => Promise<void>;
+  // Loads the full chapter list of a novel (title/date/word count for
+  // every chapter). The Reader only calls this on demand — when the
+  // reader actually opens the "Danh Sách Chương" drawer — instead of
+  // always loading it up front.
+  ensureChaptersForNovel: (novelId: string) => Promise<Chapter[]>;
   loadMoreCommentsForChapter: (chapterId: string) => Promise<void>;
   hasMoreCommentsForChapter: (chapterId: string) => boolean;
   loadAllComments: () => Promise<void>;
@@ -409,6 +414,126 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       () => undefined
     );
 
+  // --- Lightweight per-chapter loading for the Reader --------------------
+  // Opening the Reader used to call ensureChaptersForNovel, downloading
+  // EVERY chapter of the novel (each one carries the full paragraph text)
+  // just to display one of them. For a novel with hundreds of chapters,
+  // reading a single one cost hundreds of reads. The functions below fetch
+  // only the chapter actually being read, plus its immediate neighbors so
+  // the prev/next buttons keep working — a few reads instead of hundreds.
+  // The full chapter list (used by Novel Detail's table of contents, and
+  // the in-Reader "Danh Sách Chương" drawer) is only ever fetched when a
+  // screen that genuinely needs the whole list is opened.
+
+  const chaptersByIdRef = React.useRef<Map<string, Chapter>>(new Map());
+  useEffect(() => {
+    const map = new Map<string, Chapter>();
+    chapters.forEach((c) => map.set(c.id, c));
+    chaptersByIdRef.current = map;
+  }, [chapters]);
+
+  const chapterByIdLoadPromisesRef = React.useRef<Map<string, Promise<Chapter | null>>>(new Map());
+  const ensureChapterById = (chapterId: string): Promise<Chapter | null> => {
+    if (!chapterId) return Promise.resolve(null);
+    const cached = chaptersByIdRef.current.get(chapterId);
+    if (cached) return Promise.resolve(cached);
+    const inFlight = chapterByIdLoadPromisesRef.current.get(chapterId);
+    if (inFlight) return inFlight;
+
+    const p = (async () => {
+      try {
+        const snap = await getDoc(doc(db, 'chapters', chapterId));
+        if (!snap.exists()) return null;
+        const chapter = { id: snap.id, ...(snap.data() as Omit<Chapter, 'id'>) } as Chapter;
+        setChapters((prev) => (prev.some((c) => c.id === chapterId) ? prev : [...prev, chapter]));
+        return chapter;
+      } catch (e) {
+        console.error('ensureChapterById:', e);
+        return null;
+      } finally {
+        chapterByIdLoadPromisesRef.current.delete(chapterId);
+      }
+    })();
+    chapterByIdLoadPromisesRef.current.set(chapterId, p);
+    return p;
+  };
+
+  // Used when opening the Reader without a specific chapter id ("start
+  // reading" from a novel card). Fetches only chapter #1, not the list.
+  const ensureFirstChapter = async (novelId: string): Promise<Chapter | null> => {
+    const fullList = chaptersByNovelRef.current.get(novelId);
+    if (fullList) {
+      return [...fullList].sort((a, b) => a.chapterNumber - b.chapterNumber)[0] || null;
+    }
+    try {
+      const snap = await getDocs(query(
+        collection(db, 'chapters'),
+        where('novelId', '==', novelId),
+        orderBy('chapterNumber', 'asc'),
+        limit(1),
+      ));
+      if (snap.empty) return null;
+      const d = snap.docs[0];
+      const chapter = { id: d.id, ...(d.data() as Omit<Chapter, 'id'>) } as Chapter;
+      setChapters((prev) => (prev.some((c) => c.id === chapter.id) ? prev : [...prev, chapter]));
+      return chapter;
+    } catch (e) {
+      console.error('ensureFirstChapter:', e);
+      return null;
+    }
+  };
+
+  // Fetches the immediate previous/next chapter (by chapterNumber) so the
+  // Reader's prev/next buttons work without loading the whole novel. Skips
+  // any neighbor whose document is already cached — e.g. reading forward
+  // chapter by chapter means the "previous" neighbor was already fetched
+  // when it was the current chapter, so only the new one needs a read.
+  const ensureAdjacentChapters = async (novelId: string, chapterNumber: number): Promise<void> => {
+    if (chaptersByNovelRef.current.has(novelId)) return; // full list already cached, nothing to add
+    const neighborNumbers = [chapterNumber - 1, chapterNumber + 1].filter((n) => n >= 1);
+    if (neighborNumbers.length === 0) return;
+
+    const alreadyHaveNumbers = new Set<number>();
+    chaptersByIdRef.current.forEach((c) => {
+      if (c.novelId === novelId) alreadyHaveNumbers.add(c.chapterNumber);
+    });
+    const missingNumbers = neighborNumbers.filter((n) => !alreadyHaveNumbers.has(n));
+    if (missingNumbers.length === 0) return;
+
+    try {
+      const snap = await getDocs(query(
+        collection(db, 'chapters'),
+        where('novelId', '==', novelId),
+        where('chapterNumber', 'in', missingNumbers),
+      ));
+      const loaded = snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<Chapter, 'id'>) }));
+      if (loaded.length) {
+        setChapters((prev) => {
+          const ids = new Set(prev.map((c) => c.id));
+          return [...prev, ...loaded.filter((c) => !ids.has(c.id))];
+        });
+      }
+    } catch (e) {
+      console.error('ensureAdjacentChapters:', e);
+    }
+  };
+
+  // Single entry point the Reader uses to get whatever chapter it needs:
+  // the requested chapter (or the first one, if none given) plus its
+  // neighbors — never the novel's full chapter list.
+  const loadReaderChapter = async (novelId: string, chapterId?: string): Promise<string | null> => {
+    const fullList = chaptersByNovelRef.current.get(novelId);
+    if (fullList) {
+      if (chapterId) return chapterId;
+      const sorted = [...fullList].sort((a, b) => a.chapterNumber - b.chapterNumber);
+      return sorted[0]?.id || null;
+    }
+
+    const target = chapterId ? await ensureChapterById(chapterId) : await ensureFirstChapter(novelId);
+    if (target) await ensureAdjacentChapters(novelId, target.chapterNumber);
+    return target?.id ?? chapterId ?? null;
+  };
+
   // Loads whatever the *current* screen needs (and nothing else). Runs on
   // boot for the URL's initial route, and again on every subsequent
   // navigation performed via setActiveView/openNovelDetail/openReader.
@@ -419,9 +544,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     let cancelled = false;
 
     (async () => {
-      if (activeView === 'novel_detail' || activeView === 'reader') {
+      if (activeView === 'novel_detail') {
+        // The detail page's table of contents genuinely needs every
+        // chapter's title/date/word count, so it keeps loading the full list.
         if (selectedNovelId) {
           await Promise.all([ensureNovelById(selectedNovelId), ensureChaptersForNovel(selectedNovelId)]);
+        }
+      } else if (activeView === 'reader') {
+        // The Reader itself only ever needs one chapter at a time.
+        if (selectedNovelId) {
+          await ensureNovelById(selectedNovelId);
+          const targetChId = await loadReaderChapter(selectedNovelId, selectedChapterId || undefined);
+          if (!cancelled && targetChId && targetChId !== selectedChapterId) {
+            setSelectedChapterId(targetChId);
+          }
         }
       } else {
         // home, leaderboard, community, library, author_dashboard
@@ -433,7 +569,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return () => {
       cancelled = true;
     };
-  }, [activeView, selectedNovelId, authReady]);
+  }, [activeView, selectedNovelId, selectedChapterId, authReady]);
 
   // The author dashboard additionally needs the chapters of every novel the
   // signed-in user (or, for admins, every novel) actually owns — loaded
@@ -655,15 +791,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
     await ensureNovelById(novelId);
-    const novelChapters = await ensureChaptersForNovel(novelId);
+    // Loads only the chapter being opened (+ its neighbors), not the
+    // novel's entire chapter list — see loadReaderChapter above.
+    const targetChId = await loadReaderChapter(novelId, chapterId);
 
-    let targetChId = chapterId;
-    if (!targetChId) {
-      const sorted = [...novelChapters].sort((a, b) => a.chapterNumber - b.chapterNumber);
-      targetChId = sorted[0]?.id;
-    }
     setSelectedChapterId(targetChId || null);
-    updateHash(buildHash({ view: 'reader', novelId, chapterId: targetChId }));
+    updateHash(buildHash({ view: 'reader', novelId, chapterId: targetChId || undefined }));
     if (targetChId) void loadCommentsForChapter(targetChId);
   };
 
@@ -866,7 +999,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // A view is recorded only after the ReaderView has kept the chapter open for
   // the required delay. One Firebase UID can generate at most one view for the
   // same chapter in a 30-minute bucket. No view is stored in localStorage.
-  const recordView = (chapterId: string) => {
+  //
+  // recordedViewKeysRef is a purely in-memory, this-tab-only guard: if this
+  // exact (user, chapter, 30-min bucket) key was already sent successfully,
+  // skip re-running the Firestore transaction entirely (which otherwise
+  // still costs 1 read even when it ends up not writing anything — e.g. if
+  // the component briefly mounts twice). Firestore's own eventRef check
+  // remains the real source of truth for whether a view actually counts;
+  // this is only an optimization to avoid asking it questions we already
+  // know the answer to.
+  const recordedViewKeysRef = React.useRef<Set<string>>(new Set());
+  const recordView = (chapterId: string, attempt = 0) => {
     const firebaseUser = auth.currentUser;
     if (!firebaseUser) return;
 
@@ -875,6 +1018,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const bucket = Math.floor(Date.now() / (30 * 60 * 1000));
     const eventId = `${firebaseUser.uid}_${chapterId}_${bucket}`;
+    if (recordedViewKeysRef.current.has(eventId)) return;
+
     const eventRef = doc(db, 'viewEvents', eventId);
     const chapterRef = doc(db, 'chapters', chapterId);
     const novelRef = doc(db, 'novels', chapter.novelId);
@@ -892,7 +1037,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       });
       tx.update(chapterRef, { views: increment(1) });
       tx.update(novelRef, { totalViews: increment(1) });
-    }).catch((e) => console.error('recordView:', e));
+    })
+      .then(() => {
+        recordedViewKeysRef.current.add(eventId);
+      })
+      .catch((e) => {
+        // 'resource-exhausted' here almost always means too many readers hit
+        // the SAME chapter/novel counter document in the same instant (a
+        // Firestore per-document write-rate limit, not a sign anything is
+        // broken). Rather than silently losing the view, retry a couple of
+        // times with a growing random delay so it goes through once the
+        // brief contention clears — the client SDK's own auto-retry only
+        // covers the single request, not this kind of backoff.
+        if (e?.code === 'resource-exhausted' && attempt < 3) {
+          const delay = 1500 * Math.pow(2, attempt) + Math.random() * 1500;
+          window.setTimeout(() => recordView(chapterId, attempt + 1), delay);
+        } else {
+          console.error('recordView:', e);
+        }
+      });
   };
 
   // Comments and comment likes are available to both signed-in users and guests.
@@ -1076,6 +1239,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       chapters,
       comments,
       loadCommentsForChapter,
+      ensureChaptersForNovel,
       loadMoreCommentsForChapter,
       hasMoreCommentsForChapter,
       loadAllComments,
