@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { Heart, ArrowRight } from 'lucide-react';
+import { Heart, ArrowRight, Trash2 } from 'lucide-react';
 import { auth } from '../lib/firebase';
 import { formatRelativeTime } from '../lib/formatTime';
 
 export const GlobalCommunityFeed: React.FC = () => {
-  const { comments, novels, likeComment, openReader, globalTheme, currentUser, loadAllComments, loadMoreAllComments, hasMoreAllComments } = useApp();
+  const { comments, novels, likeComment, deleteComment, openReader, globalTheme, currentUser, loadAllComments, loadMoreAllComments, hasMoreAllComments } = useApp();
   useEffect(() => {
     void loadAllComments();
   }, []);
@@ -72,13 +72,27 @@ export const GlobalCommunityFeed: React.FC = () => {
                     </span>
                   </div>
 
-                  <button
-                    onClick={() => openReader(comment.novelId, comment.chapterId, comment.paragraphIndex)}
-                    className="min-h-[32px] text-xs text-[#8F7D85] dark:text-[#D5CBD0] hover:text-[#1E1B1D] dark:hover:text-white flex items-center gap-1 font-medium hover:underline"
-                  >
-                    <span>Xem đoạn văn</span>
-                    <ArrowRight className="w-3 h-3" />
-                  </button>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => openReader(comment.novelId, comment.chapterId, comment.paragraphIndex)}
+                      className="min-h-[32px] text-xs text-[#8F7D85] dark:text-[#D5CBD0] hover:text-[#1E1B1D] dark:hover:text-white flex items-center gap-1 font-medium hover:underline"
+                    >
+                      <span>Xem đoạn văn</span>
+                      <ArrowRight className="w-3 h-3" />
+                    </button>
+                    {currentUser?.role === 'admin' && (
+                      <button
+                        onClick={() => {
+                          if (confirm('Xóa bình luận này?')) void deleteComment(comment.id);
+                        }}
+                        className="min-h-[32px] p-1.5 rounded-md text-[#8F7D85] hover:text-rose-500 transition-colors"
+                        title="Xóa bình luận (quản trị)"
+                        aria-label="Xóa bình luận"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 {/* Excerpt Quote block */}

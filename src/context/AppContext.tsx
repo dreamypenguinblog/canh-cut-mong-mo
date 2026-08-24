@@ -144,11 +144,16 @@ interface AppContextType {
   createChapter: (chapter: Omit<Chapter, 'id' | 'releaseDate' | 'views' | 'hearts' | 'commentsCount' | 'wordCount'>) => string;
   updateChapter: (chapterId: string, updates: Partial<Chapter>) => void;
   deleteChapter: (chapterId: string) => void;
+  // One-time backfill so an existing novel's chapter list becomes as light
+  // to load as newly-created ones. See rebuildChapterIndex for details.
+  rebuildChapterIndex: (novelId: string) => Promise<void>;
 
   toggleLikeChapter: (chapterId: string) => void;
   recordView: (chapterId: string) => void;
   addParagraphComment: (novelId: string, chapterId: string, paragraphIndex: number, excerpt: string, text: string, guestName?: string) => void;
   likeComment: (commentId: string) => void;
+  // Admin-only: deletes a comment and keeps chapter/novel comment counts in sync.
+  deleteComment: (commentId: string) => Promise<void>;
 
   readerSettings: ReaderSettings;
   updateReaderSettings: (settings: Partial<ReaderSettings>) => void;
@@ -465,6 +470,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (fullList) {
       return [...fullList].sort((a, b) => a.chapterNumber - b.chapterNumber)[0] || null;
     }
+
+    // Prefer resolving via the lightweight chapterIndex already carried on
+    // the novel doc (loaded whenever the novel itself is) — a plain getDoc
+    // by id never needs a composite index, unlike the orderBy query below.
+    const novel = novelsByIdRef.current.get(novelId);
+    if (novel?.chapterIndex?.length) {
+      const firstEntry = [...novel.chapterIndex].sort((a, b) => a.chapterNumber - b.chapterNumber)[0];
+      if (firstEntry) return ensureChapterById(firstEntry.id);
+    }
+
     try {
       const snap = await getDocs(query(
         collection(db, 'chapters'),
@@ -500,6 +515,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const missingNumbers = neighborNumbers.filter((n) => !alreadyHaveNumbers.has(n));
     if (missingNumbers.length === 0) return;
 
+    // Prefer resolving via the lightweight chapterIndex (chapterNumber →
+    // id lookup, then plain getDocs by id) — avoids the chapterNumber
+    // composite index entirely for novels that have it.
+    const novel = novelsByIdRef.current.get(novelId);
+    if (novel?.chapterIndex?.length) {
+      const idByNumber = new Map(novel.chapterIndex.map((e) => [e.chapterNumber, e.id]));
+      const idsToFetch = missingNumbers.map((n) => idByNumber.get(n)).filter((id): id is string => !!id);
+      if (idsToFetch.length === missingNumbers.length) {
+        await Promise.all(idsToFetch.map((id) => ensureChapterById(id)));
+        return;
+      }
+    }
+
     try {
       const snap = await getDocs(query(
         collection(db, 'chapters'),
@@ -521,6 +549,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Single entry point the Reader uses to get whatever chapter it needs:
   // the requested chapter (or the first one, if none given) plus its
   // neighbors — never the novel's full chapter list.
+  // A novel's chapters only need a full fetch (every document, including
+  // paragraph content) when its lightweight chapterIndex is missing or
+  // incomplete — see rebuildChapterIndex / createChapter for how that
+  // index is kept in sync.
+  const hasCompleteChapterIndex = (novel: Novel | null | undefined): boolean =>
+    !!novel && novel.chaptersCount > 0 && (novel.chapterIndex?.length || 0) === novel.chaptersCount;
+
   const loadReaderChapter = async (novelId: string, chapterId?: string): Promise<string | null> => {
     const fullList = chaptersByNovelRef.current.get(novelId);
     if (fullList) {
@@ -545,10 +580,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     (async () => {
       if (activeView === 'novel_detail') {
-        // The detail page's table of contents genuinely needs every
-        // chapter's title/date/word count, so it keeps loading the full list.
+        // The detail page's table of contents only needs a full chapter
+        // fetch when the lightweight chapterIndex isn't available yet.
         if (selectedNovelId) {
-          await Promise.all([ensureNovelById(selectedNovelId), ensureChaptersForNovel(selectedNovelId)]);
+          const novel = await ensureNovelById(selectedNovelId);
+          if (!hasCompleteChapterIndex(novel)) {
+            await ensureChaptersForNovel(selectedNovelId);
+          }
         }
       } else if (activeView === 'reader') {
         // The Reader itself only ever needs one chapter at a time.
@@ -603,7 +641,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
-  const COMMENT_PAGE_SIZE = 20;
+  const COMMENT_PAGE_SIZE = 5;
   const loadedCommentChapters = React.useRef<Set<string>>(new Set());
   const loadingCommentChapters = React.useRef<Set<string>>(new Set());
   const chapterCommentCursors = React.useRef<Map<string, any>>(new Map());
@@ -806,7 +844,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setActiveViewState('novel_detail');
     updateHash(buildHash({ view: 'novel_detail', novelId }));
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    await Promise.all([ensureNovelById(novelId), ensureChaptersForNovel(novelId)]);
+    const novel = await ensureNovelById(novelId);
+    if (!hasCompleteChapterIndex(novel)) {
+      await ensureChaptersForNovel(novelId);
+    }
   };
 
   const closeDetailModal = () => setModalNovelId(null);
@@ -844,6 +885,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       totalComments: 0,
       rating: 5,
       chaptersCount: 0,
+      chapterIndex: [],
     };
     setDoc(ref, novel).catch((e) => console.error('createNovel:', e));
     return ref.id;
@@ -880,10 +922,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const ref = doc(collection(db, 'chapters'));
     const wordCount = chapterData.content.reduce((acc, p) => acc + p.trim().split(/\s+/).filter(Boolean).length, 0);
+    const releaseDate = new Date().toISOString().slice(0, 10);
     const chapter: Chapter = {
       ...chapterData,
       id: ref.id,
-      releaseDate: new Date().toISOString().slice(0, 10),
+      releaseDate,
       views: 0,
       hearts: 0,
       likedBy: [],
@@ -895,7 +938,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     batch.set(ref, chapter);
     batch.update(doc(db, 'novels', novel.id), {
       chaptersCount: increment(1),
-      updatedAt: new Date().toISOString().slice(0, 10),
+      updatedAt: releaseDate,
+      // Keeps the lightweight table-of-contents entry (title/date/word
+      // count only, no content) in sync so Novel Detail / the Reader's
+      // chapter drawer never need to fetch every chapter document just to
+      // list them. arrayUnion creates the field if it doesn't exist yet,
+      // so this is safe for brand-new novels too. For novels that predate
+      // this feature, the resulting array simply won't match chaptersCount
+      // until "Làm mới danh sách chương" backfills the older chapters —
+      // the read side already falls back to the old full-fetch behavior
+      // in that case, so nothing breaks either way.
+      chapterIndex: arrayUnion({
+        id: ref.id,
+        chapterNumber: chapter.chapterNumber,
+        title: chapter.title,
+        releaseDate,
+        wordCount,
+      }),
     });
     batch.commit().catch((e) => console.error('createChapter:', e));
     return ref.id;
@@ -909,6 +968,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const content = updates.content || target.content;
     const wordCount = content.reduce((acc, p) => acc + p.trim().split(/\s+/).filter(Boolean).length, 0);
     updateDoc(doc(db, 'chapters', chapterId), { ...updates, wordCount }).catch((e) => console.error('updateChapter:', e));
+
+    // Keep the lightweight chapterIndex entry (see createChapter) in sync
+    // whenever the title/number/word count actually changes, so the table
+    // of contents doesn't go stale. Only for novels that already have the
+    // index — see createChapter's comment.
+    if (novel.chapterIndex && (updates.title !== undefined || updates.chapterNumber !== undefined || updates.content !== undefined)) {
+      const nextIndex = novel.chapterIndex.map((entry) =>
+        entry.id === chapterId
+          ? {
+              ...entry,
+              title: updates.title ?? entry.title,
+              chapterNumber: updates.chapterNumber ?? entry.chapterNumber,
+              wordCount,
+            }
+          : entry
+      );
+      updateDoc(doc(db, 'novels', novel.id), { chapterIndex: nextIndex }).catch((e) => console.error('updateChapter (index):', e));
+    }
   };
 
   const deleteChapter = async (chapterId: string) => {
@@ -943,6 +1020,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         totalComments: Math.max(0, (novel.totalComments || 0) - commentSnap.size),
         totalViews: Math.max(0, (novel.totalViews || 0) - viewSnap.size),
         updatedAt: new Date().toISOString().slice(0, 10),
+        ...(novel.chapterIndex
+          ? { chapterIndex: novel.chapterIndex.filter((entry) => entry.id !== chapterId) }
+          : {}),
       });
 
       setChapters((prev) => prev.filter((c) => c.id !== chapterId));
@@ -952,6 +1032,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         chaptersCount: Math.max(0, (n.chaptersCount || 1) - 1),
         totalComments: Math.max(0, (n.totalComments || 0) - commentSnap.size),
         totalViews: Math.max(0, (n.totalViews || 0) - viewSnap.size),
+        chapterIndex: n.chapterIndex ? n.chapterIndex.filter((entry) => entry.id !== chapterId) : n.chapterIndex,
       } : n));
       loadedCommentChapters.current.delete(chapterId);
       chapterCommentCursors.current.delete(chapterId);
@@ -959,6 +1040,36 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } catch (e) {
       console.error('deleteChapter:', e);
       window.alert('Không thể xóa chương và dữ liệu liên quan. Vui lòng kiểm tra quyền Firebase hoặc thử lại.');
+    }
+  };
+
+  // One-time backfill for novels created before the lightweight chapterIndex
+  // existed. Fetches every chapter of the novel exactly once (same cost as
+  // the old "load full chapter list" behavior), builds the lightweight
+  // entries, and saves them to the novel doc. After this, the novel's table
+  // of contents no longer needs to fetch full chapter documents.
+  const rebuildChapterIndex = async (novelId: string): Promise<void> => {
+    const novel = novels.find((n) => n.id === novelId);
+    if (!novel || !currentUser) return;
+    if (currentUser.role !== 'admin' && novel.authorId !== currentUser.id) return;
+
+    try {
+      const fullChapters = await ensureChaptersForNovel(novelId);
+      const chapterIndex = fullChapters
+        .map((c) => ({
+          id: c.id,
+          chapterNumber: c.chapterNumber,
+          title: c.title,
+          releaseDate: c.releaseDate,
+          wordCount: c.wordCount,
+        }))
+        .sort((a, b) => a.chapterNumber - b.chapterNumber);
+
+      await updateDoc(doc(db, 'novels', novelId), { chapterIndex });
+      setNovels((prev) => prev.map((n) => (n.id === novelId ? { ...n, chapterIndex } : n)));
+    } catch (e) {
+      console.error('rebuildChapterIndex:', e);
+      window.alert('Không thể làm mới danh sách chương. Vui lòng thử lại.');
     }
   };
 
@@ -1143,6 +1254,31 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const updateReaderSettings = (settings: Partial<ReaderSettings>) => setReaderSettings((prev) => ({ ...prev, ...settings }));
 
+  // Admin-only moderation: removes a comment and rolls back the same two
+  // counters addParagraphComment increments, so chapter/novel comment
+  // counts stay accurate. Firestore Rules already restrict the actual
+  // delete to admins (or the comment's own author / the novel's owner) —
+  // this function is only ever exposed in the UI to admins.
+  const deleteComment = async (commentId: string) => {
+    if (!currentUser || currentUser.role !== 'admin') return;
+    const target = comments.find((c) => c.id === commentId);
+    if (!target) return;
+
+    try {
+      const batch = writeBatch(db);
+      batch.delete(doc(db, 'comments', commentId));
+      batch.update(doc(db, 'chapters', target.chapterId), { commentsCount: increment(-1) });
+      batch.update(doc(db, 'novels', target.novelId), { totalComments: increment(-1) });
+      await batch.commit();
+      setComments((prev) => prev.filter((c) => c.id !== commentId));
+      setChapters((prev) => prev.map((c) => c.id === target.chapterId ? { ...c, commentsCount: Math.max(0, (c.commentsCount || 1) - 1) } : c));
+      setNovels((prev) => prev.map((n) => n.id === target.novelId ? { ...n, totalComments: Math.max(0, (n.totalComments || 1) - 1) } : n));
+    } catch (e) {
+      console.error('deleteComment:', e);
+      window.alert('Không thể xóa bình luận. Vui lòng thử lại.');
+    }
+  };
+
   const toggleLibraryNovel = (novelId: string) => {
     if (!currentUser) return;
     const ref = doc(db, 'users', currentUser.id, 'library', novelId);
@@ -1262,10 +1398,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       createChapter,
       updateChapter,
       deleteChapter,
+      rebuildChapterIndex,
       toggleLikeChapter,
       recordView,
       addParagraphComment,
       likeComment,
+      deleteComment,
       readerSettings,
       updateReaderSettings,
       targetParagraphIndex,

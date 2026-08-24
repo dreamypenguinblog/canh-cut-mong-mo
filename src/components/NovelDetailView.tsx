@@ -43,6 +43,22 @@ export const NovelDetailView: React.FC = () => {
     .filter((c) => c.novelId === novel.id)
     .sort((a, b) => a.chapterNumber - b.chapterNumber);
 
+  // Prefer the lightweight chapterIndex (title/date/word count only, no
+  // content) already carried on the novel doc — zero extra reads since the
+  // novel itself is already loaded. Falls back to whatever's cached in
+  // `chapters` for novels that predate this feature (or haven't been
+  // backfilled via "Làm mới danh sách chương" yet).
+  const hasLightweightIndex = (novel.chapterIndex?.length || 0) === novel.chaptersCount && novel.chaptersCount > 0;
+  const chapterListItems = hasLightweightIndex
+    ? [...novel.chapterIndex!].sort((a, b) => a.chapterNumber - b.chapterNumber)
+    : novelChapters.map((c) => ({
+        id: c.id,
+        chapterNumber: c.chapterNumber,
+        title: c.title,
+        releaseDate: c.releaseDate,
+        wordCount: c.wordCount,
+      }));
+
   const isSaved = isInLibrary(novel.id);
 
   return (
@@ -99,7 +115,7 @@ export const NovelDetailView: React.FC = () => {
             <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 text-xs text-[#8F7D85] dark:text-[#E0D8DC]">
               <span>Tác giả: <strong className="text-[#1E1B1D] dark:text-[#FFFFFF] font-medium">{novel.authorName}</strong></span>
               <span>•</span>
-              <span>{novelChapters.length} chương</span>
+              <span>{novel.chaptersCount} chương</span>
             </div>
 
             {/* Metrics stats */}
@@ -189,14 +205,14 @@ export const NovelDetailView: React.FC = () => {
       >
         <div className="flex items-center justify-between border-b border-[#EADCE1] dark:border-[#383040] pb-3">
           <h2 className="font-playfair text-base font-semibold uppercase tracking-wider text-[#1E1B1D] dark:text-[#FFFFFF]">
-            Danh Sách Chương ({novelChapters.length})
+            Danh Sách Chương ({chapterListItems.length})
           </h2>
           <span className="text-xs text-[#8F7D85] dark:text-[#D5CBD0]">Nhấn chương để đọc</span>
         </div>
 
-        {novelChapters.length > 0 ? (
+        {chapterListItems.length > 0 ? (
           <div className="divide-y divide-[#EADCE1] dark:divide-[#383040] rounded-xl border border-[#EADCE1] dark:border-[#383040] overflow-hidden">
-            {novelChapters.map((ch) => (
+            {chapterListItems.map((ch) => (
               <div
                 key={ch.id}
                 onClick={() => openReader(novel.id, ch.id)}
@@ -207,7 +223,7 @@ export const NovelDetailView: React.FC = () => {
                     {ch.title}
                   </span>
                   <span className="text-[11px] text-[#8F7D85] dark:text-[#D5CBD0]">
-                    {ch.releaseDate} • {ch.wordCount.toLocaleString('vi-VN')} chữ • {ch.views.toLocaleString('vi-VN')} lượt xem
+                    {ch.releaseDate} • {ch.wordCount.toLocaleString('vi-VN')} chữ
                   </span>
                 </div>
 

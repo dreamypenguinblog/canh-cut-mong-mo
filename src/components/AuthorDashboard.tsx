@@ -24,6 +24,7 @@ export const AuthorDashboard: React.FC = () => {
     createChapter,
     updateChapter,
     deleteChapter,
+    rebuildChapterIndex,
     openReader,
     globalTheme,
   } = useApp();
@@ -54,6 +55,18 @@ export const AuthorDashboard: React.FC = () => {
   const [isPublished, setIsPublished] = useState(true);
 
   const [feedbackMsg, setFeedbackMsg] = useState<string | null>(null);
+  const [rebuildingNovelId, setRebuildingNovelId] = useState<string | null>(null);
+
+  const handleRebuildChapterIndex = async (novel: Novel) => {
+    setRebuildingNovelId(novel.id);
+    try {
+      await rebuildChapterIndex(novel.id);
+      setFeedbackMsg(`Đã làm mới danh sách chương cho "${novel.title}".`);
+      window.setTimeout(() => setFeedbackMsg(null), 4000);
+    } finally {
+      setRebuildingNovelId(null);
+    }
+  };
 
   // Derived author stats
   const authoredNovels = currentUser?.role === 'admin'
@@ -747,6 +760,16 @@ export const AuthorDashboard: React.FC = () => {
                       </div>
 
                       <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                        {(novel.chapterIndex?.length || 0) !== novel.chaptersCount && novel.chaptersCount > 0 && (
+                          <button
+                            onClick={() => handleRebuildChapterIndex(novel)}
+                            disabled={rebuildingNovelId === novel.id}
+                            title="Truyện này đăng trước khi có tính năng mục lục nhẹ — bấm 1 lần để mục lục tải nhanh hơn, không cần đụng lại sau"
+                            className="min-h-[34px] px-3 py-1 rounded-lg border border-[#DAC8CE] dark:border-[#4B3E52] text-xs font-medium text-[#8F7D85] dark:text-[#D5CBD0] hover:border-[#1E1B1D] dark:hover:border-white disabled:opacity-50"
+                          >
+                            {rebuildingNovelId === novel.id ? 'Đang làm mới...' : 'Làm mới danh sách chương'}
+                          </button>
+                        )}
                         <button
                           onClick={() => handleOpenNewChapter(novel.id)}
                           className="min-h-[34px] px-3 py-1 rounded-lg border border-[#1E1B1D] dark:border-white text-xs font-medium"

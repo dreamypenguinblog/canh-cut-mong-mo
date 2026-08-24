@@ -66,13 +66,25 @@ export const ReaderView: React.FC = () => {
 
   // The Reader normally only loads the current chapter (+ neighbors), not
   // the novel's full chapter list. The "Danh Sách Chương" drawer needs the
-  // full list, so fetch it only at the moment the reader actually opens
-  // the drawer — not eagerly on every chapter open.
+  // full list — but only fetches it when the novel's lightweight
+  // chapterIndex (title/date/word count, no content) isn't already
+  // complete, and only at the moment the drawer is actually opened.
+  const hasCompleteChapterIndex = !!novel && novel.chaptersCount > 0 && (novel.chapterIndex?.length || 0) === novel.chaptersCount;
   useEffect(() => {
-    if (showChapterDrawer && novel) {
+    if (showChapterDrawer && novel && !hasCompleteChapterIndex) {
       void ensureChaptersForNovel(novel.id);
     }
-  }, [showChapterDrawer, novel?.id]);
+  }, [showChapterDrawer, novel?.id, hasCompleteChapterIndex]);
+
+  const chapterListItems = hasCompleteChapterIndex
+    ? [...novel!.chapterIndex!].sort((a, b) => a.chapterNumber - b.chapterNumber)
+    : novelChapters.map((c) => ({
+        id: c.id,
+        chapterNumber: c.chapterNumber,
+        title: c.title,
+        releaseDate: c.releaseDate,
+        wordCount: c.wordCount,
+      }));
 
   const currentChapterIdx = novelChapters.findIndex((c) => c.id === chapter?.id);
   const prevChapter = currentChapterIdx > 0 ? novelChapters[currentChapterIdx - 1] : null;
@@ -675,7 +687,7 @@ export const ReaderView: React.FC = () => {
             }`}
           >
             <div className="flex items-center justify-between border-b pb-3 mb-3 border-[#EADCE1] dark:border-[#2E2833]">
-              <h3 className="font-playfair font-semibold text-base">Danh Sách Chương ({novelChapters.length})</h3>
+              <h3 className="font-playfair font-semibold text-base">Danh Sách Chương ({chapterListItems.length})</h3>
               <button
                 onClick={() => setShowChapterDrawer(false)}
                 className="p-1 rounded-md text-[#8F7D85] hover:text-black dark:hover:text-white"
@@ -686,7 +698,7 @@ export const ReaderView: React.FC = () => {
             </div>
 
             <div className="flex-1 overflow-y-auto space-y-1.5">
-              {novelChapters.map((ch) => (
+              {chapterListItems.map((ch) => (
                 <button
                   key={ch.id}
                   onClick={() => {
@@ -704,7 +716,7 @@ export const ReaderView: React.FC = () => {
                   <div>
                     <span className="font-playfair text-xs sm:text-sm block">{ch.title}</span>
                     <span className="text-[11px] text-[#8F7D85] dark:text-[#D5CBD0]">
-                      {ch.wordCount.toLocaleString('vi-VN')} chữ • {ch.views.toLocaleString('vi-VN')} lượt xem
+                      {ch.wordCount.toLocaleString('vi-VN')} chữ
                     </span>
                   </div>
                   {ch.id === chapter.id && <span className="text-xs font-semibold">Đang đọc</span>}

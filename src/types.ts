@@ -44,6 +44,14 @@ export interface Chapter {
   authorNote?: string;
 }
 
+export interface ChapterIndexEntry {
+  id: string;
+  chapterNumber: number;
+  title: string;
+  releaseDate: string;
+  wordCount: number;
+}
+
 export interface Novel {
   id: string;
   title: string;
@@ -64,6 +72,12 @@ export interface Novel {
   rating: number;
   featured?: boolean;
   chaptersCount: number;
+  // Lightweight chapter list (title/date/word count only, no content) kept
+  // in sync on create/edit/delete so the table of contents can render
+  // without fetching every chapter document. Missing/incomplete on novels
+  // created before this feature — those fall back to the older full fetch
+  // until "Làm mới danh sách chương" is used once in Author Dashboard.
+  chapterIndex?: ChapterIndexEntry[];
 }
 
 export interface Bookmark {

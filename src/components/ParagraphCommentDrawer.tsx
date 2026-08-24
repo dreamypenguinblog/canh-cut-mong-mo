@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { auth } from '../lib/firebase';
-import { MessageSquare, Heart, X, Send } from 'lucide-react';
+import { MessageSquare, Heart, X, Send, Trash2 } from 'lucide-react';
 import { formatRelativeTime } from '../lib/formatTime';
 
 interface ParagraphCommentDrawerProps {
@@ -21,7 +21,7 @@ export const ParagraphCommentDrawer: React.FC<ParagraphCommentDrawerProps> = ({
   paragraphIndex,
   paragraphText,
 }) => {
-  const { comments, addParagraphComment, likeComment, currentUser, globalTheme, loadMoreCommentsForChapter, hasMoreCommentsForChapter } = useApp();
+  const { comments, addParagraphComment, likeComment, deleteComment, currentUser, globalTheme, loadMoreCommentsForChapter, hasMoreCommentsForChapter } = useApp();
   const [commentInput, setCommentInput] = useState('');
   const [guestName, setGuestName] = useState(() => {
     try { return localStorage.getItem('canhcut_guest_comment_name') || ''; } catch { return ''; }
@@ -119,7 +119,21 @@ export const ParagraphCommentDrawer: React.FC<ParagraphCommentDrawerProps> = ({
                         </span>
                       )}
                     </div>
-                    <span className="text-[10px] text-[#8F7D85] dark:text-[#D5CBD0]">{formatRelativeTime(c.createdAt)}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] text-[#8F7D85] dark:text-[#D5CBD0]">{formatRelativeTime(c.createdAt)}</span>
+                      {currentUser?.role === 'admin' && (
+                        <button
+                          onClick={() => {
+                            if (confirm('Xóa bình luận này?')) void deleteComment(c.id);
+                          }}
+                          className="p-1 rounded-md text-[#8F7D85] hover:text-rose-500 transition-colors"
+                          title="Xóa bình luận (quản trị)"
+                          aria-label="Xóa bình luận"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   <p className="font-lora text-xs leading-relaxed text-[#2C272A] dark:text-[#FAF5F6]">{c.content}</p>
