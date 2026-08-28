@@ -35,6 +35,8 @@ import {
   increment,
   arrayUnion,
   arrayRemove,
+  type QueryDocumentSnapshot,
+  type DocumentData,
 } from 'firebase/firestore';
 import { auth, db, googleProvider } from '../lib/firebase';
 
@@ -147,6 +149,10 @@ interface AppContextType {
   // One-time backfill so an existing novel's chapter list becomes as light
   // to load as newly-created ones. See rebuildChapterIndex for details.
   rebuildChapterIndex: (novelId: string) => Promise<void>;
+  // Admin-only, one-time, whole-site backfill for the per-paragraph
+  // comment tally on chapters that predate that feature. See
+  // rebuildAllCommentParagraphCounts for details.
+  rebuildAllCommentParagraphCounts: () => Promise<{ chaptersUpdated: number; commentsScanned: number }>;
 
   toggleLikeChapter: (chapterId: string) => void;
   recordView: (chapterId: string) => void;
@@ -204,10 +210,22 @@ const toUser = async (firebaseUser: FirebaseUser): Promise<User> => {
     canPublish: isAdminEmail || existing.canPublish === true || existing.role === 'author' || existing.role === 'admin',
   };
 
-  await setDoc(ref, {
-    ...user,
-    updatedAt: new Date().toISOString(),
-  }, { merge: true });
+  // Only write back to Firestore when the profile doc doesn't exist yet, or
+  // something about it actually changed. Previously this wrote on every
+  // single login/page reload regardless — one avoidable write per
+  // logged-in visit, for a field (`updatedAt`) that isn't even shown
+  // anywhere in the UI.
+  const isUnchanged = snap.exists()
+    && existing.name === user.name
+    && existing.email === user.email
+    && existing.avatar === user.avatar
+    && existing.role === user.role
+    && existing.isVerified === user.isVerified
+    && existing.canPublish === user.canPublish;
+
+  if (!isUnchanged) {
+    setDoc(ref, { ...user, updatedAt: new Date().toISOString() }, { merge: true }).catch((e) => console.error('toUser:', e));
+  }
 
   return user;
 };
@@ -835,7 +853,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     setSelectedChapterId(targetChId || null);
     updateHash(buildHash({ view: 'reader', novelId, chapterId: targetChId || undefined }));
-    if (targetChId) void loadCommentsForChapter(targetChId);
   };
 
   const openNovelDetail = async (novelId: string) => {
@@ -931,6 +948,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       hearts: 0,
       likedBy: [],
       commentsCount: 0,
+      commentsByParagraph: {},
       wordCount,
     };
 
@@ -1071,6 +1089,56 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       console.error('rebuildChapterIndex:', e);
       window.alert('Không thể làm mới danh sách chương. Vui lòng thử lại.');
     }
+  };
+
+  // One-time, admin-only backfill: reads every comment on the whole site
+  // exactly once, tallies how many belong to each (chapter, paragraph)
+  // pair, and saves that tally onto each chapter document. After this runs,
+  // every chapter's per-paragraph comment badge is accurate — including
+  // comments posted before this feature existed, which until now could
+  // only be counted from whatever happened to already be loaded.
+  const rebuildAllCommentParagraphCounts = async (): Promise<{ chaptersUpdated: number; commentsScanned: number }> => {
+    if (!currentUser || currentUser.role !== 'admin') throw new Error('Chỉ admin mới được dùng công cụ này.');
+
+    const tally = new Map<string, Record<string, number>>();
+    let commentsScanned = 0;
+    let cursor: QueryDocumentSnapshot<DocumentData> | null = null;
+
+    // Firestore-imposed constraint: paginate through the whole `comments`
+    // collection instead of one unbounded getDocs call.
+    while (true) {
+      const q = cursor
+        ? query(collection(db, 'comments'), orderBy(documentId()), startAfter(cursor), limit(500))
+        : query(collection(db, 'comments'), orderBy(documentId()), limit(500));
+      const snap = await getDocs(q);
+      if (snap.empty) break;
+      snap.docs.forEach((d) => {
+        const data = d.data() as ParagraphComment;
+        commentsScanned += 1;
+        if (!data.chapterId || data.paragraphIndex === undefined || data.paragraphIndex === null) return;
+        const chapterTally = tally.get(data.chapterId) || {};
+        const key = String(data.paragraphIndex);
+        chapterTally[key] = (chapterTally[key] || 0) + 1;
+        tally.set(data.chapterId, chapterTally);
+      });
+      cursor = snap.docs[snap.docs.length - 1];
+      if (snap.size < 500) break;
+    }
+
+    // Write results back in batches of at most 400 chapter updates each
+    // (Firestore's per-batch limit is 500 writes).
+    const chapterIds = Array.from(tally.keys());
+    for (let i = 0; i < chapterIds.length; i += 400) {
+      const batch = writeBatch(db);
+      chapterIds.slice(i, i + 400).forEach((chapterId) => {
+        batch.update(doc(db, 'chapters', chapterId), { commentsByParagraph: tally.get(chapterId) });
+      });
+      await batch.commit();
+    }
+
+    setChapters((prev) => prev.map((c) => (tally.has(c.id) ? { ...c, commentsByParagraph: tally.get(c.id) } : c)));
+
+    return { chaptersUpdated: chapterIds.length, commentsScanned };
   };
 
   const toggleLikeChapter = async (chapterId: string) => {
@@ -1217,12 +1285,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     const batch = writeBatch(db);
     batch.set(ref, comment);
-    batch.update(doc(db, 'chapters', chapterId), { commentsCount: increment(1) });
+    batch.update(doc(db, 'chapters', chapterId), {
+      commentsCount: increment(1),
+      // Firestore supports incrementing a nested map field via dot-path,
+      // creating the key at 0 first if it doesn't exist yet.
+      [`commentsByParagraph.${paragraphIndex}`]: increment(1),
+    });
     batch.update(doc(db, 'novels', novelId), { totalComments: increment(1) });
     try {
       await batch.commit();
       setComments((prev) => [...prev, comment]);
-      setChapters((prev) => prev.map((c) => c.id === chapterId ? { ...c, commentsCount: (c.commentsCount || 0) + 1 } : c));
+      setChapters((prev) => prev.map((c) => c.id === chapterId ? {
+        ...c,
+        commentsCount: (c.commentsCount || 0) + 1,
+        commentsByParagraph: {
+          ...(c.commentsByParagraph || {}),
+          [paragraphIndex]: ((c.commentsByParagraph || {})[paragraphIndex] || 0) + 1,
+        },
+      } : c));
       setNovels((prev) => prev.map((n) => n.id === novelId ? { ...n, totalComments: (n.totalComments || 0) + 1 } : n));
     } catch (e) {
       console.error('addParagraphComment:', e);
@@ -1267,11 +1347,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     try {
       const batch = writeBatch(db);
       batch.delete(doc(db, 'comments', commentId));
-      batch.update(doc(db, 'chapters', target.chapterId), { commentsCount: increment(-1) });
+      batch.update(doc(db, 'chapters', target.chapterId), {
+        commentsCount: increment(-1),
+        [`commentsByParagraph.${target.paragraphIndex}`]: increment(-1),
+      });
       batch.update(doc(db, 'novels', target.novelId), { totalComments: increment(-1) });
       await batch.commit();
       setComments((prev) => prev.filter((c) => c.id !== commentId));
-      setChapters((prev) => prev.map((c) => c.id === target.chapterId ? { ...c, commentsCount: Math.max(0, (c.commentsCount || 1) - 1) } : c));
+      setChapters((prev) => prev.map((c) => c.id === target.chapterId ? {
+        ...c,
+        commentsCount: Math.max(0, (c.commentsCount || 1) - 1),
+        commentsByParagraph: {
+          ...(c.commentsByParagraph || {}),
+          [target.paragraphIndex]: Math.max(0, ((c.commentsByParagraph || {})[target.paragraphIndex] || 1) - 1),
+        },
+      } : c));
       setNovels((prev) => prev.map((n) => n.id === target.novelId ? { ...n, totalComments: Math.max(0, (n.totalComments || 1) - 1) } : n));
     } catch (e) {
       console.error('deleteComment:', e);
@@ -1399,6 +1489,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       updateChapter,
       deleteChapter,
       rebuildChapterIndex,
+      rebuildAllCommentParagraphCounts,
       toggleLikeChapter,
       recordView,
       addParagraphComment,

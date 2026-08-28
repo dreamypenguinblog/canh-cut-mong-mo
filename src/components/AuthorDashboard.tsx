@@ -25,6 +25,7 @@ export const AuthorDashboard: React.FC = () => {
     updateChapter,
     deleteChapter,
     rebuildChapterIndex,
+    rebuildAllCommentParagraphCounts,
     openReader,
     globalTheme,
   } = useApp();
@@ -56,6 +57,22 @@ export const AuthorDashboard: React.FC = () => {
 
   const [feedbackMsg, setFeedbackMsg] = useState<string | null>(null);
   const [rebuildingNovelId, setRebuildingNovelId] = useState<string | null>(null);
+  const [isRebuildingCommentCounts, setIsRebuildingCommentCounts] = useState(false);
+
+  const handleRebuildAllCommentCounts = async () => {
+    if (!confirm('Thao tác này sẽ đọc lại toàn bộ bình luận trên web (1 lần) để tính chính xác số bình luận trên từng đoạn văn cho các chương cũ. Tiếp tục?')) return;
+    setIsRebuildingCommentCounts(true);
+    try {
+      const { chaptersUpdated, commentsScanned } = await rebuildAllCommentParagraphCounts();
+      setFeedbackMsg(`Đã làm mới ${chaptersUpdated} chương (rà ${commentsScanned} bình luận).`);
+      window.setTimeout(() => setFeedbackMsg(null), 5000);
+    } catch (e) {
+      console.error(e);
+      window.alert('Không thể làm mới số bình luận. Vui lòng thử lại.');
+    } finally {
+      setIsRebuildingCommentCounts(false);
+    }
+  };
 
   const handleRebuildChapterIndex = async (novel: Novel) => {
     setRebuildingNovelId(novel.id);
@@ -77,7 +94,11 @@ export const AuthorDashboard: React.FC = () => {
 
   const totalViews = authoredNovels.reduce((acc, n) => acc + n.totalViews, 0);
   const totalHearts = authoredNovels.reduce((acc, n) => acc + n.totalHearts, 0);
-  const totalComments = comments.filter((c) => authoredNovelIds.has(c.novelId)).length;
+  // Uses the accurate stored aggregate (kept in sync by addParagraphComment/
+  // deleteComment) instead of counting whatever happens to be loaded in
+  // memory — comments are no longer eagerly preloaded when a chapter opens,
+  // so counting loaded documents would undercount here.
+  const totalComments = authoredNovels.reduce((acc, n) => acc + (n.totalComments || 0), 0);
   const totalChaptersCount = authoredChapters.length;
 
   const currentParagraphCount = chapterContentText.split(/\n+/).filter(Boolean).length;
@@ -285,6 +306,22 @@ export const AuthorDashboard: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* Admin-only, whole-site maintenance tools — not part of regular
+          per-novel authoring, kept visually separate so it's clear this
+          isn't a per-novel action. */}
+      {currentUser?.role === 'admin' && (
+        <div className="max-w-2xl mx-auto flex flex-wrap items-center justify-center gap-2 text-center">
+          <button
+            onClick={handleRebuildAllCommentCounts}
+            disabled={isRebuildingCommentCounts}
+            title="Tính lại chính xác số bình luận trên từng đoạn văn cho các bình luận đăng trước khi có tính năng này — chỉ cần bấm 1 lần"
+            className="min-h-[32px] px-3 py-1 rounded-lg border border-dashed border-[#DAC8CE] dark:border-[#4B3E52] text-[11px] font-medium text-[#8F7D85] dark:text-[#D5CBD0] hover:border-[#1E1B1D] dark:hover:border-white disabled:opacity-50"
+          >
+            {isRebuildingCommentCounts ? 'Đang tính lại toàn bộ...' : 'Làm mới số bình luận theo đoạn văn (toàn web)'}
+          </button>
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="flex items-center gap-2 border-b border-[#ECE0E4] dark:border-[#2E2833] pb-3 overflow-x-auto no-scrollbar">
