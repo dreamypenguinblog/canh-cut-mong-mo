@@ -1448,7 +1448,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     bookmarks.some((bm) => bm.chapterId === chapterId && bm.paragraphIndex === paragraphIndex);
 
   if (!authReady) {
-    return <div className="min-h-screen flex items-center justify-center bg-[#FAF5F6] text-[#8F7D85]">Cánh Cụt Mộng Mơ</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#FFF1F5] dark:bg-[#211B22] text-[#A45E78] dark:text-[#F2B3C1]">
+        <div className="flex flex-col items-center gap-3 rounded-2xl border-2 border-[#E8B8C5] dark:border-[#6B5261] bg-[#FFF9FB] dark:bg-[#352936] px-8 py-7">
+          <span className="w-10 h-10 rounded-full border-2 border-[#E8B8C5] border-t-[#D985A2] animate-spin" />
+          <span className="font-eb-garamond text-2xl font-medium">Cánh Cụt Mộng Mơ</span>
+          <span className="text-sm text-[#B5798D] dark:text-[#E8B8C5]">Đang tải...</span>
+        </div>
+      </div>
+    );
   }
 
   return (

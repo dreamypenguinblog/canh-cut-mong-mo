@@ -262,8 +262,13 @@ export const AuthorDashboard: React.FC = () => {
       <ProfileModal isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
 
       {/* Dashboard Top Header — matches the centered style used on Bảng Xếp Hạng */}
-      <div className="text-center max-w-2xl mx-auto space-y-2">
-        <h1 className="font-playfair italic text-2xl sm:text-4xl font-normal text-[#1E1B1D] dark:text-[#FFFFFF]">
+      <div className="text-center max-w-2xl mx-auto space-y-2 rounded-2xl border-2 border-[#E7C3CE] dark:border-[#6B5261] bg-[#FFF9FB] dark:bg-[#2B222C] px-5 py-5">
+        <div className="flex items-center justify-center gap-2 text-[10px] uppercase tracking-[0.2em] font-semibold text-[#B5798D] dark:text-[#E8B8C5]">
+          <span className="w-2 h-2 rounded-full bg-[#E8A0B8]" />
+          <span>Góc tác giả</span>
+          <span className="w-2 h-2 rounded-full bg-[#E8A0B8]" />
+        </div>
+        <h1 className="font-eb-garamond text-3xl sm:text-4xl font-medium text-[#574D4C] dark:text-[#FFFFFF]">
           Quản Lý & Đăng Truyện
         </h1>
 
@@ -273,7 +278,7 @@ export const AuthorDashboard: React.FC = () => {
             <button
               type="button"
               onClick={() => setIsProfileOpen(true)}
-              className="flex items-center gap-2 p-1.5 pr-3 rounded-xl border border-[#DAC8CE] dark:border-[#4B3E52] bg-[#FFFFFF]/60 dark:bg-[#1E1B24]/60 hover:border-[#1E1B1D] dark:hover:border-white transition-colors text-left"
+              className="flex items-center gap-2 p-1.5 pr-3 rounded-xl border border-[#E7B6C5] dark:border-[#6B5261] bg-[#FFFFFF] dark:bg-[#352936] hover:border-[#D985A2] dark:hover:border-[#F2B3C1] transition-colors text-left"
               title="Nhấn để đổi tên và avatar tác giả"
             >
               <img
@@ -294,13 +299,13 @@ export const AuthorDashboard: React.FC = () => {
 
           <button
             onClick={handleOpenNovelCreate}
-            className="min-h-[38px] px-4 py-1.5 rounded-lg bg-[#1E1B1D] text-[#FAF5F6] dark:bg-[#FAF5F6] dark:text-[#121113] text-xs font-medium hover:opacity-90 transition-opacity shadow-xs"
+            className="min-h-[38px] px-4 py-1.5 rounded-lg bg-[#D985A2] text-white dark:bg-[#F2B3C1] dark:text-[#2B222C] text-xs font-medium hover:opacity-90 transition-opacity"
           >
             <span>Đăng truyện mới</span>
           </button>
           <button
             onClick={() => handleOpenNewChapter(activeNovel?.id || novels[0]?.id)}
-            className="min-h-[38px] px-4 py-1.5 rounded-lg border border-[#1E1B1D] dark:border-[#FAF5F6] text-xs font-medium hover:bg-[#FAF0F3] dark:hover:bg-[#201C24] transition-colors"
+            className="min-h-[38px] px-4 py-1.5 rounded-lg border border-[#E8B8C5] dark:border-[#6B5261] text-[#A45E78] dark:text-[#F2B3C1] text-xs font-medium hover:bg-[#FCEEF3] dark:hover:bg-[#3A2935] transition-colors"
           >
             <span>Viết chương mới</span>
           </button>
@@ -316,7 +321,7 @@ export const AuthorDashboard: React.FC = () => {
             onClick={handleRebuildAllCommentCounts}
             disabled={isRebuildingCommentCounts}
             title="Tính lại chính xác số bình luận trên từng đoạn văn cho các bình luận đăng trước khi có tính năng này — chỉ cần bấm 1 lần"
-            className="min-h-[32px] px-3 py-1 rounded-lg border border-dashed border-[#DAC8CE] dark:border-[#4B3E52] text-[11px] font-medium text-[#8F7D85] dark:text-[#D5CBD0] hover:border-[#1E1B1D] dark:hover:border-white disabled:opacity-50"
+            className="min-h-[32px] px-3 py-1 rounded-lg border border-[#E8B8C5] dark:border-[#6B5261] text-[11px] font-medium text-[#A45E78] dark:text-[#D5CBD0] hover:border-[#D985A2] dark:hover:border-white disabled:opacity-50"
           >
             {isRebuildingCommentCounts ? 'Đang tính lại toàn bộ...' : 'Làm mới số bình luận theo đoạn văn (toàn web)'}
           </button>
@@ -324,12 +329,12 @@ export const AuthorDashboard: React.FC = () => {
       )}
 
       {/* Tabs */}
-      <div className="flex items-center gap-2 border-b border-[#ECE0E4] dark:border-[#2E2833] pb-3 overflow-x-auto no-scrollbar">
+      <div className="flex items-center gap-2 border border-[#E7C3CE] dark:border-[#594352] bg-[#FFF1F5] dark:bg-[#2B222C] p-2 rounded-xl overflow-x-auto no-scrollbar">
         <button
           onClick={() => setActiveTab('analytics')}
           className={`min-h-[36px] px-3.5 py-1.5 rounded-lg text-xs font-medium uppercase tracking-wider transition-all border ${
             activeTab === 'analytics'
-              ? 'bg-[#1E1B1D] text-[#FAF5F6] border-[#1E1B1D] dark:bg-[#FAF5F6] dark:text-[#121113] shadow-xs'
+              ? 'bg-[#D985A2] text-white border-[#D985A2] dark:bg-[#F2B3C1] dark:text-[#2B222C] dark:border-[#F2B3C1]'
               : isDark
               ? 'border-[#38323D] text-[#A69B9E] hover:border-white'
               : 'border-[#DAC8CE] text-[#6E5D65] hover:border-[#1E1B1D]'
@@ -342,7 +347,7 @@ export const AuthorDashboard: React.FC = () => {
           onClick={() => setActiveTab('novels')}
           className={`min-h-[36px] px-3.5 py-1.5 rounded-lg text-xs font-medium uppercase tracking-wider transition-all border ${
             activeTab === 'novels'
-              ? 'bg-[#1E1B1D] text-[#FAF5F6] border-[#1E1B1D] dark:bg-[#FAF5F6] dark:text-[#121113] shadow-xs'
+              ? 'bg-[#D985A2] text-white border-[#D985A2] dark:bg-[#F2B3C1] dark:text-[#2B222C] dark:border-[#F2B3C1]'
               : isDark
               ? 'border-[#38323D] text-[#A69B9E] hover:border-white'
               : 'border-[#DAC8CE] text-[#6E5D65] hover:border-[#1E1B1D]'
@@ -355,7 +360,7 @@ export const AuthorDashboard: React.FC = () => {
           onClick={() => setActiveTab('chapter_editor')}
           className={`min-h-[36px] px-3.5 py-1.5 rounded-lg text-xs font-medium uppercase tracking-wider transition-all border ${
             activeTab === 'chapter_editor'
-              ? 'bg-[#1E1B1D] text-[#FAF5F6] border-[#1E1B1D] dark:bg-[#FAF5F6] dark:text-[#121113] shadow-xs'
+              ? 'bg-[#D985A2] text-white border-[#D985A2] dark:bg-[#F2B3C1] dark:text-[#2B222C] dark:border-[#F2B3C1]'
               : isDark
               ? 'border-[#38323D] text-[#A69B9E] hover:border-white'
               : 'border-[#DAC8CE] text-[#6E5D65] hover:border-[#1E1B1D]'
@@ -371,8 +376,8 @@ export const AuthorDashboard: React.FC = () => {
           {/* Master Overview Metric Cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <div
-              className={`p-4 rounded-xl border ${
-                isDark ? 'bg-[#18161B] border-[#2E2833]' : 'bg-[#FFFFFF] border-[#ECE0E4]'
+                className={`p-4 rounded-xl border-2 ${
+                isDark ? 'bg-[#2B222C] border-[#6B5261]' : 'bg-[#FFF9FB] border-[#E7B6C5]'
               }`}
             >
               <div className="flex items-center justify-between">
@@ -385,8 +390,8 @@ export const AuthorDashboard: React.FC = () => {
             </div>
 
             <div
-              className={`p-4 rounded-xl border ${
-                isDark ? 'bg-[#18161B] border-[#2E2833]' : 'bg-[#FFFFFF] border-[#ECE0E4]'
+                className={`p-4 rounded-xl border-2 ${
+                isDark ? 'bg-[#2B222C] border-[#6B5261]' : 'bg-[#FFF9FB] border-[#E7B6C5]'
               }`}
             >
               <div className="flex items-center justify-between">
@@ -399,8 +404,8 @@ export const AuthorDashboard: React.FC = () => {
             </div>
 
             <div
-              className={`p-4 rounded-xl border ${
-                isDark ? 'bg-[#18161B] border-[#2E2833]' : 'bg-[#FFFFFF] border-[#ECE0E4]'
+                className={`p-4 rounded-xl border-2 ${
+                isDark ? 'bg-[#2B222C] border-[#6B5261]' : 'bg-[#FFF9FB] border-[#E7B6C5]'
               }`}
             >
               <div className="flex items-center justify-between">
@@ -413,8 +418,8 @@ export const AuthorDashboard: React.FC = () => {
             </div>
 
             <div
-              className={`p-4 rounded-xl border ${
-                isDark ? 'bg-[#18161B] border-[#2E2833]' : 'bg-[#FFFFFF] border-[#ECE0E4]'
+                className={`p-4 rounded-xl border-2 ${
+                isDark ? 'bg-[#2B222C] border-[#6B5261]' : 'bg-[#FFF9FB] border-[#E7B6C5]'
               }`}
             >
               <div className="flex items-center justify-between">
@@ -429,13 +434,13 @@ export const AuthorDashboard: React.FC = () => {
 
           {/* Chapter-by-Chapter In-Depth Analytics */}
           <div
-            className={`rounded-2xl border overflow-hidden shadow-xs ${
-              isDark ? 'bg-[#18161B] border-[#2E2833]' : 'bg-[#FFFFFF] border-[#ECE0E4]'
+            className={`rounded-2xl border-2 overflow-hidden ${
+              isDark ? 'bg-[#2B222C] border-[#6B5261]' : 'bg-[#FFF9FB] border-[#E7B6C5]'
             }`}
           >
             <div className="p-4 sm:p-5 border-b border-[#ECE0E4] dark:border-[#2E2833] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <h3 className="font-playfair font-semibold text-sm sm:text-base text-[#1E1B1D] dark:text-[#FAF5F6]">
+                <h3 className="font-eb-garamond text-xl font-medium text-[#574D4C] dark:text-[#FAF5F6]">
                   Thống Kê Chi Tiết Từng Chương
                 </h3>
                 <p className="text-xs text-[#8F7D85] dark:text-[#D5CBD0]">
@@ -448,7 +453,7 @@ export const AuthorDashboard: React.FC = () => {
                 value={selectedNovelIdForChapter}
                 onChange={(e) => setSelectedNovelIdForChapter(e.target.value)}
                 className={`min-h-[36px] px-3 py-1 text-xs rounded-lg border focus:outline-none focus:border-[#1E1B1D] dark:focus:border-white font-medium ${
-                  isDark ? 'bg-[#1F1C23] border-[#38323D] text-[#FAF5F6]' : 'bg-[#FAF5F6] border-[#DAC8CE] text-[#1E1B1D]'
+                  isDark ? 'bg-[#352936] border-[#6B5261] text-[#FAF5F6]' : 'bg-[#FFF1F5] border-[#E8B8C5] text-[#A45E78]'
                 }`}
               >
                 {authoredNovels.map((n) => (
@@ -619,8 +624,8 @@ export const AuthorDashboard: React.FC = () => {
           {/* Left Column: Form Create / Edit Novel */}
           <div className="lg:col-span-5">
             <div
-              className={`p-5 rounded-2xl border shadow-xs ${
-                isDark ? 'bg-[#18161B] border-[#2E2833]' : 'bg-[#FFFFFF] border-[#ECE0E4]'
+                className={`p-5 rounded-2xl border-2 ${
+                isDark ? 'bg-[#2B222C] border-[#6B5261]' : 'bg-[#FFF9FB] border-[#E7B6C5]'
               }`}
             >
               <div className="flex items-center justify-between border-b pb-3 mb-4 border-[#ECE0E4] dark:border-[#2E2833]">
@@ -741,7 +746,7 @@ export const AuthorDashboard: React.FC = () => {
                 <div className="pt-2">
                   <button
                     type="submit"
-                    className="w-full min-h-[40px] py-2 rounded-lg bg-[#1E1B1D] text-[#FAF5F6] dark:bg-[#FAF5F6] dark:text-[#121113] uppercase tracking-wider font-semibold hover:opacity-90 transition-opacity text-xs shadow-xs"
+                    className="w-full min-h-[40px] py-2 rounded-lg bg-[#D985A2] text-white dark:bg-[#F2B3C1] dark:text-[#2B222C] uppercase tracking-wider font-semibold hover:opacity-90 transition-opacity text-xs"
                   >
                     {editingNovelId ? 'Lưu Cập Nhật' : 'Đăng Tác Phẩm'}
                   </button>
@@ -752,15 +757,18 @@ export const AuthorDashboard: React.FC = () => {
 
           {/* Right Column: Existing Novels List */}
           <div className="lg:col-span-7 space-y-3">
-            <h3 className="font-playfair font-semibold text-sm sm:text-base mb-2 text-[#1E1B1D] dark:text-[#FAF5F6]">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="w-2 h-2 rounded-full bg-[#E8A0B8]" />
+              <h3 className="font-eb-garamond font-medium text-xl text-[#574D4C] dark:text-[#FAF5F6]">
               Danh Sách Truyện Của Bạn ({authoredNovels.length})
-            </h3>
+              </h3>
+            </div>
 
             <div className="space-y-3">
               {authoredNovels.length === 0 ? (
                 <div
-                  className={`p-8 text-center rounded-2xl border ${
-                    isDark ? 'bg-[#18161B] border-[#2E2833]' : 'bg-[#FFFFFF] border-[#ECE0E4]'
+                    className={`p-8 text-center rounded-2xl border-2 ${
+                    isDark ? 'bg-[#2B222C] border-[#6B5261]' : 'bg-[#FFF9FB] border-[#E7B6C5]'
                   }`}
                 >
                   <p className="font-playfair text-sm text-[#1E1B1D] dark:text-[#FAF5F6]">Chưa có tác phẩm nào</p>
@@ -774,18 +782,18 @@ export const AuthorDashboard: React.FC = () => {
                   return (
                     <div
                       key={novel.id}
-                      className={`p-4 rounded-2xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs ${
-                        isDark ? 'bg-[#18161B] border-[#2E2833]' : 'bg-[#FFFFFF] border-[#ECE0E4]'
+                      className={`p-4 rounded-2xl border-2 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 ${
+                        isDark ? 'bg-[#2B222C] border-[#6B5261] hover:border-[#D79BAD]' : 'bg-[#FFF9FB] border-[#E7B6C5] hover:border-[#D79BAD]'
                       }`}
                     >
                       <div className="flex items-center gap-3.5">
-                        <div className="w-12 h-16 rounded-lg overflow-hidden shrink-0 border border-[#DAC8CE] dark:border-[#38323D]">
+                        <div className="w-12 h-16 rounded-xl overflow-hidden shrink-0 border-2 border-[#E8B8C5] dark:border-[#7A5869] bg-[#FCEEF3]">
                           <img src={novel.coverImage} alt={novel.title} className="w-full h-full object-cover" />
                         </div>
                         <div>
-                          <h4 className="font-playfair italic font-semibold text-sm text-[#1E1B1D] dark:text-[#FAF5F6]">{novel.title}</h4>
+                          <h4 className="font-eb-garamond font-semibold text-lg text-[#574D4C] dark:text-[#FAF5F6]">{novel.title}</h4>
                           <div className="flex flex-wrap items-center gap-2 text-[11px] text-[#8F7D85] dark:text-[#D5CBD0] mt-0.5">
-                            <span className="font-medium text-[#1E1B1D] dark:text-[#FAF5F6]">Tác giả: {novel.authorName}</span>
+                            <span className="font-medium text-[#A45E78] dark:text-[#F2B3C1]">Tác giả: {novel.authorName}</span>
                             <span>•</span>
                             <span>{nChapters.length} chương</span>
                             <span>•</span>
@@ -802,20 +810,20 @@ export const AuthorDashboard: React.FC = () => {
                             onClick={() => handleRebuildChapterIndex(novel)}
                             disabled={rebuildingNovelId === novel.id}
                             title="Truyện này đăng trước khi có tính năng mục lục nhẹ — bấm 1 lần để mục lục tải nhanh hơn, không cần đụng lại sau"
-                            className="min-h-[34px] px-3 py-1 rounded-lg border border-[#DAC8CE] dark:border-[#4B3E52] text-xs font-medium text-[#8F7D85] dark:text-[#D5CBD0] hover:border-[#1E1B1D] dark:hover:border-white disabled:opacity-50"
+                            className="min-h-[34px] px-3 py-1 rounded-full border border-[#E8B8C5] dark:border-[#6B5261] text-xs font-medium text-[#A45E78] dark:text-[#D5CBD0] hover:border-[#D985A2] disabled:opacity-50"
                           >
                             {rebuildingNovelId === novel.id ? 'Đang làm mới...' : 'Làm mới danh sách chương'}
                           </button>
                         )}
                         <button
                           onClick={() => handleOpenNewChapter(novel.id)}
-                          className="min-h-[34px] px-3 py-1 rounded-lg border border-[#1E1B1D] dark:border-white text-xs font-medium"
+                          className="min-h-[34px] px-3 py-1 rounded-full border border-[#E8B8C5] dark:border-[#6B5261] text-[#A45E78] dark:text-[#F2B3C1] text-xs font-medium hover:bg-[#FCEEF3] dark:hover:bg-[#3A2935]"
                         >
                           + Viết chương
                         </button>
                         <button
                           onClick={() => handleEditNovel(novel)}
-                          className="min-h-[34px] px-3 py-1 rounded-lg bg-[#FAF0F3] dark:bg-[#201C25] text-[#1E1B1D] dark:text-[#FAF5F6] text-xs font-medium border border-transparent hover:border-[#DAC8CE]"
+                          className="min-h-[34px] px-3 py-1 rounded-full bg-[#F7D9E5] dark:bg-[#4A2F3D] text-[#A45E78] dark:text-[#F2B3C1] text-xs font-medium border border-transparent hover:border-[#D985A2]"
                         >
                           Sửa
                         </button>
@@ -845,8 +853,8 @@ export const AuthorDashboard: React.FC = () => {
         <div className="max-w-4xl mx-auto">
           {authoredNovels.length === 0 ? (
             <div
-              className={`p-8 text-center rounded-2xl border shadow-xs ${
-                isDark ? 'bg-[#18161B] border-[#2E2833]' : 'bg-[#FFFFFF] border-[#ECE0E4]'
+              className={`p-8 text-center rounded-2xl border-2 ${
+                isDark ? 'bg-[#2B222C] border-[#6B5261]' : 'bg-[#FFF9FB] border-[#E7B6C5]'
               }`}
             >
               <p className="font-playfair text-base font-medium text-[#1E1B1D] dark:text-[#FAF5F6]">
@@ -857,20 +865,20 @@ export const AuthorDashboard: React.FC = () => {
               </p>
               <button
                 onClick={() => setActiveTab('novels')}
-                className="px-4 py-2 rounded-lg bg-[#1E1B1D] text-white dark:bg-[#FAF5F6] dark:text-[#121113] text-xs font-semibold hover:opacity-90 transition-opacity"
+                className="px-4 py-2 rounded-lg bg-[#D985A2] text-white dark:bg-[#F2B3C1] dark:text-[#2B222C] text-xs font-semibold hover:opacity-90 transition-opacity"
               >
                 Tạo tiểu thuyết ngay
               </button>
             </div>
           ) : (
             <div
-              className={`p-5 sm:p-7 rounded-2xl border shadow-xs ${
-                isDark ? 'bg-[#18161B] border-[#2E2833]' : 'bg-[#FFFFFF] border-[#ECE0E4]'
+              className={`p-5 sm:p-7 rounded-2xl border-2 ${
+                isDark ? 'bg-[#2B222C] border-[#6B5261]' : 'bg-[#FFF9FB] border-[#E7B6C5]'
               }`}
             >
               <div className="flex items-center justify-between border-b pb-4 mb-5 border-[#ECE0E4] dark:border-[#2E2833]">
                 <div>
-                  <h3 className="font-playfair font-semibold text-base sm:text-lg text-[#1E1B1D] dark:text-[#FAF5F6]">
+                  <h3 className="font-eb-garamond text-2xl font-medium text-[#574D4C] dark:text-[#FAF5F6]">
                     {editingChapterId ? 'Chỉnh Sửa Chương Truyện' : 'Sửa & Viết Chương Mới'}
                   </h3>
                   <p className="text-xs text-[#8F7D85] dark:text-[#D5CBD0]">
@@ -890,8 +898,8 @@ export const AuthorDashboard: React.FC = () => {
 
               
               {/* DANH SÁCH CÁC CHƯƠNG ĐÃ ĐĂNG / ĐÃ CÓ */}
-              <div className="mb-5 rounded-xl border border-[#ECE0E4] dark:border-[#2E2833] overflow-hidden">
-                <div className="px-4 py-3 bg-[#FAF5F6] dark:bg-[#151317] border-b border-[#ECE0E4] dark:border-[#2E2833]">
+              <div className="mb-5 rounded-xl border-2 border-[#E7B6C5] dark:border-[#6B5261] overflow-hidden">
+                <div className="px-4 py-3 bg-[#FFF1F5] dark:bg-[#352936] border-b border-[#E7C3CE] dark:border-[#594352]">
                   <div className="flex items-center justify-between gap-3">
                     <div>
                       <h4 className="font-playfair font-semibold text-sm text-[#1E1B1D] dark:text-[#FAF5F6]">

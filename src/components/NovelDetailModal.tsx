@@ -27,16 +27,16 @@ export const NovelDetailModal: React.FC = () => {
   const isSaved = isInLibrary(novel.id);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#A45E78]/20 backdrop-blur-sm animate-in fade-in duration-200">
       <div
-        className={`relative w-full max-w-3xl max-h-[90vh] flex flex-col rounded-3xl shadow-2xl border overflow-hidden transition-colors ${
-          isDark ? 'bg-[#18161B] border-[#38323D] text-[#F3EEF0]' : 'bg-[#FFFFFF] border-[#ECE0E4] text-[#1E1B1D]'
+        className={`relative w-full max-w-3xl max-h-[90vh] flex flex-col rounded-3xl border-2 overflow-hidden transition-colors ${
+          isDark ? 'bg-[#2B222C] border-[#6B5261] text-[#F3EEF0]' : 'bg-[#FFF9FB] border-[#E7B6C5] text-[#574D4C]'
         }`}
       >
         {/* Close Button */}
         <button
           onClick={closeDetailModal}
-          className="absolute top-4 right-4 z-10 w-8 h-8 rounded-full bg-black/40 text-white flex items-center justify-center text-sm backdrop-blur-md hover:bg-black/60"
+          className="absolute top-4 right-4 z-10 w-8 h-8 rounded-full bg-[#D985A2] text-white flex items-center justify-center text-sm backdrop-blur-md hover:bg-[#C87594]"
         >
           ✕
         </button>
@@ -47,7 +47,7 @@ export const NovelDetailModal: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-12 gap-6 items-start">
             {/* Book Cover */}
             <div className="sm:col-span-4 flex justify-center">
-              <div className="w-44 sm:w-full aspect-[2/3] rounded-2xl overflow-hidden shadow-2xl border-2 border-[#D4AF37]/40 ring-4 ring-black/5">
+              <div className="w-44 sm:w-full aspect-[2/3] rounded-2xl overflow-hidden border-2 border-[#E8B8C5] dark:border-[#7A5869]">
                 <img src={novel.coverImage} alt={novel.title} className="w-full h-full object-cover" />
               </div>
             </div>
@@ -59,20 +59,20 @@ export const NovelDetailModal: React.FC = () => {
                   {novel.frenchSubtitle}
                 </span>
               )}
-              <h2 className="font-playfair italic text-2xl sm:text-3xl font-semibold leading-tight">
+              <h2 className="font-eb-garamond text-3xl sm:text-4xl font-medium leading-tight text-[#574D4C] dark:text-[#FAF5F6]">
                 {novel.title}
               </h2>
 
               <div className="flex flex-wrap items-center gap-3 text-xs text-[#8F7D85]">
                 <span>Bút danh: <strong className="text-[#1E1B1D] dark:text-[#FAF5F6]">{novel.authorName}</strong></span>
                 <span>•</span>
-                <span className="text-[#D4AF37]">★ {novel.rating.toFixed(2)}</span>
+                <span className="text-[#D985A2]">★ {novel.rating.toFixed(2)}</span>
                 <span>•</span>
                 <span>{novel.status === 'completed' ? 'Hoàn thành' : 'Đang phát hành'}</span>
               </div>
 
               {/* Stats badges */}
-              <div className="flex items-center gap-4 text-xs border-y border-[#ECE0E4] dark:border-[#2E2833] py-2.5 my-3">
+              <div className="flex items-center gap-4 text-xs border-y border-[#E7C3CE] dark:border-[#594352] py-2.5 my-3 bg-[#FFF1F5] dark:bg-[#352936] rounded-lg px-3">
                 <div>
                   <span className="text-[#8F7D85] block text-[10px] uppercase">Lượt đọc</span>
                   <span className="font-semibold">{novel.totalViews.toLocaleString('vi-VN')}</span>
@@ -105,7 +105,7 @@ export const NovelDetailModal: React.FC = () => {
               <div className="flex items-center gap-3 pt-3">
                 <button
                   onClick={() => openReader(novel.id)}
-                  className="px-6 py-2.5 rounded-full bg-[#1E1B1D] text-[#FAF5F6] dark:bg-[#FAF5F6] dark:text-[#121113] font-playfair text-xs uppercase tracking-wider font-semibold shadow hover:opacity-90 transition-opacity"
+                  className="px-6 py-2.5 rounded-full bg-[#D985A2] text-white dark:bg-[#F2B3C1] dark:text-[#2B222C] text-xs uppercase tracking-wider font-semibold hover:opacity-90 transition-opacity"
                 >
                   ✦ Đọc Từ Đầu
                 </button>
@@ -114,8 +114,8 @@ export const NovelDetailModal: React.FC = () => {
                   onClick={() => toggleLibraryNovel(novel.id)}
                   className={`px-5 py-2.5 rounded-full border text-xs font-playfair uppercase tracking-wider transition-colors ${
                     isSaved
-                      ? 'bg-[#E36888] text-white border-[#E36888]'
-                      : 'border-current hover:border-[#D4AF37]'
+                      ? 'bg-[#D985A2] text-white border-[#D985A2]'
+                      : 'border-[#E8B8C5] text-[#A45E78] hover:border-[#D985A2]'
                   }`}
                 >
                   {isSaved ? '♥ Đã Trong Tủ Sách' : '♡ Thêm Vào Thư Viện'}
@@ -125,8 +125,8 @@ export const NovelDetailModal: React.FC = () => {
           </div>
 
           {/* Synopsis */}
-          <div className="space-y-2 border-t border-[#ECE0E4] dark:border-[#2E2833] pt-6">
-            <h4 className="font-playfair font-semibold text-sm uppercase tracking-wider text-[#D4AF37]">
+          <div className="space-y-2 border-t border-[#E7C3CE] dark:border-[#594352] pt-6">
+            <h4 className="font-eb-garamond font-medium text-xl text-[#A45E78] dark:text-[#F2B3C1]">
               ✦ Tóm Tắt Tác Phẩm
             </h4>
             <p className="font-lora text-sm leading-relaxed whitespace-pre-line break-words text-[#4A3E44] dark:text-[#C5B9C0]">
@@ -135,23 +135,23 @@ export const NovelDetailModal: React.FC = () => {
           </div>
 
           {/* Chapters Index List */}
-          <div className="space-y-3 border-t border-[#ECE0E4] dark:border-[#2E2833] pt-6">
+          <div className="space-y-3 border-t border-[#E7C3CE] dark:border-[#594352] pt-6">
             <div className="flex items-center justify-between">
-              <h4 className="font-playfair font-semibold text-sm uppercase tracking-wider text-[#D4AF37]">
+              <h4 className="font-eb-garamond font-medium text-xl text-[#A45E78] dark:text-[#F2B3C1]">
                 ✧ Danh Sách Chương ({novelChapters.length})
               </h4>
               <span className="text-xs text-[#8F7D85]">Nhấn vào chương để bắt đầu đọc</span>
             </div>
 
-            <div className="divide-y divide-[#ECE0E4] dark:divide-[#2E2833] rounded-2xl border overflow-hidden">
+            <div className="divide-y divide-[#F0D5DE] dark:divide-[#594352] rounded-2xl border border-[#E8B8C5] dark:border-[#6B5261] overflow-hidden">
               {novelChapters.map((ch) => (
                 <div
                   key={ch.id}
                   onClick={() => openReader(novel.id, ch.id)}
-                  className="p-3.5 sm:p-4 flex items-center justify-between hover:bg-[#FAF4F6] dark:hover:bg-[#201C24] cursor-pointer transition-colors"
+                  className="p-3.5 sm:p-4 flex items-center justify-between bg-[#FFFFFF] dark:bg-[#352936] hover:bg-[#FFF1F5] dark:hover:bg-[#412F3A] cursor-pointer transition-colors"
                 >
                   <div>
-                    <span className="font-playfair font-medium text-sm block hover:text-[#D4AF37]">
+                    <span className="font-eb-garamond font-medium text-lg block hover:text-[#D985A2]">
                       {ch.title}
                     </span>
                     <span className="text-[11px] text-[#8F7D85]">
@@ -161,7 +161,7 @@ export const NovelDetailModal: React.FC = () => {
 
                   <div className="flex items-center gap-3">
                     <span className="text-xs text-[#E36888]">♡ {ch.hearts.toLocaleString('vi-VN')}</span>
-                    <span className="text-xs font-playfair uppercase text-[#D4AF37]">Đọc →</span>
+                    <span className="text-xs uppercase text-[#D985A2]">Đọc →</span>
                   </div>
                 </div>
               ))}

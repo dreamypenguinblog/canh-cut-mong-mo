@@ -36,17 +36,17 @@ export const ReaderSettingsModal: React.FC<{ isOpen: boolean; onClose: () => voi
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#A45E78]/20 backdrop-blur-xs animate-in fade-in duration-150">
       <div
-        className={`w-full max-w-md rounded-2xl shadow-2xl border p-5 sm:p-6 transition-colors ${
-          isDark ? 'bg-[#18161B] border-[#38323D] text-[#F3EEF0]' : 'bg-[#FFFFFF] border-[#EADCE1] text-[#1E1B1D]'
+        className={`w-full max-w-md rounded-2xl border-2 p-5 sm:p-6 transition-colors ${
+          isDark ? 'bg-[#2B222C] border-[#6B5261] text-[#F3EEF0]' : 'bg-[#FFF9FB] border-[#E7B6C5] text-[#574D4C]'
         }`}
       >
         {/* Header */}
         <div className="flex items-center justify-between border-b border-[#EADCE1] dark:border-[#2F2935] pb-3 mb-4">
           <div className="flex items-center gap-2">
             <SlidersHorizontal className="w-4 h-4 text-[#8F7D85] dark:text-[#D5CBD0]" />
-            <h3 className="font-playfair font-semibold text-base text-[#1E1B1D] dark:text-[#FAF5F6]">Cài Đặt Đọc Truyện</h3>
+            <h3 className="font-eb-garamond font-medium text-xl text-[#574D4C] dark:text-[#FAF5F6]">Cài Đặt Đọc Truyện</h3>
           </div>
           <button
             onClick={onClose}
@@ -153,7 +153,7 @@ export const ReaderSettingsModal: React.FC<{ isOpen: boolean; onClose: () => voi
         <div className="mt-5 pt-3 border-t border-[#EADCE1] dark:border-[#2F2935]">
           <button
             onClick={onClose}
-            className="w-full py-2.5 rounded-lg bg-[#1E1B1D] text-[#FAF5F6] dark:bg-[#FAF5F6] dark:text-[#121113] text-xs uppercase tracking-wider font-semibold hover:opacity-90 transition-opacity"
+            className="w-full py-2.5 rounded-full bg-[#D985A2] text-white dark:bg-[#F2B3C1] dark:text-[#2B222C] text-xs uppercase tracking-wider font-semibold hover:opacity-90 transition-opacity"
           >
             Đóng Cài Đặt
           </button>

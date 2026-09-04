@@ -113,10 +113,10 @@ export const Navbar: React.FC<{ onOpenAuth: () => void; onOpenProfile?: () => vo
 
   return (
     <header
-      className={`sticky top-0 z-40 border-b backdrop-blur-xl transition-all duration-300 ${
+      className={`sticky top-0 z-40 border-b-2 backdrop-blur-xl transition-all duration-300 ${
         isDark
-          ? 'bg-[#141218]/92 border-[#382F42] text-[#FAF5F6] shadow-[0_4px_25px_-4px_rgba(0,0,0,0.5)]'
-          : 'bg-[#FAF5F6]/92 border-[#EADCE1] text-[#1E1B1D] shadow-[0_4px_20px_-4px_rgba(234,220,225,0.45)]'
+          ? 'bg-[#2B222C]/95 border-[#6B5261] text-[#FAF5F6]'
+          : 'bg-[#FFF9FB]/95 border-[#E7B6C5] text-[#574D4C]'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -130,11 +130,12 @@ export const Navbar: React.FC<{ onOpenAuth: () => void; onOpenProfile?: () => vo
             }}
           >
             <div className="text-left">
-              <span className="font-pinyon text-2xl sm:text-3xl lg:text-[32px] text-[#1E1B1D] dark:text-[#FFFFFF] block leading-none tracking-wide group-hover:scale-[1.02] transition-transform">
+              <span className="font-eb-garamond text-2xl sm:text-3xl lg:text-[32px] font-medium text-[#A45E78] dark:text-[#F2B3C1] block leading-none tracking-wide group-hover:scale-[1.02] transition-transform">
                 Dreamy Penguin
               </span>
-              <div className="flex items-center gap-1 mt-0.5">
-                <span className="font-playfair italic text-[11px] sm:text-xs text-[#8F7D85] dark:text-[#E8DFE3] block tracking-widest uppercase font-medium">
+              <div className="flex items-center gap-1.5 mt-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#E8A0B8]" />
+                <span className="font-eb-garamond text-sm sm:text-base text-[#A45E78] dark:text-[#F2B3C1] block tracking-wide font-medium lowercase">
                   kissmemissme
                 </span>
               </div>
@@ -147,14 +148,14 @@ export const Navbar: React.FC<{ onOpenAuth: () => void; onOpenProfile?: () => vo
             className="hidden lg:block relative flex-1 max-w-xs xl:max-w-sm"
           >
             <div
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl border transition-all ${
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-full border transition-all ${
                 searchFocused
                   ? isDark
-                    ? 'border-white bg-[#1F1B26] shadow-sm ring-2 ring-white/10'
-                    : 'border-[#1E1B1D] bg-white shadow-sm ring-2 ring-[#1E1B1D]/10'
+                    ? 'border-[#F2B3C1] bg-[#352936] ring-2 ring-[#F2B3C1]/10'
+                    : 'border-[#D985A2] bg-white ring-2 ring-[#E8A0B8]/15'
                   : isDark
-                  ? 'border-[#382F42] bg-[#1B1822]/80 hover:border-[#5A4E68]'
-                  : 'border-[#EADCE1] bg-[#FFFFFF]/70 hover:border-[#DAC8CE]'
+                  ? 'border-[#6B5261] bg-[#352936]/80 hover:border-[#D79BAD]'
+                  : 'border-[#E8B8C5] bg-[#FFFFFF]/80 hover:border-[#D79BAD]'
               }`}
             >
               <Search className="w-3.5 h-3.5 text-[#8F7D85] shrink-0" />
@@ -236,7 +237,6 @@ export const Navbar: React.FC<{ onOpenAuth: () => void; onOpenProfile?: () => vo
           <nav className="hidden md:flex items-center gap-1 xl:gap-1.5">
             {navItems.map((item) => {
               const isActive = activeView === item.id;
-              const Icon = item.icon;
               return (
                 <button
                   key={item.id}
@@ -244,17 +244,16 @@ export const Navbar: React.FC<{ onOpenAuth: () => void; onOpenProfile?: () => vo
                     setActiveView(item.id as any);
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
-                  className={`relative min-h-[40px] px-3.5 lg:px-4 py-2 rounded-xl text-xs font-semibold tracking-wider uppercase transition-all duration-200 flex items-center gap-1.5 ${
+                  className={`relative min-h-[40px] px-3.5 lg:px-4 py-2 rounded-full text-xs font-semibold tracking-wide transition-all duration-200 flex items-center gap-1.5 ${
                     isDark
                       ? isActive
                         ? 'bg-[#FAF5F6] text-[#121113] font-bold shadow-md'
                         : 'text-[#FAF5F6] hover:bg-[#251E2B] hover:text-white'
                       : isActive
-                      ? 'bg-[#1E1B1D] text-[#FAF5F6] shadow-sm'
+                      ? 'bg-[#D985A2] text-white shadow-sm'
                       : 'text-[#5A4D53] hover:bg-[#FAF0F3] hover:text-[#1E1B1D]'
                   }`}
                 >
-                  <Icon className={`w-3.5 h-3.5 ${isActive ? 'opacity-100' : 'opacity-70'}`} />
                   <span>{item.label}</span>
 
                   {item.badge !== undefined && (
@@ -283,13 +282,13 @@ export const Navbar: React.FC<{ onOpenAuth: () => void; onOpenProfile?: () => vo
                   setActiveView('author_dashboard');
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
-                className={`min-h-[40px] px-3.5 lg:px-4 py-2 rounded-xl text-xs font-semibold tracking-wider uppercase transition-all duration-200 border text-center ${
+                className={`min-h-[40px] px-3.5 lg:px-4 py-2 rounded-full text-xs font-semibold tracking-wide transition-all duration-200 border text-center ${
                   isDark
                     ? activeView === 'author_dashboard'
                       ? 'bg-[#FAF5F6] text-[#121113] font-bold border-white shadow-md'
                       : 'border-[#4B3E57] text-[#FAF5F6] hover:border-white hover:bg-[#251E2B]'
                     : activeView === 'author_dashboard'
-                    ? 'bg-[#1E1B1D] text-white border-[#1E1B1D] shadow-sm'
+                    ? 'bg-[#D985A2] text-white border-[#D985A2] shadow-sm'
                     : 'border-[#DAC8CE] text-[#5A4D53] hover:border-[#1E1B1D] hover:bg-[#FAF0F3] hover:text-[#1E1B1D]'
                 }`}
               >
@@ -364,19 +363,19 @@ export const Navbar: React.FC<{ onOpenAuth: () => void; onOpenProfile?: () => vo
                 {/* Popover Dropdown on Laptop */}
                 {userDropdownOpen && (
                   <div
-                    className={`absolute right-0 mt-2 w-64 rounded-2xl border shadow-2xl overflow-hidden z-50 animate-in fade-in-50 zoom-in-95 duration-150 ${
+                    className={`absolute right-0 mt-2 w-64 rounded-2xl border-2 overflow-hidden z-50 animate-in fade-in-50 zoom-in-95 duration-150 ${
                       isDark
-                        ? 'bg-[#18151F] border-[#3E3547] text-[#FAF5F6]'
-                        : 'bg-[#FFFFFF] border-[#EADCE1] text-[#1E1B1D]'
+                        ? 'bg-[#2B222C] border-[#6B5261] text-[#FAF5F6]'
+                        : 'bg-[#FFF9FB] border-[#E7B6C5] text-[#574D4C]'
                     }`}
                   >
                     {/* User Summary Header */}
-                    <div className="p-4 border-b border-inherit bg-[#FAF5F6]/50 dark:bg-[#121016]/50">
+                    <div className="p-4 border-b border-[#E7C3CE] dark:border-[#594352] bg-[#FFF1F5] dark:bg-[#352936]">
                       <div className="flex items-center gap-3">
                         <img
                           src={currentUser.avatar}
                           alt={currentUser.name}
-                          className="w-10 h-10 rounded-xl object-cover border-2 border-inherit"
+                          className="w-10 h-10 rounded-xl object-cover border-2 border-[#E8B8C5] dark:border-[#7A5869]"
                         />
                         <div className="min-w-0 flex-1">
                           <h4 className="text-xs font-bold truncate">{currentUser.name}</h4>
@@ -407,7 +406,7 @@ export const Navbar: React.FC<{ onOpenAuth: () => void; onOpenProfile?: () => vo
                             setUserDropdownOpen(false);
                             onOpenProfile();
                           }}
-                          className="w-full px-3 py-2 rounded-xl flex items-center hover:bg-[#FAF0F3] dark:hover:bg-[#251E2B] transition-colors text-left font-medium"
+                          className="w-full px-3 py-2 rounded-xl flex items-center text-[#A45E78] dark:text-[#F2B3C1] hover:bg-[#FCEEF3] dark:hover:bg-[#3A2935] transition-colors text-left font-medium"
                         >
                           <span>Chỉnh sửa hồ sơ (Tên & Avatar)</span>
                         </button>
@@ -418,7 +417,7 @@ export const Navbar: React.FC<{ onOpenAuth: () => void; onOpenProfile?: () => vo
                           setUserDropdownOpen(false);
                           setActiveView('library');
                         }}
-                        className="w-full px-3 py-2 rounded-xl flex items-center gap-2.5 hover:bg-[#FAF0F3] dark:hover:bg-[#251E2B] transition-colors text-left font-medium"
+                        className="w-full px-3 py-2 rounded-xl flex items-center gap-2.5 text-[#A45E78] dark:text-[#F2B3C1] hover:bg-[#FCEEF3] dark:hover:bg-[#3A2935] transition-colors text-left font-medium"
                       >
                         <Bookmark className="w-4 h-4 text-[#8F7D85]" />
                         <span>Tủ sách cá nhân ({libraryNovelIds.length})</span>
@@ -430,7 +429,7 @@ export const Navbar: React.FC<{ onOpenAuth: () => void; onOpenProfile?: () => vo
                             setUserDropdownOpen(false);
                             setActiveView('author_dashboard');
                           }}
-                          className="w-full px-3 py-2 rounded-xl flex items-center gap-2.5 hover:bg-[#FAF0F3] dark:hover:bg-[#251E2B] transition-colors text-left font-medium"
+                          className="w-full px-3 py-2 rounded-xl flex items-center gap-2.5 text-[#A45E78] dark:text-[#F2B3C1] hover:bg-[#FCEEF3] dark:hover:bg-[#3A2935] transition-colors text-left font-medium"
                         >
                           <BookOpen className="w-4 h-4 text-[#8F7D85]" />
                           <span>Bảng điều khiển tác giả</span>
@@ -439,13 +438,13 @@ export const Navbar: React.FC<{ onOpenAuth: () => void; onOpenProfile?: () => vo
                     </div>
 
                     {/* Footer: Logout */}
-                    <div className="p-2 border-t border-inherit bg-[#FAF5F6]/30 dark:bg-[#121016]/30">
+                    <div className="p-2 border-t border-[#E7C3CE] dark:border-[#594352] bg-[#FFF1F5]/60 dark:bg-[#352936]/60">
                       <button
                         onClick={() => {
                           setUserDropdownOpen(false);
                           logout();
                         }}
-                        className="w-full px-3 py-2 rounded-xl flex items-center gap-2.5 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors text-left font-semibold text-xs"
+                        className="w-full px-3 py-2 rounded-xl flex items-center gap-2.5 text-[#A45E78] dark:text-[#F2B3C1] hover:bg-[#F7D9E5] dark:hover:bg-[#4A2F3D] transition-colors text-left font-semibold text-xs"
                       >
                         <LogOut className="w-4 h-4" />
                         <span>Đăng xuất tài khoản</span>
@@ -458,10 +457,10 @@ export const Navbar: React.FC<{ onOpenAuth: () => void; onOpenProfile?: () => vo
               <button
                 id="login-btn"
                 onClick={onOpenAuth}
-                className={`min-h-[38px] px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5 shadow-sm transition-all hover:scale-[1.02] ${
+                className={`min-h-[38px] px-4 py-2 rounded-full text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5 border transition-colors ${
                   isDark
-                    ? 'bg-[#FAF5F6] text-[#121113] hover:bg-white'
-                    : 'bg-[#1E1B1D] text-[#FAF5F6] hover:bg-black'
+                    ? 'bg-[#F2B3C1] text-[#2B222C] border-[#F2B3C1] hover:bg-[#F7C5D2]'
+                    : 'bg-[#D985A2] text-white border-[#D985A2] hover:bg-[#C87594]'
                 }`}
               >
                 <User className="w-3.5 h-3.5" />
@@ -523,7 +522,6 @@ export const Navbar: React.FC<{ onOpenAuth: () => void; onOpenProfile?: () => vo
 
             {navItems.map((item) => {
               const isActive = activeView === item.id;
-              const Icon = item.icon;
               return (
                 <button
                   key={item.id}
@@ -532,20 +530,17 @@ export const Navbar: React.FC<{ onOpenAuth: () => void; onOpenProfile?: () => vo
                     setMobileMenuOpen(false);
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
-                  className={`w-full px-4 py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider flex items-center justify-between transition-colors ${
+                  className={`w-full px-4 py-2.5 rounded-full text-xs font-semibold tracking-wide flex items-center justify-between transition-colors ${
                     isDark
                       ? isActive
                         ? 'bg-[#FAF5F6] text-[#121113]'
                         : 'text-[#FFFFFF] hover:bg-[#251E2B]'
                       : isActive
-                      ? 'bg-[#1E1B1D] text-[#FAF5F6]'
+                      ? 'bg-[#D985A2] text-white'
                       : 'text-[#5A4D53] hover:bg-[#FAF0F3]'
                   }`}
                 >
-                  <div className="flex items-center gap-2">
-                    <Icon className="w-4 h-4" />
-                    <span>{item.label}</span>
-                  </div>
+                  <span>{item.label}</span>
                   {item.badge !== undefined && (
                     <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/20">
                       {item.badge}
@@ -562,13 +557,13 @@ export const Navbar: React.FC<{ onOpenAuth: () => void; onOpenProfile?: () => vo
                   setMobileMenuOpen(false);
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
-                className={`w-full px-4 py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider block text-left border ${
+                className={`w-full px-4 py-2.5 rounded-full text-xs font-semibold tracking-wide block text-left border ${
                   isDark
                     ? activeView === 'author_dashboard'
                       ? 'bg-white text-black border-white'
                       : 'border-[#4B3E57] text-[#FAF5F6] hover:bg-[#251E2B]'
                     : activeView === 'author_dashboard'
-                    ? 'bg-[#1E1B1D] text-white border-[#1E1B1D]'
+                    ? 'bg-[#D985A2] text-white border-[#D985A2]'
                     : 'border-[#DAC8CE] text-[#5A4D53] hover:bg-[#FAF0F3]'
                 }`}
               >
@@ -582,7 +577,7 @@ export const Navbar: React.FC<{ onOpenAuth: () => void; onOpenProfile?: () => vo
                   onOpenProfile();
                   setMobileMenuOpen(false);
                 }}
-                className={`w-full px-4 py-2.5 rounded-xl text-xs font-semibold uppercase tracking-wider block text-left border ${
+                className={`w-full px-4 py-2.5 rounded-full text-xs font-semibold tracking-wide block text-left border ${
                   isDark
                     ? 'border-[#4B3E57] text-[#FAF5F6] hover:bg-[#251E2B]'
                     : 'border-[#DAC8CE] text-[#1E1B1D] hover:bg-[#FAF0F3]'

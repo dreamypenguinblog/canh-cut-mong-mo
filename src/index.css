@@ -9,6 +9,7 @@
     --font-lora: 'Lora', Georgia, serif;
     --font-cormorant: 'Cormorant Garamond', Garamond, serif;
     --font-alegreya: 'Alegreya', Georgia, serif;
+    --font-eb-garamond: 'EB Garamond', Garamond, serif;
     --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   }
 
@@ -47,6 +48,10 @@
 
 .font-luxury-sans {
   font-family: var(--font-sans);
+}
+
+.font-eb-garamond {
+  font-family: var(--font-eb-garamond);
 }
 
 /* Custom delicate luxury scrollbar */

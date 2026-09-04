@@ -81,10 +81,10 @@ export const ProfileModal: React.FC<{ isOpen: boolean; onClose: () => void }> = 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
       <div
-        className={`relative w-full max-w-lg rounded-2xl shadow-2xl border p-6 sm:p-8 transition-colors max-h-[90vh] overflow-y-auto no-scrollbar ${
+        className={`relative w-full max-w-lg rounded-2xl border-2 p-6 sm:p-8 transition-colors max-h-[90vh] overflow-y-auto no-scrollbar ${
           isDark
-            ? 'bg-[#18161B] border-[#38323D] text-[#F3EEF0]'
-            : 'bg-[#FFFFFF] border-[#EADCE1] text-[#1E1B1D]'
+            ? 'bg-[#2B222C] border-[#6B5261] text-[#F3EEF0]'
+            : 'bg-[#FFF9FB] border-[#E7B6C5] text-[#574D4C]'
         }`}
       >
         {/* Close Button */}
@@ -101,7 +101,7 @@ export const ProfileModal: React.FC<{ isOpen: boolean; onClose: () => void }> = 
           <span className="font-pinyon text-3xl sm:text-4xl text-[#1E1B1D] dark:text-[#FAF5F6] block">
             Cánh Cụt Mộng Mơ
           </span>
-          <h3 className="font-playfair text-xl font-medium tracking-wide mt-1">
+          <h3 className="font-eb-garamond text-2xl font-medium tracking-wide mt-1">
             Chỉnh Sửa Hồ Sơ Cá Nhân
           </h3>
           <p className="text-xs text-[#8F7D85] mt-1 font-light">
@@ -112,7 +112,7 @@ export const ProfileModal: React.FC<{ isOpen: boolean; onClose: () => void }> = 
         {/* Live Avatar Preview */}
         <div className="flex flex-col items-center justify-center mb-6">
           <div className="relative group">
-            <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden border-2 border-[#1E1B1D] dark:border-white shadow-md bg-[#FAF5F6] dark:bg-[#201C25] flex items-center justify-center">
+            <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden border-2 border-[#D985A2] dark:border-[#F2B3C1] bg-[#FCEEF3] dark:bg-[#352936] flex items-center justify-center">
               {avatar ? (
                 <img
                   src={avatar}
@@ -127,7 +127,7 @@ export const ProfileModal: React.FC<{ isOpen: boolean; onClose: () => void }> = 
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="absolute -bottom-2 -right-2 p-2 rounded-xl bg-[#1E1B1D] text-white dark:bg-white dark:text-[#121113] shadow-md hover:scale-110 transition-transform"
+              className="absolute -bottom-2 -right-2 p-2 rounded-xl bg-[#D985A2] text-white dark:bg-[#F2B3C1] dark:text-[#2B222C] hover:scale-110 transition-transform"
               title="Tải ảnh mới từ máy"
             >
               <Camera className="w-3.5 h-3.5" />
@@ -187,7 +187,7 @@ export const ProfileModal: React.FC<{ isOpen: boolean; onClose: () => void }> = 
                   onClick={() => setAvatarMode('upload')}
                   className={`px-2.5 py-1 rounded-lg font-medium transition-colors flex items-center gap-1 border ${
                     avatarMode === 'upload'
-                      ? 'bg-[#1E1B1D] text-white dark:bg-white dark:text-black border-[#1E1B1D] dark:border-white'
+                      ? 'bg-[#D985A2] text-white dark:bg-[#F2B3C1] dark:text-[#2B222C] border-[#D985A2] dark:border-[#F2B3C1]'
                       : 'border-transparent text-[#8F7D85] hover:text-[#1E1B1D] dark:hover:text-white'
                   }`}
                 >
@@ -199,7 +199,7 @@ export const ProfileModal: React.FC<{ isOpen: boolean; onClose: () => void }> = 
                   onClick={() => setAvatarMode('url')}
                   className={`px-2.5 py-1 rounded-lg font-medium transition-colors flex items-center gap-1 border ${
                     avatarMode === 'url'
-                      ? 'bg-[#1E1B1D] text-white dark:bg-white dark:text-black border-[#1E1B1D] dark:border-white'
+                      ? 'bg-[#D985A2] text-white dark:bg-[#F2B3C1] dark:text-[#2B222C] border-[#D985A2] dark:border-[#F2B3C1]'
                       : 'border-transparent text-[#8F7D85] hover:text-[#1E1B1D] dark:hover:text-white'
                   }`}
                 >
@@ -299,7 +299,7 @@ export const ProfileModal: React.FC<{ isOpen: boolean; onClose: () => void }> = 
             <button
               type="submit"
               disabled={savedSuccess}
-              className="min-h-[38px] px-6 py-2 rounded-xl bg-[#1E1B1D] text-[#FAF5F6] dark:bg-[#FAF5F6] dark:text-[#121113] font-playfair text-xs uppercase tracking-wider font-semibold hover:opacity-90 transition-opacity text-center shadow-xs"
+              className="min-h-[38px] px-6 py-2 rounded-xl bg-[#D985A2] text-white dark:bg-[#F2B3C1] dark:text-[#2B222C] font-eb-garamond text-sm uppercase tracking-wider font-semibold hover:opacity-90 transition-opacity text-center"
             >
               {savedSuccess ? 'Đã lưu thành công!' : 'Lưu Hồ Sơ'}
             </button>

@@ -69,21 +69,21 @@ export const SiteViewStats: React.FC = () => {
     <div className="pt-4 pb-2">
       <div className="max-w-4xl mx-auto px-4">
         <div className="flex items-center justify-center gap-2 mb-3">
-          <div className="h-px w-8 bg-[#DAC8CE] dark:bg-[#38323D]" />
-          <span className="text-[11px] uppercase tracking-wider font-semibold text-[#8F7D85] dark:text-[#D5CBD0]">
+          <span className="w-2 h-2 rounded-full bg-[#E8A0B8]" />
+          <span className="text-[11px] uppercase tracking-[0.2em] font-semibold text-[#B5798D] dark:text-[#E8B8C5]">
             Lượt Xem Toàn Trang
           </span>
-          <div className="h-px w-8 bg-[#DAC8CE] dark:bg-[#38323D]" />
+          <span className="w-2 h-2 rounded-full bg-[#E8A0B8]" />
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
           {items.map((item) => {
             const Icon = item.icon;
             return (
-              <div key={item.label} className={`rounded-xl border p-3 text-center ${isDark ? 'bg-[#18161B] border-[#332E38]' : 'bg-white border-[#EADCE1]'}`}>
-                <Icon className="w-4 h-4 mx-auto mb-1 text-[#8F7D85]" />
-                <div className="font-playfair font-semibold text-lg">{item.value.toLocaleString('vi-VN')}</div>
-                <div className="text-[10px] text-[#8F7D85]">{item.label}</div>
-                <div className="text-[9px] text-[#A99BA1] mt-0.5">{item.sublabel}</div>
+              <div key={item.label} className={`rounded-2xl border-2 p-3 text-center ${isDark ? 'bg-[#352936] border-[#6B5261]' : 'bg-[#FFF9FB] border-[#E8B8C5]'}`}>
+                <Icon className="w-4 h-4 mx-auto mb-1 text-[#D985A2] dark:text-[#F2B3C1]" />
+                <div className="font-eb-garamond font-medium text-xl text-[#A45E78] dark:text-[#F2B3C1]">{item.value.toLocaleString('vi-VN')}</div>
+                <div className="text-[10px] text-[#8F6875] dark:text-[#D5CBD0]">{item.label}</div>
+                <div className="text-[9px] text-[#B58B98] dark:text-[#8F7D85] mt-0.5">{item.sublabel}</div>
               </div>
             );
           })}

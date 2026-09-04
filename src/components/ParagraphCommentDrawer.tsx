@@ -58,16 +58,16 @@ export const ParagraphCommentDrawer: React.FC<ParagraphCommentDrawerProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-black/50 backdrop-blur-xs animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex justify-end bg-[#A45E78]/20 backdrop-blur-xs animate-in fade-in duration-200">
       <div
         className={`w-full max-w-md h-full flex flex-col shadow-2xl border-l transition-colors duration-200 ${
-          isDark ? 'bg-[#18161B] border-[#2F2935] text-[#F3EEF0]' : 'bg-[#FFFFFF] border-[#EADCE1] text-[#1E1B1D]'
+          isDark ? 'bg-[#2B222C] border-[#6B5261] text-[#F3EEF0]' : 'bg-[#FFF9FB] border-[#E7B6C5] text-[#574D4C]'
         }`}
       >
         {/* Drawer Header */}
-        <div className="p-4 sm:p-5 border-b border-[#EADCE1] dark:border-[#2F2935] flex items-center justify-between">
+        <div className="p-4 sm:p-5 border-b border-[#E7C3CE] dark:border-[#594352] bg-[#FFF1F5] dark:bg-[#352936] flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <MessageSquare className="w-4 h-4 text-[#8F7D85] dark:text-[#D5CBD0]" />
+            <MessageSquare className="w-4 h-4 text-[#D985A2] dark:text-[#F2B3C1]" />
             <div>
               <h3 className="font-playfair font-semibold text-base text-[#1E1B1D] dark:text-[#FAF5F6]">Bình Luận Đoạn #{paragraphIndex + 1}</h3>
               <p className="text-[11px] text-[#8F7D85] dark:text-[#D5CBD0]">{paragraphComments.length} bình luận</p>
@@ -83,7 +83,7 @@ export const ParagraphCommentDrawer: React.FC<ParagraphCommentDrawerProps> = ({
         </div>
 
         {/* Quoted Paragraph Box */}
-        <div className="p-4 border-b border-[#EADCE1] dark:border-[#2F2935] bg-[#FAF4F6] dark:bg-[#1F1C23]">
+        <div className="p-4 border-b border-[#E7C3CE] dark:border-[#594352] bg-[#FFF9FB] dark:bg-[#352936]">
           <span className="text-[10px] uppercase font-semibold tracking-wider text-[#8F7D85] dark:text-[#D5CBD0] block mb-1">
             Trích dẫn đoạn văn
           </span>
@@ -101,8 +101,8 @@ export const ParagraphCommentDrawer: React.FC<ParagraphCommentDrawerProps> = ({
               return (
                 <div
                   key={c.id}
-                  className={`p-3 rounded-lg border space-y-2 ${
-                    isDark ? 'bg-[#1E1B22] border-[#332E38]' : 'bg-[#FAF5F6] border-[#EAE0E4]'
+                  className={`p-3 rounded-xl border-2 space-y-2 ${
+                    isDark ? 'bg-[#352936] border-[#6B5261]' : 'bg-[#FFFFFF] border-[#E8B8C5]'
                   }`}
                 >
                   <div className="flex items-center justify-between">
@@ -172,7 +172,7 @@ export const ParagraphCommentDrawer: React.FC<ParagraphCommentDrawerProps> = ({
         </div>
 
         {/* New Comment Input Box */}
-        <div className="p-4 border-t border-[#EADCE1] dark:border-[#2F2935] bg-[#FFFFFF] dark:bg-[#18161B]">
+          <div className="p-4 border-t border-[#E7C3CE] dark:border-[#594352] bg-[#FFF1F5] dark:bg-[#352936]">
           <form onSubmit={handleSubmit} className="space-y-2">
             {!currentUser && (
               <input
@@ -203,7 +203,7 @@ export const ParagraphCommentDrawer: React.FC<ParagraphCommentDrawerProps> = ({
               </span>
               <button
                 type="submit"
-                className="min-h-[34px] px-3.5 py-1 rounded-lg bg-[#1E1B1D] text-[#FAF5F6] dark:bg-[#FAF5F6] dark:text-[#121113] text-xs uppercase tracking-wider font-semibold hover:opacity-90 transition-opacity flex items-center gap-1.5"
+                className="min-h-[34px] px-3.5 py-1 rounded-full bg-[#D985A2] text-white dark:bg-[#F2B3C1] dark:text-[#2B222C] text-xs uppercase tracking-wider font-semibold hover:opacity-90 transition-opacity flex items-center gap-1.5"
               >
                 <span>Gửi</span>
                 <Send className="w-3 h-3" />

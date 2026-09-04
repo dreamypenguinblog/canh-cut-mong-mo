@@ -198,8 +198,8 @@ export const ReaderView: React.FC = () => {
   if (!novel || !chapter) {
     if (initializing) {
       return (
-        <div className="min-h-screen flex items-center justify-center p-8 text-center bg-[#FAF5F6] dark:bg-[#121113] text-[#1E1B1D] dark:text-[#FAF5F6]">
-          <p className="text-sm opacity-70">Đang mở trình đọc...</p>
+        <div className="min-h-screen flex items-center justify-center p-8 text-center bg-[#FFF1F5] dark:bg-[#211B22] text-[#A45E78] dark:text-[#F2B3C1]">
+          <div className="flex flex-col items-center gap-3"><span className="w-10 h-10 rounded-full border-2 border-[#E8B8C5] border-t-[#D985A2] animate-spin" /><p className="font-eb-garamond text-xl">Đang mở trình đọc...</p></div>
         </div>
       );
     }
@@ -312,7 +312,7 @@ export const ReaderView: React.FC = () => {
     >
       {/* Toast Notification when entering Chế độ Tập trung */}
       {zenToast && (
-        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full bg-[#1E1B1D] text-[#FAF5F6] dark:bg-[#FAF5F6] dark:text-[#121113] text-xs shadow-xl flex items-center gap-2 border border-white/20 animate-in fade-in slide-in-from-top-2">
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full bg-[#D985A2] text-white dark:bg-[#F2B3C1] dark:text-[#2B222C] text-xs flex items-center gap-2 border border-[#F7D9E5] animate-in fade-in slide-in-from-top-2">
           <Sparkles className="w-3.5 h-3.5 text-current opacity-80" />
           <span>Chế độ Tập trung: Đã ẩn điều hướng. Nhấn vào giữa màn hình để hiện chỉnh font chữ.</span>
         </div>
@@ -321,14 +321,12 @@ export const ReaderView: React.FC = () => {
       {/* Sticky Reader Navigation Header (Hidden in Chế độ Tập trung) */}
       {!zenMode && (
         <div
-          className={`sticky top-0 z-30 border-b backdrop-blur-md px-3 sm:px-8 py-2.5 flex items-center justify-between transition-colors ${
-            themeStyles.card
-          }`}
+          className={`sticky top-0 z-30 border-b-2 backdrop-blur-md px-3 sm:px-8 py-2.5 flex items-center justify-between transition-colors bg-[#FFF9FB]/95 dark:bg-[#2B222C]/95 border-[#E7C3CE] dark:border-[#6B5261]`}
         >
           <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={() => setActiveView('home')}
-              className="min-h-[36px] px-3 py-1 rounded-lg border border-current hover:opacity-80 transition-opacity flex items-center gap-1.5 text-xs font-medium"
+              className="min-h-[36px] px-3 py-1 rounded-full border border-[#E8B8C5] dark:border-[#8A6172] text-[#A45E78] dark:text-[#F2B3C1] hover:bg-[#FCEEF3] dark:hover:bg-[#3A2935] transition-colors flex items-center gap-1.5 text-xs font-medium"
               title="Về trang chủ"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
@@ -336,7 +334,7 @@ export const ReaderView: React.FC = () => {
             </button>
 
             <div className="hidden md:block">
-              <h2 className="font-playfair italic text-sm font-semibold truncate max-w-[280px]">
+              <h2 className="font-eb-garamond text-lg font-medium truncate max-w-[280px] text-[#A45E78] dark:text-[#F2B3C1]">
                 {novel.title}
               </h2>
               <p className={`text-[10px] ${themeStyles.subtext} truncate`}>{chapter.title}</p>
@@ -349,7 +347,7 @@ export const ReaderView: React.FC = () => {
             <button
               id="zen-mode-btn"
               onClick={handleToggleZenMode}
-              className="min-h-[36px] px-3 py-1 rounded-lg text-xs border border-current hover:opacity-80 flex items-center gap-1.5 font-medium transition-all"
+              className="min-h-[36px] px-3 py-1 rounded-full text-xs border border-[#E8B8C5] dark:border-[#8A6172] text-[#A45E78] dark:text-[#F2B3C1] hover:bg-[#FCEEF3] dark:hover:bg-[#3A2935] flex items-center gap-1.5 font-medium transition-colors"
               title="Bật chế độ tập trung (ẩn điều hướng)"
             >
               <Maximize2 className="w-3.5 h-3.5" />
@@ -359,7 +357,7 @@ export const ReaderView: React.FC = () => {
             {/* Chapter drawer trigger */}
             <button
               onClick={() => setShowChapterDrawer(true)}
-              className="min-h-[36px] px-3 py-1 rounded-lg text-xs border border-current hover:opacity-80 flex items-center gap-1.5 font-medium"
+              className="min-h-[36px] px-3 py-1 rounded-full text-xs border border-[#E8B8C5] dark:border-[#8A6172] text-[#A45E78] dark:text-[#F2B3C1] hover:bg-[#FCEEF3] dark:hover:bg-[#3A2935] flex items-center gap-1.5 font-medium"
             >
               <List className="w-3.5 h-3.5" />
               <span>Chương {chapter.chapterNumber}</span>
@@ -369,7 +367,7 @@ export const ReaderView: React.FC = () => {
             <button
               id="reader-settings-btn"
               onClick={() => setShowSettings(true)}
-              className="min-h-[36px] px-3 py-1 rounded-lg text-xs border border-current hover:opacity-80 flex items-center gap-1.5 font-medium"
+              className="min-h-[36px] px-3 py-1 rounded-full text-xs border border-[#E8B8C5] dark:border-[#8A6172] text-[#A45E78] dark:text-[#F2B3C1] hover:bg-[#FCEEF3] dark:hover:bg-[#3A2935] flex items-center gap-1.5 font-medium"
             >
               <SlidersHorizontal className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Cài đặt</span>
@@ -461,11 +459,11 @@ export const ReaderView: React.FC = () => {
       {/* Main Chapter Content Container */}
       <main ref={containerRef} className={`mx-auto px-4 sm:px-6 ${zenMode ? 'py-4 sm:py-6' : 'py-8 sm:py-12'} ${getMaxWidthClass()}`}>
         {/* Chapter Title & Header */}
-        <header className="text-center space-y-2.5 pb-6 border-b mb-8 border-current opacity-90">
-          <p className="text-xs uppercase tracking-wider opacity-75">
+        <header className="text-center space-y-2.5 pb-6 border-b mb-8 border-[#E7C3CE] dark:border-[#594352]">
+          <p className="text-xs uppercase tracking-[0.2em] text-[#B5798D] dark:text-[#E8B8C5]">
             {novel.title}
           </p>
-          <h1 className="font-playfair italic text-xl sm:text-3xl font-normal leading-tight">
+          <h1 className="font-eb-garamond text-3xl sm:text-4xl font-medium leading-tight text-[#574D4C] dark:text-[#FFFFFF]">
             {chapter.title}
           </h1>
 
@@ -503,8 +501,8 @@ export const ReaderView: React.FC = () => {
                 ref={(el) => (paragraphRefs.current[idx] = el)}
                 onMouseEnter={() => setHoveredParagraphIdx(idx)}
                 onMouseLeave={() => setHoveredParagraphIdx(null)}
-                className={`relative group rounded-lg p-2 sm:p-2.5 transition-all duration-200 ${
-                  isTargeted ? 'ring-1 ring-current bg-black/5 dark:bg-white/5' : 'hover:bg-black/5 dark:hover:bg-white/5'
+                className={`relative group rounded-xl p-2 sm:p-2.5 transition-all duration-200 ${
+                  isTargeted ? 'ring-1 ring-[#D985A2] bg-[#FFF1F5] dark:bg-[#352936]' : 'hover:bg-[#FFF9FB] dark:hover:bg-[#352936]'
                 }`}
               >
                 <div className="flex items-start justify-between gap-3 sm:gap-4">
@@ -526,12 +524,12 @@ export const ReaderView: React.FC = () => {
                   <div className={`shrink-0 pt-0.5 flex items-center ${zenMode ? 'opacity-0 group-hover:opacity-100 transition-opacity' : ''}`}>
                     <button
                       onClick={() => setActiveParagraphCommentIdx(idx)}
-                      className={`min-h-[26px] sm:min-h-[28px] px-1.5 py-0.5 rounded-md text-[11px] border transition-all flex items-center gap-1 shadow-2xs ${
+                      className={`min-h-[26px] sm:min-h-[28px] px-1.5 py-0.5 rounded-md text-[11px] border transition-all flex items-center gap-1 ${
                         paragraphCommentsCount > 0
-                          ? 'border-current bg-black/10 dark:bg-white/10 font-semibold opacity-100'
+                          ? 'border-[#D985A2] bg-[#F7D9E5] dark:bg-[#4A2F3D] font-semibold opacity-100'
                           : hoveredParagraphIdx === idx
-                          ? 'border-current bg-black/5 dark:bg-white/5 opacity-100'
-                          : 'border-transparent opacity-30 sm:opacity-0 group-hover:opacity-100 group-hover:border-current'
+                          ? 'border-[#E8B8C5] bg-[#FFF1F5] dark:bg-[#3A2935] opacity-100'
+                          : 'border-transparent opacity-30 sm:opacity-0 group-hover:opacity-100 group-hover:border-[#E8B8C5]'
                       }`}
                       title={paragraphCommentsCount > 0 ? `${paragraphCommentsCount} bình luận` : 'Bình luận đoạn này'}
                       aria-label="Bình luận đoạn này"
@@ -554,10 +552,10 @@ export const ReaderView: React.FC = () => {
           <div className="text-center space-y-2">
             <button
               onClick={handleLike}
-              className={`min-h-[40px] relative px-5 py-2 rounded-lg border text-xs uppercase tracking-wider transition-all duration-200 shadow-xs ${
+              className={`min-h-[40px] relative px-5 py-2 rounded-lg border text-xs uppercase tracking-wider transition-all duration-200 ${
                 isLiked
-                  ? 'bg-[#1E1B1D] text-white dark:bg-[#FAF5F6] dark:text-black border-[#1E1B1D] dark:border-white'
-                  : 'bg-transparent border-current hover:opacity-80'
+                  ? 'bg-[#D985A2] text-white dark:bg-[#F2B3C1] dark:text-[#2B222C] border-[#D985A2] dark:border-[#F2B3C1]'
+                  : 'bg-[#FFF9FB] dark:bg-[#352936] border-[#E8B8C5] text-[#A45E78] dark:text-[#F2B3C1] hover:bg-[#FFF1F5]'
               }`}
             >
               <span className="flex items-center justify-center gap-2">
@@ -582,12 +580,12 @@ export const ReaderView: React.FC = () => {
             {prevChapter ? (
               <button
                 onClick={() => openReader(novel.id, prevChapter.id)}
-                className={`min-h-[46px] p-3.5 rounded-lg border text-left transition-all hover:opacity-80 ${themeStyles.card}`}
+                className={`min-h-[46px] p-3.5 rounded-lg border text-left transition-all hover:opacity-80 bg-[#FFF9FB] dark:bg-[#352936] border-[#E8B8C5]`}
               >
                 <span className={`text-[10px] uppercase font-semibold block ${themeStyles.subtext}`}>
                   ← Chương trước
                 </span>
-                <span className="font-playfair italic font-medium text-xs sm:text-sm block mt-0.5 truncate">
+                <span className="font-playfair not-italic font-medium text-xs sm:text-sm block mt-0.5 truncate">
                   {prevChapter.title}
                 </span>
               </button>
@@ -600,12 +598,12 @@ export const ReaderView: React.FC = () => {
             {nextChapter ? (
               <button
                 onClick={() => openReader(novel.id, nextChapter.id)}
-                className={`min-h-[46px] p-3.5 rounded-lg border text-right transition-all hover:opacity-80 ${themeStyles.card}`}
+                className={`min-h-[46px] p-3.5 rounded-lg border text-right transition-all hover:opacity-80 bg-[#FFF9FB] dark:bg-[#352936] border-[#E8B8C5]`}
               >
                 <span className={`text-[10px] uppercase font-semibold block ${themeStyles.subtext}`}>
                   Chương tiếp theo →
                 </span>
-                <span className="font-playfair italic font-medium text-xs sm:text-sm block mt-0.5 truncate">
+                <span className="font-playfair not-italic font-medium text-xs sm:text-sm block mt-0.5 truncate">
                   {nextChapter.title}
                 </span>
               </button>
@@ -680,14 +678,14 @@ export const ReaderView: React.FC = () => {
 
       {/* Chapter Drawer Modal */}
       {showChapterDrawer && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#A45E78]/20 backdrop-blur-xs animate-in fade-in duration-150">
           <div
-            className={`w-full max-w-lg max-h-[80vh] flex flex-col rounded-2xl border p-5 shadow-2xl ${
-              isDark ? 'bg-[#18161B] border-[#38323D] text-[#F3EEF0]' : 'bg-[#FFFFFF] border-[#EADCE1] text-[#1E1B1D]'
+            className={`w-full max-w-lg max-h-[80vh] flex flex-col rounded-2xl border-2 p-5 ${
+              isDark ? 'bg-[#2B222C] border-[#6B5261] text-[#F3EEF0]' : 'bg-[#FFF9FB] border-[#E7B6C5] text-[#574D4C]'
             }`}
           >
-            <div className="flex items-center justify-between border-b pb-3 mb-3 border-[#EADCE1] dark:border-[#2E2833]">
-              <h3 className="font-playfair font-semibold text-base">Danh Sách Chương ({chapterListItems.length})</h3>
+            <div className="flex items-center justify-between border-b pb-3 mb-3 border-[#E7C3CE] dark:border-[#594352]">
+              <h3 className="font-eb-garamond font-medium text-xl text-[#574D4C] dark:text-[#FAF5F6]">Danh Sách Chương ({chapterListItems.length})</h3>
               <button
                 onClick={() => setShowChapterDrawer(false)}
                 className="p-1 rounded-md text-[#8F7D85] hover:text-black dark:hover:text-white"
@@ -707,14 +705,14 @@ export const ReaderView: React.FC = () => {
                   }}
                   className={`w-full text-left p-3 rounded-lg border flex items-center justify-between transition-colors ${
                     ch.id === chapter.id
-                      ? 'border-[#1E1B1D] dark:border-white bg-[#FAF0F3] dark:bg-[#201C25] font-bold text-[#1E1B1D] dark:text-[#FAF5F6]'
+                      ? 'border-[#D985A2] dark:border-[#F2B3C1] bg-[#F7D9E5] dark:bg-[#4A2F3D] font-bold text-[#A45E78] dark:text-[#FAF5F6]'
                       : isDark
-                      ? 'border-[#332E38] hover:bg-[#221E26] text-[#FAF5F6]'
-                      : 'border-[#EAE0E4] hover:bg-[#FAF5F6] text-[#1E1B1D]'
+                      ? 'border-[#6B5261] hover:bg-[#3A2935] text-[#FAF5F6]'
+                      : 'border-[#E8B8C5] hover:bg-[#FFF1F5] text-[#574D4C]'
                   }`}
                 >
                   <div>
-                    <span className="font-playfair text-xs sm:text-sm block">{ch.title}</span>
+                    <span className="font-eb-garamond text-base sm:text-lg font-medium block">{ch.title}</span>
                     <span className="text-[11px] text-[#8F7D85] dark:text-[#D5CBD0]">
                       {ch.wordCount.toLocaleString('vi-VN')} chữ
                     </span>

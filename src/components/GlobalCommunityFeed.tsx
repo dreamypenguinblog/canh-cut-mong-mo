@@ -19,10 +19,21 @@ export const GlobalCommunityFeed: React.FC = () => {
   });
 
   return (
-    <div className="py-6 sm:py-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+    <div
+      className="py-6 sm:py-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 rounded-[26px] border-2 border-[#E8B8C5] dark:border-[#6B5261] overflow-hidden"
+      style={isDark ? undefined : {
+        backgroundImage: 'linear-gradient(rgba(232, 160, 184, 0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(232, 160, 184, 0.06) 1px, transparent 1px)',
+        backgroundSize: '28px 28px',
+      }}
+    >
       {/* Header */}
-      <div className="text-center max-w-2xl mx-auto space-y-2">
-        <h1 className="font-playfair italic text-2xl sm:text-4xl font-normal text-[#1E1B1D] dark:text-[#FFFFFF]">
+      <div className="text-center max-w-2xl mx-auto space-y-2 rounded-2xl border border-[#E7C3CE] dark:border-[#594352] bg-[#FFF9FB] dark:bg-[#211B22] px-5 py-5">
+        <div className="flex items-center justify-center gap-2 text-[10px] uppercase tracking-[0.2em] font-semibold text-[#B5798D] dark:text-[#E8B8C5]">
+          <span className="w-2 h-2 rounded-full bg-[#E8A0B8]" />
+          <span>Góc cộng đồng</span>
+          <span className="w-2 h-2 rounded-full bg-[#E8A0B8]" />
+        </div>
+        <h1 className="font-eb-garamond not-italic text-3xl sm:text-4xl font-medium text-[#574D4C] dark:text-[#FFFFFF]">
           Tổng Hợp Bình Luận Toàn Web
         </h1>
 
@@ -31,8 +42,8 @@ export const GlobalCommunityFeed: React.FC = () => {
           <select
             value={filterNovelId}
             onChange={(e) => setFilterNovelId(e.target.value)}
-            className={`min-h-[38px] px-4 py-1.5 text-xs rounded-xl border focus:outline-none focus:border-[#1E1B1D] dark:focus:border-white font-medium ${
-              isDark ? 'bg-[#1A171E] border-[#38323D] text-[#FAF5F6]' : 'bg-[#FFFFFF] border-[#DAC8CE] text-[#1E1B1D]'
+            className={`min-h-[38px] px-4 py-1.5 text-xs rounded-full border focus:outline-none focus:border-[#D79BAD] dark:focus:border-[#D79BAD] font-medium ${
+              isDark ? 'bg-[#2B222C] border-[#6B5261] text-[#FAF5F6]' : 'bg-[#FFFFFF] border-[#E8B8C5] text-[#574D4C]'
             }`}
           >
             <option value="all">Tất cả tác phẩm</option>
@@ -56,14 +67,14 @@ export const GlobalCommunityFeed: React.FC = () => {
             return (
               <div
                 key={comment.id}
-                className={`rounded-xl border p-4 sm:p-5 transition-all shadow-xs ${
-                  isDark ? 'bg-[#18161B] border-[#2E2833]' : 'bg-[#FFFFFF] border-[#ECE0E4]'
+                className={`rounded-2xl border-2 p-4 sm:p-5 transition-all ${
+                  isDark ? 'bg-[#2B222C] border-[#6B5261]' : 'bg-[#FFF9FB] border-[#E7B6C5]'
                 }`}
               >
                 {/* Header: Novel and chapter meta */}
                 <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#EADCE1]/60 dark:border-[#2A2530] pb-2 mb-3">
                   <div className="flex items-center gap-2 text-xs">
-                    <span className="font-playfair italic font-medium text-[#1E1B1D] dark:text-[#FAF5F6]">
+                    <span className="font-playfair not-italic font-medium text-[#1E1B1D] dark:text-[#FAF5F6]">
                       {novel?.title || comment.novelTitle || 'Tiểu Thuyết'}
                     </span>
                     <span className="text-[#8F7D85] dark:text-[#D5CBD0]">•</span>
@@ -99,7 +110,7 @@ export const GlobalCommunityFeed: React.FC = () => {
                 {comment.paragraphExcerpt && (
                   <div
                     className={`p-3 rounded-lg text-xs font-lora italic leading-relaxed border-l-2 border-[#E0A8B6] mb-3 ${
-                      isDark ? 'bg-[#1F1C23] text-[#FAF5F6]' : 'bg-[#FAF4F6] text-[#5C4F55]'
+                      isDark ? 'bg-[#352936] text-[#FAF5F6]' : 'bg-[#FFF1F5] text-[#6E5660]'
                     }`}
                   >
                     “{comment.paragraphExcerpt}”
@@ -164,11 +175,12 @@ export const GlobalCommunityFeed: React.FC = () => {
           })
         ) : (
           <div
-            className={`text-center py-12 rounded-2xl border p-6 ${
-              isDark ? 'bg-[#18161B] border-[#2D2832]' : 'bg-[#FAF5F6] border-[#EADCE1]'
+              className={`text-center py-12 rounded-2xl border-2 p-6 ${
+              isDark ? 'bg-[#2B222C] border-[#6B5261]' : 'bg-[#FFF9FB] border-[#E7B6C5]'
             }`}
           >
-            <p className="font-playfair text-base font-medium text-[#1E1B1D] dark:text-[#FAF5F6]">Chưa có bình luận nào</p>
+            <span className="inline-block w-3 h-3 rounded-full bg-[#E8A0B8] mb-3" />
+            <p className="font-eb-garamond text-xl font-medium text-[#574D4C] dark:text-[#FAF5F6]">Chưa có bình luận nào</p>
             <p className="text-xs text-[#8F7D85] dark:text-[#D5CBD0] mt-1">Hãy đọc truyện và chia sẻ cảm nghĩ về từng đoạn văn nhé!</p>
           </div>
         )}
