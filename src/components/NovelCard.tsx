@@ -27,7 +27,7 @@ export const NovelCard: React.FC<{ novel: Novel }> = ({ novel }) => {
         ⋆　✿
       </div>
 
-      {/* Header nhỏ: avatar + tên thương hiệu (font Alegreya) */}
+      {/* Header nhỏ: avatar + tên thương hiệu (giữ nguyên định dạng gốc) */}
       <div className="flex items-center gap-1.5 sm:gap-2 mx-2.5 sm:mx-3 mt-3 mb-1">
         <div
           className={`w-4 h-4 sm:w-[18px] sm:h-[18px] rounded-full flex items-center justify-center text-[8px] sm:text-[9px] flex-shrink-0 ${
@@ -39,9 +39,8 @@ export const NovelCard: React.FC<{ novel: Novel }> = ({ novel }) => {
           𐙚
         </div>
         <p
-          style={{ fontFamily: "'Alegreya', serif" }}
-          className={`text-[10px] sm:text-[11px] tracking-wider font-semibold ${
-            isDark ? 'text-[#DCC0CB]' : 'text-[#C77B9F]'
+          className={`text-[9px] sm:text-[10px] tracking-wider ${
+            isDark ? 'text-[#D5CBD0]' : 'text-[#D88AB3]'
           }`}
         >
           dreamypenguin
@@ -127,10 +126,10 @@ export const NovelCard: React.FC<{ novel: Novel }> = ({ novel }) => {
       {/* Card Info */}
       <div className="p-2.5 sm:p-4 pt-2.5 sm:pt-3 flex-1 h-full flex flex-col justify-between space-y-2.5 sm:space-y-3">
         <div className="space-y-1">
-          {/* Title — font Alegreya, màu mauve ấm hợp tone pastel */}
+          {/* Title — font Vollkorn, màu mauve ấm hợp tone pastel */}
           <h3
             onClick={() => openNovelDetail(novel.id)}
-            style={{ fontFamily: "'Alegreya', serif" }}
+            style={{ fontFamily: "'Vollkorn', serif" }}
             className={`not-italic font-semibold text-xs sm:text-base line-clamp-2 hover:underline cursor-pointer transition-colors leading-snug ${
               isDark ? 'text-white' : 'text-[#6B4A57]'
             }`}
