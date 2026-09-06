@@ -3,6 +3,12 @@ import { Novel } from '../types';
 import { useApp } from '../context/AppContext';
 import { Eye, Heart, MessageSquare } from 'lucide-react';
 
+// Màu hồng phẳng đồng bộ với NovelGrid/Leaderboard — không dùng gradient nữa.
+// Đây là màu nhạt hơn trong dải gradient cũ (#F6B9D2 → #E58FB3).
+const ACCENT = '#F6B9D2';
+const ACCENT_DARK = '#F2B3C1';
+const ACCENT_TEXT_DARK = '#2B222C';
+
 export const NovelCard: React.FC<{ novel: Novel }> = ({ novel }) => {
   const { openNovelDetail, openReader, isInLibrary, toggleLibraryNovel, globalTheme } = useApp();
   const isDark = globalTheme === 'dark';
@@ -97,11 +103,18 @@ export const NovelCard: React.FC<{ novel: Novel }> = ({ novel }) => {
                 e.stopPropagation();
                 toggleLibraryNovel(novel.id);
               }}
-              className={`min-h-[26px] min-w-[26px] sm:min-h-[30px] sm:min-w-[30px] rounded-full backdrop-blur-md border flex items-center justify-center transition-all flex-shrink-0 ${
+              className="min-h-[26px] min-w-[26px] sm:min-h-[30px] sm:min-w-[30px] rounded-full backdrop-blur-md border flex items-center justify-center transition-all flex-shrink-0"
+              style={
                 isSaved
-                  ? 'bg-gradient-to-br from-[#F6B9D2] to-[#E58FB3] text-white border-white shadow-[0_4px_10px_-2px_rgba(229,143,179,0.6)] dark:from-[#F2B3C1] dark:to-[#E7A3B8] dark:text-[#2B222C] dark:border-[#F7D9E5]'
-                  : 'bg-white/90 text-[#E58FB3] border-[#F2C7DA] hover:bg-[#FFF1F6] dark:bg-[#352936]/90 dark:text-[#F2B3C1] dark:border-[#7A5869] dark:hover:bg-[#4A2F3D]'
-              }`}
+                  ? {
+                      background: isDark ? ACCENT_DARK : ACCENT,
+                      color: isDark ? ACCENT_TEXT_DARK : '#FFFFFF',
+                      borderColor: isDark ? '#F7D9E5' : '#FFFFFF',
+                    }
+                  : isDark
+                  ? { background: 'rgba(53,41,54,0.9)', color: ACCENT_DARK, borderColor: '#7A5869' }
+                  : { background: 'rgba(255,255,255,0.9)', color: ACCENT, borderColor: '#F2C7DA' }
+              }
               title={isSaved ? 'Đã lưu trong tủ sách' : 'Lưu vào tủ sách'}
               aria-label="Lưu vào tủ sách"
             >
@@ -151,7 +164,7 @@ export const NovelCard: React.FC<{ novel: Novel }> = ({ novel }) => {
               <Eye className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[1.6]" />
               <span>{novel.totalViews.toLocaleString('vi-VN')}</span>
             </span>
-            <span className="flex items-center gap-0.5 sm:gap-1 text-[#E0A8B6]">
+            <span className="flex items-center gap-0.5 sm:gap-1" style={{ color: isDark ? ACCENT_DARK : ACCENT }}>
               <Heart className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[1.6]" />
               <span>{novel.totalHearts.toLocaleString('vi-VN')}</span>
             </span>
@@ -174,7 +187,8 @@ export const NovelCard: React.FC<{ novel: Novel }> = ({ novel }) => {
             </button>
             <button
               onClick={() => openReader(novel.id)}
-              className="min-h-[32px] sm:min-h-[36px] py-1 sm:py-1.5 px-1.5 sm:px-2 rounded-full text-[10px] sm:text-xs uppercase tracking-wider text-center bg-gradient-to-r from-[#F6B9D2] to-[#E58FB3] text-white dark:from-[#F2B3C1] dark:to-[#E7A3B8] dark:text-[#2B222C] hover:from-[#EDA3C2] hover:to-[#D97996] dark:hover:from-[#F7C5D2] dark:hover:to-[#F2B3C1] transition-colors font-semibold shadow-[0_6px_14px_-6px_rgba(229,143,179,0.6)]"
+              className="min-h-[32px] sm:min-h-[36px] py-1 sm:py-1.5 px-1.5 sm:px-2 rounded-full text-[10px] sm:text-xs uppercase tracking-wider text-center transition-colors font-semibold"
+              style={{ background: isDark ? ACCENT_DARK : ACCENT, color: isDark ? ACCENT_TEXT_DARK : '#FFFFFF' }}
             >
               Đọc
             </button>
