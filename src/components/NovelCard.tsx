@@ -13,8 +13,8 @@ export const NovelCard: React.FC<{ novel: Novel }> = ({ novel }) => {
     <div
       className={`group relative h-full rounded-[26px] border transition-all duration-300 flex flex-col justify-between overflow-visible hover:-translate-y-1 ${
         isDark
-          ? 'bg-gradient-to-b from-[#2B222C] via-[#241D26] to-[#2B222C] border-[#6B5261] shadow-[4px_4px_0px_rgba(0,0,0,0.25),0_18px_34px_-22px_rgba(0,0,0,0.55)] hover:border-[#D79BAD]'
-          : 'bg-gradient-to-b from-white via-[#FFF8FB] to-white border-[#F5DFE7] shadow-[4px_4px_0px_#F7DFE8,0_18px_34px_-22px_rgba(247,184,210,0.35)] hover:border-[#E7B6C5]'
+          ? 'bg-gradient-to-b from-[#2B222C] via-[#241D26] to-[#2B222C] border-[#6B5261] shadow-[0_18px_34px_-22px_rgba(0,0,0,0.55)] hover:border-[#D79BAD] hover:shadow-[0_22px_40px_-18px_rgba(0,0,0,0.6)]'
+          : 'bg-gradient-to-b from-white via-[#FFF8FB] to-white border-[#F5DFE7] shadow-[0_18px_34px_-22px_rgba(247,184,210,0.35)] hover:border-[#E7B6C5] hover:shadow-[0_22px_40px_-18px_rgba(247,184,210,0.45)]'
       }`}
     >
       {/* Sparkle decoration – góc trên phải khung tổng */}
@@ -27,7 +27,7 @@ export const NovelCard: React.FC<{ novel: Novel }> = ({ novel }) => {
         ⋆　✿
       </div>
 
-      {/* Header nhỏ: avatar + tên thương hiệu */}
+      {/* Header nhỏ: avatar + tên thương hiệu (font Alegreya) */}
       <div className="flex items-center gap-1.5 sm:gap-2 mx-2.5 sm:mx-3 mt-3 mb-1">
         <div
           className={`w-4 h-4 sm:w-[18px] sm:h-[18px] rounded-full flex items-center justify-center text-[8px] sm:text-[9px] flex-shrink-0 ${
@@ -39,8 +39,9 @@ export const NovelCard: React.FC<{ novel: Novel }> = ({ novel }) => {
           𐙚
         </div>
         <p
-          className={`text-[9px] sm:text-[10px] tracking-wider ${
-            isDark ? 'text-[#D5CBD0]' : 'text-[#D88AB3]'
+          style={{ fontFamily: "'Alegreya', serif" }}
+          className={`text-[10px] sm:text-[11px] tracking-wider font-semibold ${
+            isDark ? 'text-[#DCC0CB]' : 'text-[#C77B9F]'
           }`}
         >
           dreamypenguin
@@ -54,7 +55,7 @@ export const NovelCard: React.FC<{ novel: Novel }> = ({ novel }) => {
         </span>
       </div>
 
-      {/* Khung trong – bọc ảnh bìa, kiểu "khung lồng khung" */}
+      {/* Khung trong – bọc ảnh bìa, giữ nguyên kiểu "khung lồng khung" */}
       <div
         className={`relative mx-2.5 sm:mx-3 mt-1 p-1.5 sm:p-2 rounded-[20px] border ${
           isDark
@@ -86,7 +87,7 @@ export const NovelCard: React.FC<{ novel: Novel }> = ({ novel }) => {
                     : 'bg-gradient-to-r from-[#FFEAF3] to-[#F5EAFF] text-[#C48AA0] border-white shadow-[0_6px_12px_-4px_rgba(200,160,180,0.22)]'
                   : isDark
                   ? 'bg-gradient-to-r from-[#3A2935] to-[#4A363B] text-[#F2B3C1] border-[#7A5869] shadow-[0_6px_12px_-4px_rgba(0,0,0,0.45)]'
-                  : 'bg-gradient-to-r from-[#FFEAF3] to-[#F5EAFF] text-[#C995AB] border-white shadow-[0_6px_12px_-4px_rgba(247,184,210,0.22)]'
+                  : 'bg-gradient-to-r from-[#FFF1F6] to-[#F9DBE7] text-[#C995AB] border-white shadow-[0_6px_12px_-4px_rgba(247,184,210,0.22)]'
               }`}
             >
               {isCompleted ? 'Hoàn thành' : 'Đang ra'}
@@ -99,8 +100,8 @@ export const NovelCard: React.FC<{ novel: Novel }> = ({ novel }) => {
               }}
               className={`min-h-[26px] min-w-[26px] sm:min-h-[30px] sm:min-w-[30px] rounded-full backdrop-blur-md border flex items-center justify-center transition-all flex-shrink-0 ${
                 isSaved
-                  ? 'bg-gradient-to-br from-[#F5A0C5] to-[#D985A2] text-white border-white shadow-[0_4px_10px_-2px_rgba(217,133,162,0.6)] dark:from-[#F2B3C1] dark:to-[#E7A3B8] dark:text-[#2B222C] dark:border-[#F7D9E5]'
-                  : 'bg-white/90 text-[#E79FC3] border-[#F2C7DA] hover:bg-[#FFF1F6] dark:bg-[#352936]/90 dark:text-[#F2B3C1] dark:border-[#7A5869] dark:hover:bg-[#4A2F3D]'
+                  ? 'bg-gradient-to-br from-[#F6B9D2] to-[#E58FB3] text-white border-white shadow-[0_4px_10px_-2px_rgba(229,143,179,0.6)] dark:from-[#F2B3C1] dark:to-[#E7A3B8] dark:text-[#2B222C] dark:border-[#F7D9E5]'
+                  : 'bg-white/90 text-[#E58FB3] border-[#F2C7DA] hover:bg-[#FFF1F6] dark:bg-[#352936]/90 dark:text-[#F2B3C1] dark:border-[#7A5869] dark:hover:bg-[#4A2F3D]'
               }`}
               title={isSaved ? 'Đã lưu trong tủ sách' : 'Lưu vào tủ sách'}
               aria-label="Lưu vào tủ sách"
@@ -126,10 +127,13 @@ export const NovelCard: React.FC<{ novel: Novel }> = ({ novel }) => {
       {/* Card Info */}
       <div className="p-2.5 sm:p-4 pt-2.5 sm:pt-3 flex-1 h-full flex flex-col justify-between space-y-2.5 sm:space-y-3">
         <div className="space-y-1">
-          {/* Title */}
+          {/* Title — font Alegreya, màu mauve ấm hợp tone pastel */}
           <h3
             onClick={() => openNovelDetail(novel.id)}
-            className="font-playfair not-italic font-medium text-xs sm:text-base text-[#574D4C] dark:text-[#FFFFFF] line-clamp-2 hover:underline cursor-pointer transition-colors leading-snug"
+            style={{ fontFamily: "'Alegreya', serif" }}
+            className={`not-italic font-semibold text-xs sm:text-base line-clamp-2 hover:underline cursor-pointer transition-colors leading-snug ${
+              isDark ? 'text-white' : 'text-[#6B4A57]'
+            }`}
           >
             {novel.title}
           </h3>
@@ -171,7 +175,7 @@ export const NovelCard: React.FC<{ novel: Novel }> = ({ novel }) => {
             </button>
             <button
               onClick={() => openReader(novel.id)}
-              className="min-h-[32px] sm:min-h-[36px] py-1 sm:py-1.5 px-1.5 sm:px-2 rounded-full text-[10px] sm:text-xs uppercase tracking-wider text-center bg-gradient-to-r from-[#F5A0C5] to-[#D985A2] text-white dark:from-[#F2B3C1] dark:to-[#E7A3B8] dark:text-[#2B222C] hover:from-[#E88BB4] hover:to-[#C87594] dark:hover:from-[#F7C5D2] dark:hover:to-[#F2B3C1] transition-colors font-semibold shadow-[0_6px_14px_-6px_rgba(217,133,162,0.6)]"
+              className="min-h-[32px] sm:min-h-[36px] py-1 sm:py-1.5 px-1.5 sm:px-2 rounded-full text-[10px] sm:text-xs uppercase tracking-wider text-center bg-gradient-to-r from-[#F6B9D2] to-[#E58FB3] text-white dark:from-[#F2B3C1] dark:to-[#E7A3B8] dark:text-[#2B222C] hover:from-[#EDA3C2] hover:to-[#D97996] dark:hover:from-[#F7C5D2] dark:hover:to-[#F2B3C1] transition-colors font-semibold shadow-[0_6px_14px_-6px_rgba(229,143,179,0.6)]"
             >
               Đọc
             </button>
