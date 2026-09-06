@@ -6,8 +6,9 @@ import { ProfileModal } from './ProfileModal';
 import { formatRelativeTime } from '../lib/formatTime';
 
 // Bảng màu hồng phẳng đồng bộ với NovelCard / NovelGrid / Leaderboard / Navbar / HomeHero.
-const ACCENT = '#F6B9D2';
-const ACCENT_DARK = '#F2B3C1';
+// Đậm hơn một chút so với bản trước (#F6B9D2 → #F0A8C8) nhưng vẫn giữ vibe pastel.
+const ACCENT = '#F0A8C8';
+const ACCENT_DARK = '#EDA3B4';
 const ACCENT_TEXT_DARK = '#2B222C';
 
 export const PersonalLibrary: React.FC = () => {
@@ -67,7 +68,7 @@ export const PersonalLibrary: React.FC = () => {
                 className="px-3.5 py-1.5 rounded-full border text-[11px] font-medium transition-colors"
                 style={
                   isDark
-                    ? { background: '#352936', borderColor: '#6B5261', color: '#F2B3C1' }
+                    ? { background: '#352936', borderColor: '#6B5261', color: ACCENT_DARK }
                     : { background: '#FFF6FB', borderColor: '#F0C7DE', color: '#B4587E' }
                 }
               >
@@ -198,10 +199,10 @@ export const PersonalLibrary: React.FC = () => {
                             : 'bg-gradient-to-b from-white via-[#FFFAFD] to-white border-[#F5DFE7] hover:border-[#E7B6C5]'
                         }`}
                       >
-                        {/* Pill nổi "ĐANG ĐỌC" cho mục gần nhất — cùng ngôn ngữ pill trong Leaderboard/WordPress */}
+                        {/* Pill nổi "ĐANG ĐỌC" cho mục gần nhất — tracking bình thường để icon nơ 𝜗𝜚 không bị vỡ */}
                         {isLatest && (
                           <span
-                            className={`absolute -top-2.5 left-5 px-2.5 py-[3px] rounded-full text-[8px] tracking-[1.5px] font-semibold border shadow-sm whitespace-nowrap z-10 ${
+                            className={`absolute -top-2.5 left-5 px-2.5 py-[3px] rounded-full text-[8px] tracking-normal font-semibold border shadow-sm whitespace-nowrap z-10 ${
                               isDark
                                 ? 'bg-[#352936] border-[#6B5261] text-[#E8B8C5]'
                                 : 'bg-[#FFF0F7]/90 border-white text-[#D8A3BA]'
@@ -220,6 +221,7 @@ export const PersonalLibrary: React.FC = () => {
                           ✧　⋆
                         </div>
 
+                        {/* Ảnh bìa — to hơn trước một chút, tương tự cách tăng cỡ ở bảng xếp hạng */}
                         <div
                           className={`relative p-1 rounded-xl border shrink-0 ${
                             isDark
@@ -230,7 +232,7 @@ export const PersonalLibrary: React.FC = () => {
                           <img
                             src={item.novelCover}
                             alt={item.novelTitle}
-                            className="w-11 h-14 object-cover rounded-lg"
+                            className="w-14 h-[74px] sm:w-16 sm:h-20 object-cover rounded-lg"
                           />
                           {/* Dấu trang trí góc ảnh bìa — cùng ngôn ngữ NovelCard */}
                           <span className="pointer-events-none select-none absolute -bottom-0.5 -right-0.5 text-[9px] text-[#E9B8C2] dark:text-[#7A5869]">

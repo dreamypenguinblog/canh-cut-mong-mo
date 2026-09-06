@@ -20,9 +20,9 @@ import {
 } from 'lucide-react';
 
 // Bảng màu hồng phẳng đồng bộ với NovelCard / NovelGrid / Leaderboard.
-// Không dùng gradient cho trạng thái active / nút chính.
-const ACCENT = '#F6B9D2';
-const ACCENT_DARK = '#F2B3C1';
+// Đậm hơn một chút so với bản trước (#F6B9D2 → #F0A8C8) nhưng vẫn giữ vibe pastel.
+const ACCENT = '#F0A8C8';
+const ACCENT_DARK = '#EDA3B4';
 const ACCENT_TEXT_DARK = '#2B222C';
 
 export const Navbar: React.FC<{ onOpenAuth: () => void; onOpenProfile?: () => void }> = ({
@@ -160,10 +160,11 @@ export const Navbar: React.FC<{ onOpenAuth: () => void; onOpenProfile?: () => vo
                 Dreamy Penguin
                 <span className="text-sm sm:text-base font-normal text-[#E9B8C2] dark:text-[#7A5869]">𝜗𝜚</span>
               </span>
-              <div className="mt-1">
+              <div className="mt-1 flex items-center gap-1.5">
+                <span className="w-1 h-1 rounded-full bg-[#E9B8C2] dark:bg-[#7A5869]" />
                 <span
                   style={{ fontFamily: "'Vollkorn', serif" }}
-                  className="italic text-sm sm:text-base tracking-wide font-medium lowercase block text-[#A45E78] dark:text-[#F2B3C1]"
+                  className="not-italic text-sm sm:text-base tracking-wide font-medium lowercase block text-[#A45E78] dark:text-[#F2B3C1]"
                 >
                   kissmemissme
                 </span>
@@ -276,7 +277,7 @@ export const Navbar: React.FC<{ onOpenAuth: () => void; onOpenProfile?: () => vo
                     setActiveView(item.id as any);
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
-                  className="relative min-h-[40px] px-3.5 lg:px-4 py-2 rounded-full text-xs font-semibold tracking-wide transition-all duration-200 flex items-center gap-1.5"
+                  className="relative min-h-[40px] px-3.5 lg:px-4 py-2 rounded-full text-xs font-semibold tracking-normal transition-all duration-200 flex items-center gap-1.5"
                   style={
                     isActive
                       ? { background: isDark ? ACCENT_DARK : ACCENT, color: isDark ? ACCENT_TEXT_DARK : '#FFFFFF' }
@@ -312,7 +313,7 @@ export const Navbar: React.FC<{ onOpenAuth: () => void; onOpenProfile?: () => vo
                   setActiveView('author_dashboard');
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
-                className="min-h-[40px] px-3.5 lg:px-4 py-2 rounded-full text-xs font-semibold tracking-wide transition-all duration-200 border text-center"
+                className="min-h-[40px] px-3.5 lg:px-4 py-2 rounded-full text-xs font-semibold tracking-normal transition-all duration-200 border text-center"
                 style={
                   activeView === 'author_dashboard'
                     ? { background: isDark ? ACCENT_DARK : ACCENT, borderColor: isDark ? ACCENT_DARK : ACCENT, color: isDark ? ACCENT_TEXT_DARK : '#FFFFFF' }
@@ -611,7 +612,7 @@ export const Navbar: React.FC<{ onOpenAuth: () => void; onOpenProfile?: () => vo
                         setMobileMenuOpen(false);
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                       }}
-                      className="w-full px-4 py-2.5 rounded-full text-xs font-semibold tracking-wide flex items-center justify-between transition-colors"
+                      className="w-full px-4 py-2.5 rounded-full text-xs font-semibold tracking-normal flex items-center justify-between transition-colors"
                       style={
                         isActive
                           ? { background: isDark ? ACCENT_DARK : ACCENT, color: isDark ? ACCENT_TEXT_DARK : '#FFFFFF' }
@@ -657,7 +658,7 @@ export const Navbar: React.FC<{ onOpenAuth: () => void; onOpenProfile?: () => vo
                     setMobileMenuOpen(false);
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
-                  className="w-full px-4 py-2.5 rounded-full text-xs font-semibold tracking-wide block text-left border"
+                  className="w-full px-4 py-2.5 rounded-full text-xs font-semibold tracking-normal block text-left border"
                   style={
                     activeView === 'author_dashboard'
                       ? { background: isDark ? ACCENT_DARK : ACCENT, borderColor: isDark ? ACCENT_DARK : ACCENT, color: isDark ? ACCENT_TEXT_DARK : '#FFFFFF' }
@@ -676,7 +677,7 @@ export const Navbar: React.FC<{ onOpenAuth: () => void; onOpenProfile?: () => vo
                     onOpenProfile();
                     setMobileMenuOpen(false);
                   }}
-                  className="w-full px-4 py-2.5 rounded-full text-xs font-semibold tracking-wide block text-left border"
+                  className="w-full px-4 py-2.5 rounded-full text-xs font-semibold tracking-normal block text-left border"
                   style={
                     isDark
                       ? { borderColor: '#6B5261', color: '#E8DFE3', background: '#352936' }

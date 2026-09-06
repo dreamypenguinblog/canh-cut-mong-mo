@@ -4,9 +4,9 @@ import { useApp } from '../context/AppContext';
 import { Eye, Heart, MessageSquare } from 'lucide-react';
 
 // Màu hồng phẳng đồng bộ với NovelGrid/Leaderboard — không dùng gradient nữa.
-// Đây là màu nhạt hơn trong dải gradient cũ (#F6B9D2 → #E58FB3).
-const ACCENT = '#F6B9D2';
-const ACCENT_DARK = '#F2B3C1';
+// Đậm hơn một chút so với bản trước (#F6B9D2 → #F0A8C8) nhưng vẫn giữ vibe pastel.
+const ACCENT = '#F0A8C8';
+const ACCENT_DARK = '#EDA3B4';
 const ACCENT_TEXT_DARK = '#2B222C';
 
 export const NovelCard: React.FC<{ novel: Novel }> = ({ novel }) => {

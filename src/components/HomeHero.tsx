@@ -3,9 +3,9 @@ import { useApp } from '../context/AppContext';
 import { Eye, BookOpen, ArrowRight, Star } from 'lucide-react';
 
 // Bảng màu hồng phẳng đồng bộ với NovelCard / NovelGrid / Leaderboard / Navbar.
-// Không dùng gradient cho nút chính.
-const ACCENT = '#F6B9D2';
-const ACCENT_DARK = '#F2B3C1';
+// Đậm hơn một chút so với bản trước (#F6B9D2 → #F0A8C8) nhưng vẫn giữ vibe pastel.
+const ACCENT = '#F0A8C8';
+const ACCENT_DARK = '#EDA3B4';
 const ACCENT_TEXT_DARK = '#2B222C';
 
 export const HomeHero: React.FC = () => {
@@ -162,9 +162,9 @@ export const HomeHero: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Pill nổi đè viền khung — lấy cảm hứng từ pill "COVER"/"DREAMY" trong code WordPress */}
+                {/* Pill nổi đè viền khung — chữ để tracking bình thường để icon nơ 𝜗𝜚 không bị vỡ hình */}
                 <span
-                  className={`absolute -top-2.5 left-1/2 -translate-x-1/2 px-3 py-[3px] rounded-full text-[8px] tracking-[2px] font-semibold border shadow-sm whitespace-nowrap ${
+                  className={`absolute -top-2.5 left-1/2 -translate-x-1/2 px-3 py-[3px] rounded-full text-[8px] tracking-normal font-semibold border shadow-sm whitespace-nowrap ${
                     isDark
                       ? 'bg-[#352936] border-[#6B5261] text-[#E8B8C5]'
                       : 'bg-[#FFF0F7]/90 border-white text-[#D8A3BA]'
