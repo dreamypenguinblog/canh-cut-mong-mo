@@ -55,16 +55,14 @@ export const NovelGrid: React.FC = () => {
 
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-      {/* Section Header — không khung bọc, không icon/divider trang trí */}
-      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">
-        <div>
-          <h2
-            style={{ fontFamily: "'Vollkorn', serif" }}
-            className="not-italic text-2xl sm:text-3xl font-medium text-[#8B5D71] dark:text-[#F7E4EC]"
-          >
-            Danh Sách Tiểu Thuyết
-          </h2>
-        </div>
+      {/* Header — căn giữa, cùng kiểu với header Bảng xếp hạng / Tủ sách để đồng bộ toàn site */}
+      <div className="text-center max-w-2xl mx-auto space-y-3 mb-6 sm:mb-8">
+        <h2
+          style={{ fontFamily: "'Vollkorn', serif" }}
+          className="not-italic text-2xl sm:text-3xl font-medium text-[#8B5D71] dark:text-[#F7E4EC]"
+        >
+          Danh Sách Truyện
+        </h2>
 
         {/* Sắp xếp — khung 3 nút segmented control, nút đang chọn dùng ACCENT phẳng */}
         <div

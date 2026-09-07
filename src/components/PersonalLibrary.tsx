@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { NovelCard } from './NovelCard';
-import { Trash2, ArrowRight } from 'lucide-react';
+import { Trash2, ArrowRight, Heart } from 'lucide-react';
 import { ProfileModal } from './ProfileModal';
 import { formatRelativeTime } from '../lib/formatTime';
 
@@ -18,6 +18,9 @@ export const PersonalLibrary: React.FC = () => {
     novels,
     readingHistory,
     openReader,
+    openNovelDetail,
+    isInLibrary,
+    toggleLibraryNovel,
     clearHistory,
     globalTheme,
   } = useApp();
@@ -32,15 +35,13 @@ export const PersonalLibrary: React.FC = () => {
 
   return (
     <div className="py-6 sm:py-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-      {/* Header — tiêu đề Vollkorn có sparkle trang trí 2 bên, cùng ngôn ngữ NovelCard/Leaderboard */}
+      {/* Header — căn giữa, KHÔNG dùng icon sao/sparkle nữa để đồng bộ với header các trang khác (Danh Sách Truyện, Bảng xếp hạng) */}
       <div className="text-center max-w-2xl mx-auto space-y-2">
         <h1
           style={{ fontFamily: "'Vollkorn', serif" }}
-          className="not-italic text-2xl sm:text-4xl font-medium text-[#8B5D71] dark:text-[#F7E4EC] flex items-center justify-center gap-3"
+          className="not-italic text-2xl sm:text-3xl font-medium text-[#8B5D71] dark:text-[#F7E4EC]"
         >
-          <span className="text-base sm:text-lg text-[#F2C7DA] dark:text-[#7A5869]">✧⋆</span>
-          <span>Tủ Sách & Lịch Sử Đọc</span>
-          <span className="text-base sm:text-lg text-[#F2C7DA] dark:text-[#7A5869]">⋆✧</span>
+          Tủ Sách & Lịch Sử Đọc
         </h1>
 
         {currentUser && (
@@ -147,7 +148,7 @@ export const PersonalLibrary: React.FC = () => {
         </div>
       )}
 
-      {/* Tab 2: Reading History */}
+      {/* Tab 2: Reading History — dạng lưới 2 cột, card ngang lấy cảm hứng từ ảnh tham khảo */}
       {activeTab === 'history' && (
         <div className="space-y-3">
           <div className="flex justify-between items-center mb-1">
@@ -168,123 +169,119 @@ export const PersonalLibrary: React.FC = () => {
           </div>
 
           {readingHistory.length > 0 ? (
-            <div className="relative max-w-2xl mx-auto pl-7 sm:pl-9">
-              {/* Đường kẻ dọc timeline — mờ dần về cuối */}
-              <div
-                className={`absolute top-1 bottom-1 left-[9px] sm:left-[11px] w-px ${
-                  isDark
-                    ? 'bg-gradient-to-b from-[#6B5261] via-[#6B5261] to-transparent'
-                    : 'bg-gradient-to-b from-[#F0C7DE] via-[#F0C7DE] to-transparent'
-                }`}
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 max-w-3xl mx-auto">
+              {readingHistory.map((item, idx) => {
+                const isLatest = idx === 0;
+                const relatedNovel = novels.find((n) => n.id === item.novelId);
+                const isSaved = relatedNovel ? isInLibrary(relatedNovel.id) : false;
 
-              <div className="space-y-5">
-                {readingHistory.map((item, idx) => {
-                  const isLatest = idx === 0;
-                  return (
-                    <div key={idx} className="relative">
-                      {/* Mốc thời gian — mốc gần nhất nổi bật, viền trắng để nổi trên đường kẻ */}
+                return (
+                  <div
+                    key={idx}
+                    className={`relative flex gap-3 rounded-2xl border p-3 transition-all hover:-translate-y-0.5 ${
+                      isDark
+                        ? 'bg-gradient-to-b from-[#2B222C] via-[#241D26] to-[#2B222C] border-[#6B5261] hover:border-[#D79BAD]'
+                        : 'bg-gradient-to-b from-white via-[#FFFAFD] to-white border-[#F5DFE7] hover:border-[#E7B6C5]'
+                    }`}
+                  >
+                    {/* Pill nổi "ĐANG ĐỌC" cho mục gần nhất — tracking bình thường để icon nơ 𝜗𝜚 không bị vỡ */}
+                    {isLatest && (
                       <span
-                        className="absolute -left-7 sm:-left-9 top-4 w-3 h-3 rounded-full border-2 z-10"
-                        style={{
-                          background: isLatest ? (isDark ? ACCENT_DARK : ACCENT) : isDark ? '#594352' : '#F5DFE7',
-                          borderColor: isDark ? '#2B222C' : '#FFFDFD',
-                        }}
-                      />
-
-                      <div
-                        className={`relative overflow-visible group rounded-2xl border p-3.5 flex items-center gap-3.5 transition-all ${
+                        className={`absolute -top-2.5 left-4 px-2.5 py-[3px] rounded-full text-[8px] tracking-normal font-semibold border shadow-sm whitespace-nowrap z-10 ${
                           isDark
-                            ? 'bg-gradient-to-b from-[#2B222C] via-[#241D26] to-[#2B222C] border-[#6B5261] hover:border-[#D79BAD]'
-                            : 'bg-gradient-to-b from-white via-[#FFFAFD] to-white border-[#F5DFE7] hover:border-[#E7B6C5]'
+                            ? 'bg-[#352936] border-[#6B5261] text-[#E8B8C5]'
+                            : 'bg-[#FFF0F7]/90 border-white text-[#D8A3BA]'
                         }`}
                       >
-                        {/* Pill nổi "ĐANG ĐỌC" cho mục gần nhất — tracking bình thường để icon nơ 𝜗𝜚 không bị vỡ */}
-                        {isLatest && (
-                          <span
-                            className={`absolute -top-2.5 left-5 px-2.5 py-[3px] rounded-full text-[8px] tracking-normal font-semibold border shadow-sm whitespace-nowrap z-10 ${
-                              isDark
-                                ? 'bg-[#352936] border-[#6B5261] text-[#E8B8C5]'
-                                : 'bg-[#FFF0F7]/90 border-white text-[#D8A3BA]'
-                            }`}
-                          >
-                            𝜗𝜚 ĐANG ĐỌC 𝜗𝜚
-                          </span>
-                        )}
+                        𝜗𝜚 ĐANG ĐỌC 𝜗𝜚
+                      </span>
+                    )}
 
-                        {/* Sparkle decoration góc trên phải — cùng ngôn ngữ NovelCard */}
-                        <div
-                          className={`pointer-events-none select-none absolute top-2 right-3 text-[8px] leading-[1.6] ${
-                            isDark ? 'text-[#7A5869]/50' : 'text-[#F2C7DA]/70'
-                          }`}
-                        >
-                          ✧　⋆
-                        </div>
+                    {/* Nút lưu tủ sách — góc trên phải card, chỉ hiện khi tìm được truyện tương ứng */}
+                    {relatedNovel && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleLibraryNovel(relatedNovel.id);
+                        }}
+                        className="absolute top-2 right-2 z-10 w-6 h-6 rounded-full border flex items-center justify-center transition-all"
+                        style={
+                          isSaved
+                            ? { background: isDark ? ACCENT_DARK : ACCENT, color: isDark ? ACCENT_TEXT_DARK : '#FFFFFF', borderColor: isDark ? ACCENT_DARK : ACCENT }
+                            : isDark
+                            ? { background: '#352936', color: ACCENT_DARK, borderColor: '#7A5869' }
+                            : { background: '#FFF6FB', color: ACCENT, borderColor: '#F2C7DA' }
+                        }
+                        aria-label="Lưu vào tủ sách"
+                      >
+                        <Heart className={`w-3 h-3 ${isSaved ? 'fill-current' : 'stroke-[2]'}`} />
+                      </button>
+                    )}
 
-                        {/* Ảnh bìa — to hơn trước một chút, tương tự cách tăng cỡ ở bảng xếp hạng */}
-                        <div
-                          className={`relative p-1 rounded-xl border shrink-0 ${
-                            isDark
-                              ? 'bg-gradient-to-b from-[#352936] to-[#2B222C] border-[#6B5261]'
-                              : 'bg-gradient-to-b from-[#FFFAFD] to-white border-[#F5DFE7]'
-                          }`}
+                    {/* Ảnh bìa — to hơn trước, cùng cỡ với card trong Bảng xếp hạng */}
+                    <div
+                      className={`relative flex-shrink-0 p-1 rounded-xl border ${
+                        isDark
+                          ? 'bg-gradient-to-b from-[#352936] to-[#2B222C] border-[#6B5261]'
+                          : 'bg-gradient-to-b from-[#FFFAFD] to-white border-[#F5DFE7]'
+                      }`}
+                    >
+                      <img
+                        src={item.novelCover}
+                        alt={item.novelTitle}
+                        onClick={() => relatedNovel && openNovelDetail(relatedNovel.id)}
+                        className={`w-16 h-20 sm:w-20 sm:h-[104px] object-cover rounded-lg ${relatedNovel ? 'cursor-pointer' : ''}`}
+                      />
+                      {/* Dấu trang trí góc ảnh bìa — cùng ngôn ngữ NovelCard */}
+                      <span className="pointer-events-none select-none absolute -bottom-0.5 -right-0.5 text-[9px] text-[#E9B8C2] dark:text-[#7A5869]">
+                        𝜗𝜚
+                      </span>
+                    </div>
+
+                    <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
+                      <div className="min-w-0">
+                        <h4
+                          onClick={() => relatedNovel && openNovelDetail(relatedNovel.id)}
+                          style={{ fontFamily: "'Vollkorn', serif" }}
+                          className={`not-italic text-sm font-semibold truncate text-[#6B4A57] dark:text-[#FAF5F6] ${relatedNovel ? 'cursor-pointer hover:underline' : ''}`}
                         >
-                          <img
-                            src={item.novelCover}
-                            alt={item.novelTitle}
-                            className="w-14 h-[74px] sm:w-16 sm:h-20 object-cover rounded-lg"
+                          {item.novelTitle}
+                        </h4>
+                        <p className="text-[11px] text-[#B79AA6] dark:text-[#D5CBD0] truncate mt-0.5">
+                          {item.chapterTitle}
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-2 mt-1.5">
+                        <div className="flex-1 h-1.5 rounded-full bg-[#F5DFE7] dark:bg-[#6B5261] overflow-hidden">
+                          <div
+                            className="h-full rounded-full transition-all"
+                            style={{ width: `${item.progressPercent || 0}%`, background: isDark ? ACCENT_DARK : ACCENT }}
                           />
-                          {/* Dấu trang trí góc ảnh bìa — cùng ngôn ngữ NovelCard */}
-                          <span className="pointer-events-none select-none absolute -bottom-0.5 -right-0.5 text-[9px] text-[#E9B8C2] dark:text-[#7A5869]">
-                            𝜗𝜚
-                          </span>
                         </div>
+                        <span className="text-[10px] text-[#B79AA6] dark:text-[#D5CBD0] shrink-0">
+                          {item.progressPercent || 0}%
+                        </span>
+                      </div>
 
-                        <div className="min-w-0 flex-1 space-y-1.5">
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="min-w-0">
-                              <h4
-                                style={{ fontFamily: "'Vollkorn', serif" }}
-                                className="not-italic text-sm font-semibold text-[#6B4A57] dark:text-[#FAF5F6] truncate"
-                              >
-                                {item.novelTitle}
-                              </h4>
-                              <p className="text-[11px] text-[#B79AA6] dark:text-[#D5CBD0] truncate mt-0.5">
-                                {item.chapterTitle}
-                              </p>
-                            </div>
-                            <span className="text-[10px] text-[#B79AA6] dark:text-[#D5CBD0] shrink-0 whitespace-nowrap pt-0.5">
-                              {formatRelativeTime(item.lastReadAt)}
-                            </span>
-                          </div>
-
-                          <div className="flex items-center gap-2">
-                            <div className="flex-1 h-1.5 rounded-full bg-[#F5DFE7] dark:bg-[#6B5261] overflow-hidden">
-                              <div
-                                className="h-full rounded-full transition-all"
-                                style={{ width: `${item.progressPercent || 0}%`, background: isDark ? ACCENT_DARK : ACCENT }}
-                              />
-                            </div>
-                            <span className="text-[10px] text-[#B79AA6] dark:text-[#D5CBD0] shrink-0">
-                              {item.progressPercent || 0}%
-                            </span>
-                          </div>
-                        </div>
-
+                      <div className="flex items-center justify-between mt-1.5">
+                        <span className="text-[10px] text-[#B79AA6] dark:text-[#D5CBD0] whitespace-nowrap">
+                          {formatRelativeTime(item.lastReadAt)}
+                        </span>
                         <button
                           onClick={() => openReader(item.novelId, item.chapterId, item.paragraphIndex)}
                           aria-label="Đọc tiếp"
-                          className="min-h-[34px] px-3.5 rounded-full flex items-center gap-1.5 shrink-0 text-[11px] font-semibold uppercase tracking-wider transition-transform group-hover:scale-[1.03]"
+                          className="min-h-[26px] px-3 rounded-full flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider transition-colors"
                           style={{ background: isDark ? ACCENT_DARK : ACCENT, color: isDark ? ACCENT_TEXT_DARK : '#FFFFFF' }}
                         >
-                          <span className="hidden sm:inline">Đọc tiếp</span>
-                          <ArrowRight className="w-3.5 h-3.5" />
+                          <span>Đọc tiếp</span>
+                          <ArrowRight className="w-3 h-3" />
                         </button>
                       </div>
                     </div>
-                  );
-                })}
-              </div>
+                  </div>
+                );
+              })}
             </div>
           ) : (
             <div

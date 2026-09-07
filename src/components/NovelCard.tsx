@@ -157,7 +157,16 @@ export const NovelCard: React.FC<{ novel: Novel }> = ({ novel }) => {
         </div>
 
         {/* Stats and Action */}
-        <div className="mt-auto pt-2 border-t border-[#E8C8D2] dark:border-[#594352] space-y-2">
+        <div className="mt-auto pt-2 space-y-2">
+          {/* Divider — đổi từ đường kẻ phẳng sang gradient hồng mờ dần, đồng bộ vibe web hơn */}
+          <div
+            className={`h-px w-full ${
+              isDark
+                ? 'bg-gradient-to-r from-transparent via-[#7A5869] to-transparent'
+                : 'bg-gradient-to-r from-transparent via-[#F2C7DA] to-transparent'
+            }`}
+          />
+
           {/* Line Icons for Metrics */}
           <div className="flex items-center justify-between text-[10px] sm:text-[11px] text-[#7A6E74] dark:text-[#FAF5F6]">
             <span className="flex items-center gap-0.5 sm:gap-1">
