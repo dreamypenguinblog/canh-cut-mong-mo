@@ -39,8 +39,8 @@ export const RecentReads: React.FC = () => {
 
         <div className="flex items-center justify-between border-b border-[#F0D9E3] dark:border-[#6B5261] pb-3 mb-3.5">
           <h2
-            style={{ fontFamily: "'EB Garamond', serif" }}
-            className="font-eb-garamond not-italic text-lg sm:text-xl font-medium text-[#574D4C] dark:text-white"
+            style={{ fontFamily: "'Vollkorn', serif" }}
+            className="not-italic text-lg sm:text-xl font-semibold tracking-wide text-[#6B4A57] dark:text-white"
           >
             Đọc Gần Đây
           </h2>
