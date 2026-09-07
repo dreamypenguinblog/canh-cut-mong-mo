@@ -137,7 +137,7 @@ export const NovelCard: React.FC<{ novel: Novel }> = ({ novel }) => {
       </div>
 
       {/* Card Info */}
-      <div className="p-2.5 sm:p-4 pt-2.5 sm:pt-3 flex-1 h-full flex flex-col justify-between space-y-2.5 sm:space-y-3">
+      <div className="p-2.5 sm:p-4 pt-2.5 sm:pt-3 flex-1 h-full flex flex-col justify-between space-y-2">
         <div className="space-y-1">
           {/* Title — font Vollkorn, màu mauve ấm hợp tone pastel */}
           <h3
@@ -157,7 +157,7 @@ export const NovelCard: React.FC<{ novel: Novel }> = ({ novel }) => {
         </div>
 
         {/* Stats and Action */}
-        <div className="mt-auto pt-2 space-y-2">
+        <div className="mt-auto space-y-2">
           {/* Divider — dải trang trí có ký hiệu 𝜗𝜚, đồng bộ với dải phân cách ở Navbar mobile, thay cho đường kẻ phẳng trước đó */}
           <div className="flex items-center justify-center gap-1.5">
             <div

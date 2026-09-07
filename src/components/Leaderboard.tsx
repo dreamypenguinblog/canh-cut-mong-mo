@@ -262,6 +262,7 @@ export const Leaderboard: React.FC = () => {
               {rest.map((novel, idx) => {
                 const rank = idx + 4;
                 const isSaved = isInLibrary(novel.id);
+                const isCompleted = novel.status === 'completed';
 
                 return (
                   <div
@@ -343,11 +344,19 @@ export const Leaderboard: React.FC = () => {
                       </div>
 
                       <div className="flex items-center justify-between mt-1">
+                        {/* Badge trạng thái — dạng pill, đồng bộ đúng màu/gradient với badge trạng thái trong NovelCard */}
                         <span
-                          className="text-[9px] uppercase font-semibold tracking-wider"
-                          style={{ color: isDark ? ACCENT_DARK : '#B4587E' }}
+                          className={`text-[8px] uppercase font-semibold tracking-[1.2px] px-2.5 py-[3px] rounded-full border ${
+                            isCompleted
+                              ? isDark
+                                ? 'bg-gradient-to-r from-[#3A2E3D] to-[#453547] text-[#DCC5DE] border-[#6E5578]'
+                                : 'bg-gradient-to-r from-[#FFEAF3] to-[#F5EAFF] text-[#C48AA0] border-white'
+                              : isDark
+                              ? 'bg-gradient-to-r from-[#3A2935] to-[#4A363B] text-[#F2B3C1] border-[#7A5869]'
+                              : 'bg-gradient-to-r from-[#FFF1F6] to-[#F9DBE7] text-[#C995AB] border-white'
+                          }`}
                         >
-                          {novel.status === 'completed' ? 'Đã hoàn thành' : 'Đang ra'}
+                          {isCompleted ? 'Đã hoàn thành' : 'Đang ra'}
                         </span>
                         <button
                           onClick={() => openReader(novel.id)}

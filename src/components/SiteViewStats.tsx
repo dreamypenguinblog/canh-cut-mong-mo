@@ -69,15 +69,44 @@ export const SiteViewStats: React.FC = () => {
   return (
     <div className="pt-4 pb-2">
       <div className="max-w-4xl mx-auto px-4">
+        {/* Dải trang trí nhỏ phía trên các ô số liệu — cùng ký hiệu 𝜗𝜚 dùng ở divider NovelCard,
+            không thêm chữ nhãn (đã bỏ "Lượt Xem Toàn Trang" theo yêu cầu trước đó) */}
+        <div className="flex items-center justify-center gap-1.5 mb-3">
+          <div
+            className={`w-10 h-px ${
+              isDark ? 'bg-gradient-to-r from-transparent to-[#6B5261]' : 'bg-gradient-to-r from-transparent to-[#F3C6DD]'
+            }`}
+          />
+          <span className={`text-[9px] ${isDark ? 'text-[#7A5869]' : 'text-[#E9B8C2]'}`}>𝜗𝜚</span>
+          <div
+            className={`w-10 h-px ${
+              isDark ? 'bg-gradient-to-l from-transparent to-[#6B5261]' : 'bg-gradient-to-l from-transparent to-[#F3C6DD]'
+            }`}
+          />
+        </div>
+
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
           {items.map((item) => (
             <div
               key={item.label}
-              className={`rounded-2xl border p-3 text-center ${
+              className={`relative overflow-hidden rounded-2xl border p-3 text-center ${
                 isDark ? 'bg-[#352936] border-[#6B5261]' : 'bg-[#FFF6FB] border-[#F5D2E0]'
               }`}
             >
-              <div className="font-eb-garamond font-medium text-xl text-[#A45E78] dark:text-[#F2B3C1]">
+              {/* Sparkle nhỏ góc trên phải mỗi ô — cùng ngôn ngữ trang trí với NovelCard */}
+              <span
+                className={`pointer-events-none select-none absolute top-1 right-1.5 text-[7px] ${
+                  isDark ? 'text-[#7A5869]/60' : 'text-[#F2C7DA]/80'
+                }`}
+              >
+                ✧
+              </span>
+
+              {/* Số liệu — đổi từ EB Garamond sang Vollkorn (đồng bộ font tiêu đề truyện/mục lục), đậm hơn một chút */}
+              <div
+                style={{ fontFamily: "'Vollkorn', serif" }}
+                className="not-italic font-semibold text-xl sm:text-2xl text-[#A45E78] dark:text-[#F2B3C1]"
+              >
                 {item.value.toLocaleString('vi-VN')}
               </div>
               <div className="text-[10px] uppercase tracking-wider text-[#8F6875] dark:text-[#D5CBD0] mt-0.5">
