@@ -26,7 +26,18 @@ const MainLayout: React.FC = () => {
   // trong class "dark" theo globalTheme, màu sắc trang đọc luôn cố định.
   if (activeView === 'reader') {
     return (
-      <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-[#FFF7FB] text-[#A45E78]"><div className="flex flex-col items-center gap-3"><span className="w-10 h-10 rounded-full border-2 border-[#E8B8C5] border-t-[#D985A2] animate-spin" /><span className="font-eb-garamond text-xl">Đang mở trình đọc...</span></div></div>}>
+      <Suspense
+        fallback={
+          <div className="min-h-screen flex items-center justify-center bg-[#FFF7FB] text-[#A45E78]">
+            <div className="flex flex-col items-center gap-3">
+              <span className="w-10 h-10 rounded-full border-2 border-[#E8B8C5] border-t-[#D985A2] animate-spin" />
+              <span style={{ fontFamily: "'Vollkorn', serif" }} className="not-italic text-xl font-medium">
+                Đang mở trình đọc...
+              </span>
+            </div>
+          </div>
+        }
+      >
         <ReaderView />
       </Suspense>
     );
@@ -48,7 +59,18 @@ const MainLayout: React.FC = () => {
 
       {/* Main Content Area */}
       <div className="flex-1 pb-10">
-        <Suspense fallback={<div className="min-h-[240px] flex items-center justify-center text-[#A45E78] dark:text-[#F2B3C1]"><div className="flex items-center gap-2 text-sm"><span className="w-3 h-3 rounded-full bg-[#D985A2] animate-pulse" /><span className="font-eb-garamond text-lg">Đang tải...</span></div></div>}>
+        <Suspense
+          fallback={
+            <div className="min-h-[240px] flex items-center justify-center text-[#A45E78] dark:text-[#F2B3C1]">
+              <div className="flex items-center gap-2 text-sm">
+                <span className="w-3 h-3 rounded-full bg-[#D985A2] animate-pulse" />
+                <span style={{ fontFamily: "'Vollkorn', serif" }} className="not-italic text-lg font-medium">
+                  Đang tải...
+                </span>
+              </div>
+            </div>
+          }
+        >
         {activeView === 'home' && (
           <main className="space-y-6 pt-4">
             <RecentReads />
