@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { collection, getCountFromServer, query, where } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useApp } from '../context/AppContext';
 
@@ -11,6 +11,13 @@ interface SiteStats {
 }
 
 // Bảng màu hồng phẳng đồng bộ với NovelCard / NovelGrid / Leaderboard / Navbar / Footer.
+// Đọc từ các document đếm sẵn trong `siteStats` (được AppContext.recordView cập nhật
+// mỗi khi có 1 view thật) — 4 getDoc cố định thay vì 4 aggregation query quét cả
+// collection viewEvents, nên chi phí không tăng theo thời gian nữa.
+//
+// Giao diện: gộp lại thành 1 khung gradient duy nhất (thay vì 4 ô rời trước đây),
+// chia 4 cột bằng đường kẻ mảnh — gọn và dịu hơn, dùng đúng ngôn ngữ trang trí
+// (gradient nền, sparkle ✧⋆, dải 𝜗𝜚, font Vollkorn) như NovelCard/Leaderboard.
 
 export const SiteViewStats: React.FC = () => {
   const { globalTheme } = useApp();
@@ -27,24 +34,23 @@ export const SiteViewStats: React.FC = () => {
     const load = async () => {
       try {
         const now = new Date();
-        const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
-        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-        const yearStart = new Date(now.getFullYear(), 0, 1).toISOString();
+        const dayKey = now.toISOString().slice(0, 10);
+        const monthKey = dayKey.slice(0, 7);
+        const yearKey = dayKey.slice(0, 4);
 
-        const ref = collection(db, 'viewEvents');
-        const [today, month, year, allTime] = await Promise.all([
-          getCountFromServer(query(ref, where('createdAt', '>=', todayStart))),
-          getCountFromServer(query(ref, where('createdAt', '>=', monthStart))),
-          getCountFromServer(query(ref, where('createdAt', '>=', yearStart))),
-          getCountFromServer(query(ref)),
+        const [daySnap, monthSnap, yearSnap, allTimeSnap] = await Promise.all([
+          getDoc(doc(db, 'siteStats', `day-${dayKey}`)),
+          getDoc(doc(db, 'siteStats', `month-${monthKey}`)),
+          getDoc(doc(db, 'siteStats', `year-${yearKey}`)),
+          getDoc(doc(db, 'siteStats', 'allTime')),
         ]);
 
         if (!cancelled) {
           setStats({
-            today: today.data().count,
-            month: month.data().count,
-            year: year.data().count,
-            allTime: allTime.data().count,
+            today: daySnap.data()?.count || 0,
+            month: monthSnap.data()?.count || 0,
+            year: yearSnap.data()?.count || 0,
+            allTime: allTimeSnap.data()?.count || 0,
           });
         }
       } catch (error) {
@@ -67,53 +73,70 @@ export const SiteViewStats: React.FC = () => {
   ];
 
   return (
-    <div className="pt-4 pb-2">
-      <div className="max-w-4xl mx-auto px-4">
-        {/* Dải trang trí nhỏ phía trên các ô số liệu — cùng ký hiệu 𝜗𝜚 dùng ở divider NovelCard,
-            không thêm chữ nhãn (đã bỏ "Lượt Xem Toàn Trang" theo yêu cầu trước đó) */}
-        <div className="flex items-center justify-center gap-1.5 mb-3">
+    <div className="pt-5 pb-3">
+      <div className="max-w-3xl mx-auto px-4">
+        <div
+          className={`relative overflow-hidden rounded-[24px] border px-4 py-4 sm:px-6 sm:py-5 transition-colors ${
+            isDark
+              ? 'bg-gradient-to-b from-[#2B222C] via-[#241D26] to-[#2B222C] border-[#6B5261]'
+              : 'bg-gradient-to-b from-white via-[#FFF8FB] to-white border-[#F5DFE7]'
+          }`}
+        >
+          {/* Sparkle góc — cùng ngôn ngữ trang trí NovelCard/Leaderboard */}
           <div
-            className={`w-10 h-px ${
-              isDark ? 'bg-gradient-to-r from-transparent to-[#6B5261]' : 'bg-gradient-to-r from-transparent to-[#F3C6DD]'
+            className={`pointer-events-none select-none absolute top-2.5 right-3.5 text-[8px] leading-[1.6] hidden sm:block ${
+              isDark ? 'text-[#7A5869]/60' : 'text-[#F2C7DA]/70'
             }`}
-          />
-          <span className={`text-[9px] ${isDark ? 'text-[#7A5869]' : 'text-[#E9B8C2]'}`}>𝜗𝜚</span>
-          <div
-            className={`w-10 h-px ${
-              isDark ? 'bg-gradient-to-l from-transparent to-[#6B5261]' : 'bg-gradient-to-l from-transparent to-[#F3C6DD]'
-            }`}
-          />
-        </div>
+          >
+            ✧　⋆
+          </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
-          {items.map((item) => (
+          {/* Dải phân cách nhỏ phía trên các ô số liệu — ký hiệu 𝜗𝜚 như divider NovelCard */}
+          <div className="flex items-center justify-center gap-1.5 mb-3">
             <div
-              key={item.label}
-              className={`relative overflow-hidden rounded-2xl border p-3 text-center ${
-                isDark ? 'bg-[#352936] border-[#6B5261]' : 'bg-[#FFF6FB] border-[#F5D2E0]'
+              className={`w-8 h-px ${
+                isDark ? 'bg-gradient-to-r from-transparent to-[#6B5261]' : 'bg-gradient-to-r from-transparent to-[#F3C6DD]'
               }`}
-            >
-              {/* Sparkle nhỏ góc trên phải mỗi ô — cùng ngôn ngữ trang trí với NovelCard */}
-              <span
-                className={`pointer-events-none select-none absolute top-1 right-1.5 text-[7px] ${
-                  isDark ? 'text-[#7A5869]/60' : 'text-[#F2C7DA]/80'
+            />
+            <span className={`text-[9px] ${isDark ? 'text-[#7A5869]' : 'text-[#E9B8C2]'}`}>𝜗𝜚</span>
+            <div
+              className={`w-8 h-px ${
+                isDark ? 'bg-gradient-to-l from-transparent to-[#6B5261]' : 'bg-gradient-to-l from-transparent to-[#F3C6DD]'
+              }`}
+            />
+          </div>
+
+          <div className="grid grid-cols-4 gap-2 sm:gap-3">
+            {items.map((item, idx) => (
+              <div
+                key={item.label}
+                className={`relative text-center ${
+                  idx > 0 ? (isDark ? 'border-l border-[#453640]' : 'border-l border-[#F3E0E9]') : ''
                 }`}
               >
-                ✧
-              </span>
+                <div
+                  style={{ fontFamily: "'Vollkorn', serif" }}
+                  className={`not-italic font-semibold text-base sm:text-xl ${
+                    isDark ? 'text-[#F2B3C1]' : 'text-[#A45E78]'
+                  }`}
+                >
+                  {item.value.toLocaleString('vi-VN')}
+                </div>
+                <div
+                  className={`text-[9px] sm:text-[10px] uppercase tracking-wider mt-0.5 ${
+                    isDark ? 'text-[#D5CBD0]' : 'text-[#8F6875]'
+                  }`}
+                >
+                  {item.label}
+                </div>
+              </div>
+            ))}
+          </div>
 
-              {/* Số liệu — đổi từ EB Garamond sang Vollkorn (đồng bộ font tiêu đề truyện/mục lục), đậm hơn một chút */}
-              <div
-                style={{ fontFamily: "'Vollkorn', serif" }}
-                className="not-italic font-semibold text-xl sm:text-2xl text-[#A45E78] dark:text-[#F2B3C1]"
-              >
-                {item.value.toLocaleString('vi-VN')}
-              </div>
-              <div className="text-[10px] uppercase tracking-wider text-[#8F6875] dark:text-[#D5CBD0] mt-0.5">
-                {item.label}
-              </div>
-            </div>
-          ))}
+          {/* Dấu trang trí góc dưới — cùng ngôn ngữ NovelCard/Leaderboard */}
+          <span className="pointer-events-none select-none absolute -bottom-1 -right-1 text-[11px] text-[#E9B8C2] dark:text-[#7A5869]">
+            𝜗𝜚
+          </span>
         </div>
       </div>
     </div>

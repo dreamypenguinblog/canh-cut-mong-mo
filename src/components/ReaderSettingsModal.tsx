@@ -3,6 +3,19 @@ import { useApp } from '../context/AppContext';
 import { ReadingFont, ReadingTheme, ReadingWidth } from '../types';
 import { SlidersHorizontal, X } from 'lucide-react';
 
+// Đồng bộ lại toàn bộ khung Cài Đặt Đọc Truyện theo đúng ngôn ngữ thị giác của
+// web: khung ngoài giờ cùng kiểu bo góc + viền với khung "Danh Sách Chương"
+// (rounded-[26px], viền mảnh #F5DFE7/#6B5261 thay vì border-2), font tiêu đề
+// đổi sang Vollkorn cho khớp mọi tiêu đề khác trên site, và mọi trạng thái
+// "đang chọn" (font/độ rộng trang) đổi từ màu đen tuyệt đối (#1E1B1D/bg-black)
+// sang tông ACCENT hồng đang dùng xuyên suốt (NovelCard/Leaderboard/nút Đọc).
+// Thuần giao diện — không đổi bất kỳ state hay logic cập nhật readerSettings nào.
+const ACCENT = '#F0A8C8';
+const ACCENT_DARK = '#EDA3B4';
+const ACCENT_TEXT_DARK = '#2B222C';
+const BORDER = '#F0C7DE';
+const BORDER_SOFT = '#F5DFE7';
+
 export const ReaderSettingsModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
   isOpen,
   onClose,
@@ -41,21 +54,35 @@ export const ReaderSettingsModal: React.FC<{ isOpen: boolean; onClose: () => voi
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#A45E78]/20 backdrop-blur-xs animate-in fade-in duration-150">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#F0A8C8]/20 backdrop-blur-sm animate-in fade-in duration-150">
       <div
-        className={`w-full max-w-md rounded-2xl border-2 p-5 sm:p-6 transition-colors ${
-          isDark ? 'bg-[#2B222C] border-[#6B5261] text-[#F3EEF0]' : 'bg-[#FFF9FB] border-[#E7B6C5] text-[#574D4C]'
+        className={`relative w-full max-w-md max-h-[85vh] overflow-y-auto rounded-[26px] border p-5 sm:p-6 transition-colors ${
+          isDark ? 'bg-[#2B222C] border-[#6B5261] text-[#F3EEF0]' : 'bg-white border-[#F5DFE7] text-[#574D4C]'
         }`}
       >
+        {/* Sparkle trang trí góc — cùng ngôn ngữ trang trí NovelCard/Danh Sách Chương */}
+        <div
+          className={`pointer-events-none select-none absolute top-4 right-12 text-[9px] leading-[1.6] hidden sm:block ${
+            isDark ? 'text-[#7A5869]/60' : 'text-[#F2C7DA]/70'
+          }`}
+        >
+          ✧　⋆
+        </div>
+
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-[#EADCE1] dark:border-[#2F2935] pb-3 mb-4">
+        <div className="flex items-center justify-between border-b pb-3 mb-4" style={{ borderColor: isDark ? '#6B5261' : '#F0D9E3' }}>
           <div className="flex items-center gap-2">
             <SlidersHorizontal className="w-4 h-4 text-[#8F7D85] dark:text-[#D5CBD0]" />
-            <h3 className="font-eb-garamond font-medium text-xl text-[#574D4C] dark:text-[#FAF5F6]">Cài Đặt Đọc Truyện</h3>
+            <h3
+              style={{ fontFamily: "'Vollkorn', serif" }}
+              className="not-italic font-medium text-xl text-[#8B5D71] dark:text-[#F7E4EC]"
+            >
+              Cài Đặt Đọc Truyện
+            </h3>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-md text-[#8F7D85] hover:text-black dark:hover:text-white"
+            className="min-h-[28px] min-w-[28px] rounded-full flex items-center justify-center text-[#B79AA6] hover:text-[#A45E78] dark:hover:text-white transition-colors"
             aria-label="Đóng"
           >
             <X className="w-4 h-4" />
@@ -73,14 +100,29 @@ export const ReaderSettingsModal: React.FC<{ isOpen: boolean; onClose: () => voi
                 <button
                   key={f.id}
                   onClick={() => updateReaderSettings({ font: f.id })}
-                  style={f.style}
-                  className={`p-2.5 rounded-lg border text-xs text-left transition-all ${f.class || ''} ${
+                  className={`p-2.5 rounded-xl border text-xs text-left transition-all ${f.class || ''}`}
+                  style={
                     readerSettings.font === f.id
-                      ? 'border-[#1E1B1D] dark:border-white bg-[#FAF0F3] dark:bg-[#201C25] font-bold text-[#1E1B1D] dark:text-white'
-                      : isDark
-                      ? 'border-[#332E38] bg-[#1E1B22] text-[#FAF5F6] hover:border-white'
-                      : 'border-[#EAE0E4] bg-[#FAF5F6] text-[#5C4F55] hover:border-[#1E1B1D]'
-                  }`}
+                      ? {
+                          ...f.style,
+                          borderColor: isDark ? ACCENT_DARK : ACCENT,
+                          background: isDark ? '#3A2935' : '#FFF0F7',
+                          color: isDark ? '#F2B3C1' : '#A45E78',
+                          fontWeight: 700,
+                        }
+                      : {
+                          ...f.style,
+                          borderColor: isDark ? '#453640' : '#F0D9E3',
+                          background: isDark ? '#352936' : '#FFF9FB',
+                          color: isDark ? '#FAF5F6' : '#5C4F55',
+                        }
+                  }
+                  onMouseEnter={(e) => {
+                    if (readerSettings.font !== f.id) e.currentTarget.style.borderColor = isDark ? ACCENT_DARK : ACCENT;
+                  }}
+                  onMouseLeave={(e) => {
+                    if (readerSettings.font !== f.id) e.currentTarget.style.borderColor = isDark ? '#453640' : '#F0D9E3';
+                  }}
                 >
                   <span className="block text-sm leading-tight">{f.name}</span>
                   <span className="text-[10px] opacity-75">Aa Bb Cc 123</span>
@@ -99,8 +141,8 @@ export const ReaderSettingsModal: React.FC<{ isOpen: boolean; onClose: () => voi
                 <button
                   key={t.id}
                   onClick={() => updateReaderSettings({ theme: t.id })}
-                  className={`p-2 rounded-lg border flex flex-col items-center gap-1.5 transition-all ${t.bg} ${t.border} ${
-                    readerSettings.theme === t.id ? 'ring-2 ring-[#E0A8B6] shadow-sm' : 'opacity-80 hover:opacity-100'
+                  className={`p-2 rounded-xl border flex flex-col items-center gap-1.5 transition-all ${t.bg} ${t.border} ${
+                    readerSettings.theme === t.id ? 'ring-2 ring-[#F0A8C8] shadow-sm' : 'opacity-80 hover:opacity-100'
                   }`}
                 >
                   <div className={`w-5 h-5 rounded-md ${t.bg} border ${t.border} flex items-center justify-center text-[10px] ${t.text}`}>
@@ -115,19 +157,25 @@ export const ReaderSettingsModal: React.FC<{ isOpen: boolean; onClose: () => voi
           </div>
 
           {/* Font Size & Line Height */}
-          <div className="space-y-3 pt-1 border-t border-[#EADCE1] dark:border-[#2F2935]">
+          <div className="space-y-3 pt-1 border-t" style={{ borderColor: isDark ? '#453640' : '#F0D9E3' }}>
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-[#8F7D85] dark:text-[#D5CBD0] uppercase">Cỡ chữ: {readerSettings.fontSize}px</span>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => updateReaderSettings({ fontSize: Math.max(14, readerSettings.fontSize - 1) })}
-                  className="w-7 h-7 rounded-md border border-[#DAC8CE] dark:border-[#38323D] flex items-center justify-center text-xs font-medium hover:border-[#1E1B1D] dark:hover:border-white text-[#1E1B1D] dark:text-[#FAF5F6]"
+                  className="w-7 h-7 rounded-full border flex items-center justify-center text-xs font-medium transition-colors"
+                  style={{ borderColor: isDark ? '#453640' : BORDER, color: isDark ? '#FAF5F6' : '#A45E78' }}
+                  onMouseEnter={(e) => (e.currentTarget.style.borderColor = isDark ? ACCENT_DARK : ACCENT)}
+                  onMouseLeave={(e) => (e.currentTarget.style.borderColor = isDark ? '#453640' : BORDER)}
                 >
                   -
                 </button>
                 <button
                   onClick={() => updateReaderSettings({ fontSize: Math.min(28, readerSettings.fontSize + 1) })}
-                  className="w-7 h-7 rounded-md border border-[#DAC8CE] dark:border-[#38323D] flex items-center justify-center text-xs font-medium hover:border-[#1E1B1D] dark:hover:border-white text-[#1E1B1D] dark:text-[#FAF5F6]"
+                  className="w-7 h-7 rounded-full border flex items-center justify-center text-xs font-medium transition-colors"
+                  style={{ borderColor: isDark ? '#453640' : BORDER, color: isDark ? '#FAF5F6' : '#A45E78' }}
+                  onMouseEnter={(e) => (e.currentTarget.style.borderColor = isDark ? ACCENT_DARK : ACCENT)}
+                  onMouseLeave={(e) => (e.currentTarget.style.borderColor = isDark ? '#453640' : BORDER)}
                 >
                   +
                 </button>
@@ -141,11 +189,12 @@ export const ReaderSettingsModal: React.FC<{ isOpen: boolean; onClose: () => voi
                   <button
                     key={w.id}
                     onClick={() => updateReaderSettings({ maxWidth: w.id })}
-                    className={`px-2.5 py-1 rounded-md text-[11px] border transition-colors ${
+                    className="px-2.5 py-1 rounded-full text-[11px] border transition-colors"
+                    style={
                       readerSettings.maxWidth === w.id
-                        ? 'bg-[#1E1B1D] text-white dark:bg-white dark:text-black border-transparent'
-                        : 'border-[#DAC8CE] dark:border-[#38323D] text-[#8F7D85] dark:text-[#D5CBD0] hover:border-[#1E1B1D] dark:hover:border-white'
-                    }`}
+                        ? { background: isDark ? ACCENT_DARK : ACCENT, color: isDark ? ACCENT_TEXT_DARK : '#FFFFFF', borderColor: isDark ? ACCENT_DARK : ACCENT }
+                        : { borderColor: isDark ? '#453640' : BORDER_SOFT, color: isDark ? '#D5CBD0' : '#8F7D85' }
+                    }
                   >
                     {w.label}
                   </button>
@@ -156,10 +205,11 @@ export const ReaderSettingsModal: React.FC<{ isOpen: boolean; onClose: () => voi
         </div>
 
         {/* Done Button */}
-        <div className="mt-5 pt-3 border-t border-[#EADCE1] dark:border-[#2F2935]">
+        <div className="mt-5 pt-3 border-t" style={{ borderColor: isDark ? '#453640' : '#F0D9E3' }}>
           <button
             onClick={onClose}
-            className="w-full py-2.5 rounded-full bg-[#D985A2] text-white dark:bg-[#F2B3C1] dark:text-[#2B222C] text-xs uppercase tracking-wider font-semibold hover:opacity-90 transition-opacity"
+            className="w-full py-2.5 rounded-full text-xs uppercase tracking-wider font-semibold hover:opacity-90 transition-opacity"
+            style={{ background: isDark ? ACCENT_DARK : ACCENT, color: isDark ? ACCENT_TEXT_DARK : '#FFFFFF' }}
           >
             Đóng Cài Đặt
           </button>
