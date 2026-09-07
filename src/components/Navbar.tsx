@@ -122,7 +122,7 @@ export const Navbar: React.FC<{ onOpenAuth: () => void; onOpenProfile?: () => vo
       className={`sticky top-0 z-40 border-b backdrop-blur-xl transition-all duration-300 ${
         isDark
           ? 'bg-[#2B222C]/95 border-[#6B5261] text-[#FAF5F6]'
-          : 'bg-[#FFF9FB]/95 border-[#F5DFE7] text-[#574D4C]'
+          : 'bg-[#FCEEF3]/95 border-[#F5DFE7] text-[#574D4C]'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -341,7 +341,7 @@ export const Navbar: React.FC<{ onOpenAuth: () => void; onOpenProfile?: () => vo
               aria-label="Chuyển chế độ giao diện"
             >
               {isDark ? (
-                <Sun className="w-4 h-4 text-amber-300 animate-in spin-in-180 duration-300" />
+                <Sun className="w-4 h-4 text-white animate-in spin-in-180 duration-300" />
               ) : (
                 <Moon className="w-4 h-4 text-[#8B5D71] animate-in spin-in-180 duration-300" />
               )}

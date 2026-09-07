@@ -205,7 +205,12 @@ export const ReaderView: React.FC = () => {
     if (initializing) {
       return (
         <div className="min-h-screen flex items-center justify-center p-8 text-center bg-[#FFF1F5] dark:bg-[#211B22] text-[#A45E78] dark:text-[#F2B3C1]">
-          <div className="flex flex-col items-center gap-3"><span className="w-10 h-10 rounded-full border-2 border-[#E8B8C5] border-t-[#D985A2] animate-spin" /><p className="font-eb-garamond text-xl">Đang mở trình đọc...</p></div>
+          <div className="flex flex-col items-center gap-3">
+            <span className="w-10 h-10 rounded-full border-2 border-[#E8B8C5] border-t-[#D985A2] animate-spin" />
+            <p style={{ fontFamily: "'Vollkorn', serif" }} className="not-italic text-xl">
+              Đang mở trình đọc...
+            </p>
+          </div>
         </div>
       );
     }
@@ -294,7 +299,7 @@ export const ReaderView: React.FC = () => {
         // (#FFF9FB / #F5DFE7 / #574D4C / #8F7D85) thay vì tông xám nhạt cũ,
         // để trang đọc đồng bộ hơn với trang chủ, danh sách truyện...
         return {
-          wrapper: 'bg-[#FFF9FB] text-[#574D4C]',
+          wrapper: 'bg-[#FCEEF3] text-[#574D4C]',
           card: 'bg-white border-[#F5DFE7] text-[#574D4C]',
           subtext: 'text-[#8F7D85]',
           border: 'border-[#F5DFE7]',
@@ -343,7 +348,7 @@ export const ReaderView: React.FC = () => {
       {/* Sticky Reader Navigation Header (Hidden in Chế độ Tập trung) */}
       {!zenMode && (
         <div
-          className={`sticky top-0 z-30 border-b-2 backdrop-blur-md px-3 sm:px-8 py-2.5 flex items-center justify-between transition-colors bg-[#FFF9FB]/95 dark:bg-[#2B222C]/95 border-[#E7C3CE] dark:border-[#6B5261]`}
+          className={`sticky top-0 z-30 border-b-2 backdrop-blur-md px-3 sm:px-8 py-2.5 flex items-center justify-between transition-colors bg-[#FCEEF3]/95 dark:bg-[#2B222C]/95 border-[#E7C3CE] dark:border-[#6B5261]`}
         >
           <div className="flex items-center gap-2 sm:gap-3">
             <button
@@ -356,7 +361,10 @@ export const ReaderView: React.FC = () => {
             </button>
 
             <div className="hidden md:block">
-              <h2 className="font-eb-garamond text-lg font-medium truncate max-w-[280px] text-[#A45E78] dark:text-[#F2B3C1]">
+              <h2
+                style={{ fontFamily: "'Vollkorn', serif" }}
+                className="not-italic text-lg font-medium truncate max-w-[280px] text-[#A45E78] dark:text-[#F2B3C1]"
+              >
                 {novel.title}
               </h2>
               <p className={`text-[10px] ${themeStyles.subtext} truncate`}>{chapter.title}</p>
@@ -492,7 +500,10 @@ export const ReaderView: React.FC = () => {
           <p className="text-xs uppercase tracking-[0.2em] text-[#B5798D] dark:text-[#E8B8C5]">
             {novel.title}
           </p>
-          <h1 className="font-eb-garamond text-3xl sm:text-4xl font-medium leading-tight text-[#574D4C] dark:text-[#FFFFFF]">
+          <h1
+            style={{ fontFamily: "'Vollkorn', serif" }}
+            className="not-italic text-3xl sm:text-4xl font-medium leading-tight text-[#574D4C] dark:text-[#FFFFFF]"
+          >
             {chapter.title}
           </h1>
 

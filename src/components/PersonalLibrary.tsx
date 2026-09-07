@@ -152,7 +152,10 @@ export const PersonalLibrary: React.FC = () => {
       {activeTab === 'history' && (
         <div className="space-y-3">
           <div className="flex justify-between items-center mb-1">
-            <span className="text-xs text-[#8F7D85] dark:text-[#D5CBD0]">Tiến độ đọc gần nhất</span>
+            <span className="text-xs text-[#8F7D85] dark:text-[#D5CBD0] flex items-center gap-1.5">
+              <span className={isDark ? 'text-[#7A5869]' : 'text-[#E9B8C2]'}>𝜗𝜚</span>
+              Tiến độ đọc gần nhất
+            </span>
             {readingHistory.length > 0 && (
               <button
                 onClick={clearHistory}
@@ -178,12 +181,30 @@ export const PersonalLibrary: React.FC = () => {
                 return (
                   <div
                     key={idx}
-                    className={`relative flex gap-3 rounded-2xl border p-3 transition-all hover:-translate-y-0.5 ${
+                    className={`relative flex items-start gap-3 rounded-2xl border p-3 transition-all hover:-translate-y-0.5 overflow-visible ${
                       isDark
                         ? 'bg-gradient-to-b from-[#2B222C] via-[#241D26] to-[#2B222C] border-[#6B5261] hover:border-[#D79BAD]'
                         : 'bg-gradient-to-b from-white via-[#FFFAFD] to-white border-[#F5DFE7] hover:border-[#E7B6C5]'
                     }`}
                   >
+                    {/* Sparkle trang trí góc trên phải khung — cùng ngôn ngữ trang trí với NovelCard/Navbar,
+                        đặt ở ngoài viền nên không đụng nút lưu (tim) đang nằm trong viền */}
+                    <div
+                      className={`pointer-events-none select-none absolute -top-2 -right-1.5 text-[8px] leading-[1.6] hidden sm:block ${
+                        isDark ? 'text-[#7A5869]/50' : 'text-[#F3D0DF]/80'
+                      }`}
+                    >
+                      ✧　⋆
+                    </div>
+                    {/* Sparkle trang trí góc dưới trái — đối xứng */}
+                    <div
+                      className={`pointer-events-none select-none absolute -bottom-1.5 -left-1 text-[8px] leading-[1.6] hidden sm:block ${
+                        isDark ? 'text-[#7A5869]/40' : 'text-[#F3D0DF]/70'
+                      }`}
+                    >
+                      ⋆　✿
+                    </div>
+
                     {/* Pill nổi "ĐANG ĐỌC" cho mục gần nhất — tracking bình thường để icon nơ 𝜗𝜚 không bị vỡ */}
                     {isLatest && (
                       <span
@@ -218,10 +239,11 @@ export const PersonalLibrary: React.FC = () => {
                       </button>
                     )}
 
-                    {/* Ảnh bìa — sửa để khớp đúng tỉ lệ dọc 3:4 giống NovelCard/Leaderboard (chỉ set width,
-                        dùng aspect-[3/4] để tự tính chiều cao đúng tỉ lệ), tránh bìa bị co kéo lệch tỉ lệ như trước */}
+                    {/* Ảnh bìa — khung "ôm sát" đúng kích thước gốc của bìa (tỉ lệ dọc 3:4 giống
+                        NovelCard/Leaderboard). Row cha đã thêm items-start nên khung này không còn
+                        bị kéo giãn theo chiều cao của cột chữ bên cạnh — chỉ cao đúng bằng ảnh + viền. */}
                     <div
-                      className={`relative flex-shrink-0 w-16 sm:w-20 p-1 rounded-xl border ${
+                      className={`relative flex-shrink-0 w-16 sm:w-20 p-1 rounded-xl border self-start ${
                         isDark
                           ? 'bg-gradient-to-b from-[#352936] to-[#2B222C] border-[#6B5261]'
                           : 'bg-gradient-to-b from-[#FFFAFD] to-white border-[#F5DFE7]'
@@ -231,7 +253,7 @@ export const PersonalLibrary: React.FC = () => {
                         src={item.novelCover}
                         alt={item.novelTitle}
                         onClick={() => relatedNovel && openNovelDetail(relatedNovel.id)}
-                        className={`w-full aspect-[3/4] object-cover rounded-lg ${relatedNovel ? 'cursor-pointer' : ''}`}
+                        className={`block w-full aspect-[3/4] object-cover rounded-lg ${relatedNovel ? 'cursor-pointer' : ''}`}
                       />
                       {/* Dấu trang trí góc ảnh bìa — cùng ngôn ngữ NovelCard */}
                       <span className="pointer-events-none select-none absolute -bottom-0.5 -right-0.5 text-[9px] text-[#E9B8C2] dark:text-[#7A5869]">
@@ -239,7 +261,7 @@ export const PersonalLibrary: React.FC = () => {
                       </span>
                     </div>
 
-                    <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
+                    <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5 self-stretch">
                       {/* pr-8 chừa khoảng cho nút lưu (tim) ở góc trên phải card, tránh tên truyện dài
                           bị nút lưu đè khuất trên mobile; truncate đảm bảo cắt gọn 1 dòng + "…" */}
                       <div className="min-w-0 pr-8">
@@ -288,10 +310,19 @@ export const PersonalLibrary: React.FC = () => {
             </div>
           ) : (
             <div
-              className={`text-center py-12 rounded-2xl border p-6 ${
+              className={`text-center py-12 rounded-2xl border p-6 relative overflow-visible ${
                 isDark ? 'bg-[#2B222C] border-[#6B5261]' : 'bg-white border-[#F0D9E3]'
               }`}
             >
+              {/* Sparkle trang trí góc trên phải — đồng bộ với các khung trạng thái rỗng khác trong site */}
+              <div
+                className={`pointer-events-none select-none absolute top-3 right-4 text-[9px] leading-[1.7] hidden sm:block ${
+                  isDark ? 'text-[#7A5869]/60' : 'text-[#F2C7DA]/70'
+                }`}
+              >
+                ✧　⋆<br />
+                ⋆　✿
+              </div>
               <span className="inline-block w-3 h-3 rounded-full bg-[#E8A0B8] mb-3" />
               <p
                 style={{ fontFamily: "'Vollkorn', serif" }}
