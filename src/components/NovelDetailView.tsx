@@ -262,51 +262,94 @@ export const NovelDetailView: React.FC = () => {
         </div>
       </div>
 
-      {/* Synopsis Section */}
+      {/* Synopsis Section — nâng cấp đồng bộ khung gradient + sparkle như Hero Card,
+          không đổi nguồn dữ liệu (vẫn novel.synopsis) */}
       <div
-        className={`rounded-2xl border p-5 sm:p-6 space-y-3 ${
-          isDark ? 'bg-[#2B222C] border-[#6B5261]' : 'bg-white border-[#F5DFE7]'
+        className={`relative overflow-hidden rounded-[26px] border p-5 sm:p-7 space-y-3 transition-colors ${
+          isDark
+            ? 'bg-gradient-to-b from-[#2B222C] via-[#241D26] to-[#2B222C] border-[#6B5261]'
+            : 'bg-gradient-to-b from-white via-[#FFF8FB] to-white border-[#F5DFE7]'
         }`}
       >
+        <div
+          className={`pointer-events-none select-none absolute top-3.5 right-5 text-[10px] leading-[1.7] hidden sm:block ${
+            isDark ? 'text-[#7A5869]/60' : 'text-[#F2C7DA]/70'
+          }`}
+        >
+          ✧　⋆
+        </div>
         <div className="flex items-center gap-2">
           <span className={`text-[9px] ${isDark ? 'text-[#7A5869]' : 'text-[#E9B8C2]'}`}>𝜗𝜚</span>
-          <h2 className="font-eb-garamond not-italic text-xl font-medium tracking-wide text-[#574D4C] dark:text-white">
+          <h2
+            style={{ fontFamily: "'Vollkorn', serif" }}
+            className="not-italic text-xl sm:text-2xl font-semibold tracking-wide text-[#6B4A57] dark:text-white"
+          >
             Tóm Tắt Tác Phẩm
           </h2>
         </div>
-        <p className="font-lora text-sm leading-relaxed whitespace-pre-line break-words text-justify text-[#4A3E44] dark:text-[#E8DFE3]">
+        <p className="font-lora text-sm sm:text-[15px] leading-relaxed whitespace-pre-line break-words text-justify text-[#4A3E44] dark:text-[#E8DFE3]">
           {novel.synopsis}
         </p>
       </div>
 
-      {/* Chapter List Section */}
+      {/* Chapter List Section — thêm huy hiệu số chương tròn (đồng bộ khung "Danh Sách Chương"
+          trong ReaderView) + khung gradient/sparkle đồng bộ Hero Card. Vẫn dùng đúng chapterListItems,
+          ch.id/chapterNumber/title/releaseDate/wordCount và openReader như cũ, không đổi dữ liệu. */}
       <div
-        className={`rounded-2xl border p-5 sm:p-6 space-y-4 ${
-          isDark ? 'bg-[#2B222C] border-[#6B5261]' : 'bg-white border-[#F5DFE7]'
+        className={`relative overflow-hidden rounded-[26px] border p-5 sm:p-7 space-y-4 transition-colors ${
+          isDark
+            ? 'bg-gradient-to-b from-[#2B222C] via-[#241D26] to-[#2B222C] border-[#6B5261]'
+            : 'bg-gradient-to-b from-white via-[#FFF8FB] to-white border-[#F5DFE7]'
         }`}
       >
-        <div className="flex items-center justify-between border-b border-[#F0D9E3] dark:border-[#594352] pb-3">
+        <div
+          className={`pointer-events-none select-none absolute top-3.5 right-5 text-[10px] leading-[1.7] hidden sm:block ${
+            isDark ? 'text-[#7A5869]/60' : 'text-[#F2C7DA]/70'
+          }`}
+        >
+          ✧　⋆
+        </div>
+
+        <div className="flex items-center justify-between border-b pb-3 border-[#F0D9E3] dark:border-[#594352]">
           <div className="flex items-center gap-2">
             <span className={`text-[9px] ${isDark ? 'text-[#7A5869]' : 'text-[#E9B8C2]'}`}>𝜗𝜚</span>
-            <h2 className="font-eb-garamond not-italic text-xl font-medium tracking-wide text-[#574D4C] dark:text-white">
+            <h2
+              style={{ fontFamily: "'Vollkorn', serif" }}
+              className="not-italic text-xl sm:text-2xl font-semibold tracking-wide text-[#6B4A57] dark:text-white"
+            >
               Danh Sách Chương ({chapterListItems.length})
             </h2>
           </div>
-          <span className="text-[11px] text-[#B5798D] dark:text-[#E8B8C5]">Nhấn chương để đọc</span>
+          <span className="text-[11px] text-[#B5798D] dark:text-[#E8B8C5] hidden sm:inline">Nhấn chương để đọc</span>
         </div>
 
         {chapterListItems.length > 0 ? (
-          <div className="divide-y divide-[#F0D5DE] dark:divide-[#594352] rounded-xl border border-[#F0D9E3] dark:border-[#6B5261] overflow-hidden">
+          <div
+            className={`divide-y rounded-2xl border overflow-hidden ${
+              isDark ? 'divide-[#594352] border-[#6B5261]' : 'divide-[#F0D5DE] border-[#F0D9E3]'
+            }`}
+          >
             {chapterListItems.map((ch) => (
               <div
                 key={ch.id}
                 onClick={() => openReader(novel.id, ch.id)}
-                className="p-3.5 sm:p-4 flex items-center justify-between bg-white dark:bg-[#352936] hover:bg-[#FFF6FB] dark:hover:bg-[#412F3A] cursor-pointer transition-colors"
+                className="p-3.5 sm:p-4 flex items-center gap-3 bg-white dark:bg-[#352936] hover:bg-[#FFF6FB] dark:hover:bg-[#412F3A] cursor-pointer transition-colors"
               >
-                <div className="space-y-0.5">
+                {/* Huy hiệu số chương — cùng ngôn ngữ với khung "Danh Sách Chương" trong ReaderView */}
+                <span
+                  className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-xs font-semibold"
+                  style={{
+                    background: isDark ? '#2B222C' : '#FFF5FA',
+                    color: isDark ? ACCENT_DARK : '#D88AB3',
+                  }}
+                >
+                  {ch.chapterNumber}
+                </span>
+
+                <div className="min-w-0 flex-1 space-y-0.5">
                   <span
                     style={{ fontFamily: "'Vollkorn', serif" }}
-                    className="not-italic text-base sm:text-lg font-medium block text-[#574D4C] dark:text-white hover:underline"
+                    className="not-italic text-base sm:text-lg font-medium block truncate text-[#574D4C] dark:text-white hover:underline"
                   >
                     {ch.title}
                   </span>
@@ -316,7 +359,7 @@ export const NovelDetailView: React.FC = () => {
                 </div>
 
                 <div
-                  className="text-xs font-semibold flex items-center gap-1"
+                  className="shrink-0 text-xs font-semibold flex items-center gap-1"
                   style={{ color: isDark ? ACCENT_DARK : '#B4587E' }}
                 >
                   <span>Đọc</span>
