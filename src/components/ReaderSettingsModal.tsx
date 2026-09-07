@@ -13,12 +13,17 @@ export const ReaderSettingsModal: React.FC<{ isOpen: boolean; onClose: () => voi
 
   const isDark = globalTheme === 'dark';
 
-  const fonts: { id: ReadingFont; name: string; class: string }[] = [
+  // Đã thêm 'vollkorn' vào danh sách phông chữ. Vollkorn dùng inline style
+  // (không có class Tailwind sẵn có "font-vollkorn"), nên field "class" ở
+  // đây là optional — riêng Vollkorn sẽ dùng field "style" để set font-family
+  // trực tiếp, đồng nhất với cách headline toàn site đang dùng Vollkorn.
+  const fonts: { id: ReadingFont; name: string; class?: string; style?: React.CSSProperties }[] = [
     { id: 'lora', name: 'Lora', class: 'font-lora' },
     { id: 'playfair', name: 'Playfair Display', class: 'font-playfair' },
     { id: 'cormorant', name: 'Cormorant Garamond', class: 'font-cormorant' },
     { id: 'alegreya', name: 'Alegreya', class: 'font-alegreya' },
     { id: 'sans', name: 'Sans-serif', class: 'font-luxury-sans' },
+    { id: 'vollkorn', name: 'Vollkorn', style: { fontFamily: "'Vollkorn', serif" } },
   ];
 
   const themes: { id: ReadingTheme; name: string; bg: string; text: string; border: string }[] = [
@@ -68,7 +73,8 @@ export const ReaderSettingsModal: React.FC<{ isOpen: boolean; onClose: () => voi
                 <button
                   key={f.id}
                   onClick={() => updateReaderSettings({ font: f.id })}
-                  className={`p-2.5 rounded-lg border text-xs text-left transition-all ${f.class} ${
+                  style={f.style}
+                  className={`p-2.5 rounded-lg border text-xs text-left transition-all ${f.class || ''} ${
                     readerSettings.font === f.id
                       ? 'border-[#1E1B1D] dark:border-white bg-[#FAF0F3] dark:bg-[#201C25] font-bold text-[#1E1B1D] dark:text-white'
                       : isDark

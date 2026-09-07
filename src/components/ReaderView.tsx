@@ -20,6 +20,12 @@ import {
   Plus,
 } from 'lucide-react';
 
+// Bảng màu hồng phẳng đồng bộ với NovelCard / NovelGrid / Leaderboard / Navbar / HomeHero.
+// Dùng riêng cho khung "Danh Sách Chương" (mục lục) để đồng bộ toàn site.
+const ACCENT = '#F0A8C8';
+const ACCENT_DARK = '#EDA3B4';
+const ACCENT_TEXT_DARK = '#2B222C';
+
 export const ReaderView: React.FC = () => {
   const {
     novels,
@@ -219,20 +225,33 @@ export const ReaderView: React.FC = () => {
   }
 
   // Determine styles from ReaderSettings
+  // Playfair Display giờ dùng dạng thường (bỏ italic) theo yêu cầu.
+  // Vollkorn được xử lý riêng qua getFontFamilyStyle() (inline style) vì
+  // chưa chắc có sẵn class Tailwind "font-vollkorn" trong cấu hình dự án —
+  // dùng inline fontFamily để không cần đụng tới tailwind config.
   const getFontFamilyClass = () => {
     switch (readerSettings.font) {
       case 'playfair':
-        return 'font-playfair italic';
+        return 'font-playfair';
       case 'cormorant':
         return 'font-cormorant';
       case 'alegreya':
         return 'font-alegreya';
       case 'sans':
         return 'font-luxury-sans';
+      case 'vollkorn':
+        return '';
       case 'lora':
       default:
         return 'font-lora';
     }
+  };
+
+  const getFontFamilyStyle = (): React.CSSProperties => {
+    if (readerSettings.font === 'vollkorn') {
+      return { fontFamily: "'Vollkorn', serif" };
+    }
+    return {};
   };
 
   const getThemeClasses = () => {
@@ -271,12 +290,15 @@ export const ReaderView: React.FC = () => {
         };
       case 'light-rose':
       default:
+        // Nền mặc định đổi sang cùng tông pastel với phần còn lại của web
+        // (#FFF9FB / #F5DFE7 / #574D4C / #8F7D85) thay vì tông xám nhạt cũ,
+        // để trang đọc đồng bộ hơn với trang chủ, danh sách truyện...
         return {
-          wrapper: 'bg-[#FAF4F6] text-[#1E1B1D]',
-          card: 'bg-[#FFFFFF] border-[#EADCE1] text-[#1E1B1D]',
+          wrapper: 'bg-[#FFF9FB] text-[#574D4C]',
+          card: 'bg-white border-[#F5DFE7] text-[#574D4C]',
           subtext: 'text-[#8F7D85]',
-          border: 'border-[#EADCE1]',
-          floatingCard: 'bg-[#FFFFFF]/95 text-[#1E1B1D] border-[#EADCE1]',
+          border: 'border-[#F5DFE7]',
+          floatingCard: 'bg-white/95 text-[#574D4C] border-[#F5DFE7]',
         };
     }
   };
@@ -307,7 +329,7 @@ export const ReaderView: React.FC = () => {
     <div
       onClick={handleScreenClick}
       className={`min-h-screen transition-colors duration-200 ${
-        zenMode ? 'pb-16 pt-8 sm:pt-12 cursor-default' : 'pb-20 md:pb-12'
+        zenMode ? 'pb-16 pt-8 sm:pt-12 cursor-default' : 'pb-12'
       } ${themeStyles.wrapper}`}
     >
       {/* Toast Notification when entering Chế độ Tập trung */}
@@ -419,10 +441,17 @@ export const ReaderView: React.FC = () => {
 
           <div className="w-px h-5 bg-white/20" />
 
-          {/* Quick Font Cycle */}
+          {/* Quick Font Cycle — đã thêm 'vollkorn' vào danh sách xoay vòng */}
           <button
             onClick={() => {
-              const fontList: Array<'lora' | 'playfair' | 'cormorant' | 'alegreya' | 'sans'> = ['lora', 'playfair', 'cormorant', 'alegreya', 'sans'];
+              const fontList: Array<'lora' | 'playfair' | 'cormorant' | 'alegreya' | 'sans' | 'vollkorn'> = [
+                'lora',
+                'playfair',
+                'cormorant',
+                'alegreya',
+                'sans',
+                'vollkorn',
+              ];
               const currentIdx = fontList.indexOf(readerSettings.font);
               const nextFont = fontList[(currentIdx + 1) % fontList.length];
               updateReaderSettings({ font: nextFont });
@@ -510,6 +539,7 @@ export const ReaderView: React.FC = () => {
                   <p
                     className={`flex-1 min-w-0 leading-relaxed tracking-normal text-justify [text-align:justify] [text-justify:inter-word] ${getFontFamilyClass()}`}
                     style={{
+                      ...getFontFamilyStyle(),
                       fontSize: `${readerSettings.fontSize}px`,
                       lineHeight: readerSettings.lineHeight,
                       marginBottom: `${readerSettings.paragraphSpacing * 0.35}rem`,
@@ -616,79 +646,25 @@ export const ReaderView: React.FC = () => {
         </footer>
       </main>
 
-      {/* Floating Bottom Quick Controls for Mobile Readers (Hidden in Chế độ Tập trung) */}
-      {!zenMode && (
-        <div
-          className={`md:hidden fixed bottom-0 left-0 right-0 z-30 border-t backdrop-blur-md px-2 py-2 grid grid-cols-5 gap-1 ${
-            themeStyles.card
-          }`}
-        >
-          <button
-            disabled={!prevChapter}
-            onClick={() => prevChapter && openReader(novel.id, prevChapter.id)}
-            aria-label="Chương trước"
-            title="Chương trước"
-            className={`h-10 w-full rounded-lg border flex items-center justify-center transition-all ${
-              prevChapter ? 'border-current hover:opacity-80' : 'opacity-30 border-transparent'
-            }`}
-          >
-            <ArrowLeft className="w-4 h-4" />
-          </button>
-
-          <button
-            onClick={() => setShowChapterDrawer(true)}
-            aria-label="Mục lục"
-            title="Mục lục"
-            className="h-10 w-full rounded-lg border border-current flex items-center justify-center transition-all hover:opacity-80"
-          >
-            <List className="w-4 h-4" />
-          </button>
-
-          <button
-            onClick={handleToggleZenMode}
-            aria-label="Chế độ tập trung"
-            title="Chế độ tập trung"
-            className="h-10 w-full rounded-lg border border-current flex items-center justify-center transition-all hover:opacity-80"
-          >
-            <Maximize2 className="w-4 h-4" />
-          </button>
-
-          <button
-            onClick={() => setShowSettings(true)}
-            aria-label="Cài đặt đọc"
-            title="Cài đặt đọc"
-            className="h-10 w-full rounded-lg border border-current flex items-center justify-center transition-all hover:opacity-80"
-          >
-            <SlidersHorizontal className="w-4 h-4" />
-          </button>
-
-          <button
-            disabled={!nextChapter}
-            onClick={() => nextChapter && openReader(novel.id, nextChapter.id)}
-            aria-label="Chương tiếp theo"
-            title="Chương tiếp theo"
-            className={`h-10 w-full rounded-lg border flex items-center justify-center transition-all ${
-              nextChapter ? 'bg-[#1E1B1D] text-white dark:bg-white dark:text-black border-[#1E1B1D] dark:border-white hover:opacity-90' : 'opacity-30 border-transparent'
-            }`}
-          >
-            <ArrowRight className="w-4 h-4" />
-          </button>
-        </div>
-      )}
-
-      {/* Chapter Drawer Modal */}
+      {/* Chapter Drawer Modal — "khung cấu hình mục lục", restyle đồng bộ ACCENT chung toàn site
+          (overlay pastel, viền/nền hồng, tiêu đề Vollkorn, item đang đọc dùng ACCENT, bỏ nút X vuông cứng) */}
       {showChapterDrawer && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#A45E78]/20 backdrop-blur-xs animate-in fade-in duration-150">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#F0A8C8]/20 backdrop-blur-sm animate-in fade-in duration-150">
           <div
-            className={`w-full max-w-lg max-h-[80vh] flex flex-col rounded-2xl border-2 p-5 ${
-              isDark ? 'bg-[#2B222C] border-[#6B5261] text-[#F3EEF0]' : 'bg-[#FFF9FB] border-[#E7B6C5] text-[#574D4C]'
+            className={`w-full max-w-lg max-h-[80vh] flex flex-col rounded-[26px] border p-5 ${
+              isDark ? 'bg-[#2B222C] border-[#6B5261] text-[#F3EEF0]' : 'bg-white border-[#F5DFE7] text-[#574D4C]'
             }`}
           >
-            <div className="flex items-center justify-between border-b pb-3 mb-3 border-[#E7C3CE] dark:border-[#594352]">
-              <h3 className="font-eb-garamond font-medium text-xl text-[#574D4C] dark:text-[#FAF5F6]">Danh Sách Chương ({chapterListItems.length})</h3>
+            <div className="flex items-center justify-between border-b pb-3 mb-3 border-[#F0D9E3] dark:border-[#594352]">
+              <h3
+                style={{ fontFamily: "'Vollkorn', serif" }}
+                className="not-italic font-medium text-xl text-[#8B5D71] dark:text-[#F7E4EC]"
+              >
+                Danh Sách Chương ({chapterListItems.length})
+              </h3>
               <button
                 onClick={() => setShowChapterDrawer(false)}
-                className="p-1 rounded-md text-[#8F7D85] hover:text-black dark:hover:text-white"
+                className="min-h-[28px] min-w-[28px] rounded-full flex items-center justify-center text-[#B79AA6] hover:text-[#A45E78] dark:hover:text-white transition-colors"
                 aria-label="Đóng"
               >
                 <X className="w-4 h-4" />
@@ -696,30 +672,56 @@ export const ReaderView: React.FC = () => {
             </div>
 
             <div className="flex-1 overflow-y-auto space-y-1.5">
-              {chapterListItems.map((ch) => (
-                <button
-                  key={ch.id}
-                  onClick={() => {
-                    openReader(novel.id, ch.id);
-                    setShowChapterDrawer(false);
-                  }}
-                  className={`w-full text-left p-3 rounded-lg border flex items-center justify-between transition-colors ${
-                    ch.id === chapter.id
-                      ? 'border-[#D985A2] dark:border-[#F2B3C1] bg-[#F7D9E5] dark:bg-[#4A2F3D] font-bold text-[#A45E78] dark:text-[#FAF5F6]'
-                      : isDark
-                      ? 'border-[#6B5261] hover:bg-[#3A2935] text-[#FAF5F6]'
-                      : 'border-[#E8B8C5] hover:bg-[#FFF1F5] text-[#574D4C]'
-                  }`}
-                >
-                  <div>
-                    <span className="font-eb-garamond text-base sm:text-lg font-medium block">{ch.title}</span>
-                    <span className="text-[11px] text-[#8F7D85] dark:text-[#D5CBD0]">
-                      {ch.wordCount.toLocaleString('vi-VN')} chữ
-                    </span>
-                  </div>
-                  {ch.id === chapter.id && <span className="text-xs font-semibold">Đang đọc</span>}
-                </button>
-              ))}
+              {chapterListItems.map((ch) => {
+                const isActive = ch.id === chapter.id;
+                return (
+                  <button
+                    key={ch.id}
+                    onClick={() => {
+                      openReader(novel.id, ch.id);
+                      setShowChapterDrawer(false);
+                    }}
+                    className={`w-full text-left p-3 rounded-2xl border flex items-center justify-between transition-colors ${
+                      isActive
+                        ? ''
+                        : isDark
+                        ? 'hover:bg-[#3A2935]'
+                        : 'hover:bg-[#FFF1F6]'
+                    }`}
+                    style={
+                      isActive
+                        ? {
+                            borderColor: isDark ? ACCENT_DARK : ACCENT,
+                            background: isDark ? '#4A2F3D' : '#FFF0F7',
+                            color: isDark ? '#FAF5F6' : '#A45E78',
+                          }
+                        : isDark
+                        ? { borderColor: '#6B5261', color: '#FAF5F6' }
+                        : { borderColor: '#F5DFE7', color: '#574D4C' }
+                    }
+                  >
+                    <div>
+                      <span
+                        style={{ fontFamily: "'Vollkorn', serif" }}
+                        className="not-italic text-base sm:text-lg font-medium block"
+                      >
+                        {ch.title}
+                      </span>
+                      <span className="text-[11px] text-[#8F7D85] dark:text-[#D5CBD0]">
+                        {ch.wordCount.toLocaleString('vi-VN')} chữ
+                      </span>
+                    </div>
+                    {isActive && (
+                      <span
+                        className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full shrink-0"
+                        style={{ background: isDark ? ACCENT_DARK : ACCENT, color: isDark ? ACCENT_TEXT_DARK : '#FFFFFF' }}
+                      >
+                        Đang đọc
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>

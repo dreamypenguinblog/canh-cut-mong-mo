@@ -158,14 +158,24 @@ export const NovelCard: React.FC<{ novel: Novel }> = ({ novel }) => {
 
         {/* Stats and Action */}
         <div className="mt-auto pt-2 space-y-2">
-          {/* Divider — đổi từ đường kẻ phẳng sang gradient hồng mờ dần, đồng bộ vibe web hơn */}
-          <div
-            className={`h-px w-full ${
-              isDark
-                ? 'bg-gradient-to-r from-transparent via-[#7A5869] to-transparent'
-                : 'bg-gradient-to-r from-transparent via-[#F2C7DA] to-transparent'
-            }`}
-          />
+          {/* Divider — dải trang trí có ký hiệu 𝜗𝜚, đồng bộ với dải phân cách ở Navbar mobile, thay cho đường kẻ phẳng trước đó */}
+          <div className="flex items-center justify-center gap-1.5">
+            <div
+              className={`flex-1 h-px ${
+                isDark
+                  ? 'bg-gradient-to-r from-transparent to-[#6B5261]'
+                  : 'bg-gradient-to-r from-transparent to-[#F3C6DD]'
+              }`}
+            />
+            <span className={`text-[9px] ${isDark ? 'text-[#7A5869]' : 'text-[#E9B8C2]'}`}>𝜗𝜚</span>
+            <div
+              className={`flex-1 h-px ${
+                isDark
+                  ? 'bg-gradient-to-l from-transparent to-[#6B5261]'
+                  : 'bg-gradient-to-l from-transparent to-[#F3C6DD]'
+              }`}
+            />
+          </div>
 
           {/* Line Icons for Metrics */}
           <div className="flex items-center justify-between text-[10px] sm:text-[11px] text-[#7A6E74] dark:text-[#FAF5F6]">

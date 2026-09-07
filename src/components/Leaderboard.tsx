@@ -317,10 +317,12 @@ export const Leaderboard: React.FC = () => {
                     {/* Thông tin truyện */}
                     <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
                       <div className="min-w-0">
+                        {/* pr-7 chừa khoảng cho nút lưu (tim) ở góc trên phải card, dùng truncate thay line-clamp-1
+                            để tên dài chắc chắn tự cắt "…" trên mobile, không còn bị nút tim đè lên chữ */}
                         <h4
                           onClick={() => openNovelDetail(novel.id)}
                           style={{ fontFamily: "'Vollkorn', serif" }}
-                          className="not-italic font-medium text-sm line-clamp-1 cursor-pointer hover:underline leading-snug text-[#574D4C] dark:text-white"
+                          className="not-italic font-medium text-sm truncate pr-7 cursor-pointer hover:underline leading-snug text-[#574D4C] dark:text-white"
                         >
                           {novel.title}
                         </h4>

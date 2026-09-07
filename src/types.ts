@@ -106,7 +106,9 @@ export interface ReadingHistoryItem {
   lastReadAt: string;
 }
 
-export type ReadingFont = 'lora' | 'playfair' | 'cormorant' | 'alegreya' | 'sans';
+// Đã thêm 'vollkorn' vào danh sách font đọc — chỉ mở rộng giá trị hợp lệ,
+// không đụng cấu trúc dữ liệu hay cách lưu/đọc ReaderSettings.
+export type ReadingFont = 'lora' | 'playfair' | 'cormorant' | 'alegreya' | 'sans' | 'vollkorn';
 export type ReadingTheme = 'light-rose' | 'pure-white' | 'cool-gray' | 'noir-luxury' | 'midnight';
 export type ReadingWidth = 'compact' | 'standard' | 'wide';
 

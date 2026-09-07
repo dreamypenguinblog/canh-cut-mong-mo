@@ -218,9 +218,10 @@ export const PersonalLibrary: React.FC = () => {
                       </button>
                     )}
 
-                    {/* Ảnh bìa — to hơn trước, cùng cỡ với card trong Bảng xếp hạng */}
+                    {/* Ảnh bìa — sửa để khớp đúng tỉ lệ dọc 3:4 giống NovelCard/Leaderboard (chỉ set width,
+                        dùng aspect-[3/4] để tự tính chiều cao đúng tỉ lệ), tránh bìa bị co kéo lệch tỉ lệ như trước */}
                     <div
-                      className={`relative flex-shrink-0 p-1 rounded-xl border ${
+                      className={`relative flex-shrink-0 w-16 sm:w-20 p-1 rounded-xl border ${
                         isDark
                           ? 'bg-gradient-to-b from-[#352936] to-[#2B222C] border-[#6B5261]'
                           : 'bg-gradient-to-b from-[#FFFAFD] to-white border-[#F5DFE7]'
@@ -230,7 +231,7 @@ export const PersonalLibrary: React.FC = () => {
                         src={item.novelCover}
                         alt={item.novelTitle}
                         onClick={() => relatedNovel && openNovelDetail(relatedNovel.id)}
-                        className={`w-16 h-20 sm:w-20 sm:h-[104px] object-cover rounded-lg ${relatedNovel ? 'cursor-pointer' : ''}`}
+                        className={`w-full aspect-[3/4] object-cover rounded-lg ${relatedNovel ? 'cursor-pointer' : ''}`}
                       />
                       {/* Dấu trang trí góc ảnh bìa — cùng ngôn ngữ NovelCard */}
                       <span className="pointer-events-none select-none absolute -bottom-0.5 -right-0.5 text-[9px] text-[#E9B8C2] dark:text-[#7A5869]">
@@ -239,7 +240,9 @@ export const PersonalLibrary: React.FC = () => {
                     </div>
 
                     <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
-                      <div className="min-w-0">
+                      {/* pr-8 chừa khoảng cho nút lưu (tim) ở góc trên phải card, tránh tên truyện dài
+                          bị nút lưu đè khuất trên mobile; truncate đảm bảo cắt gọn 1 dòng + "…" */}
+                      <div className="min-w-0 pr-8">
                         <h4
                           onClick={() => relatedNovel && openNovelDetail(relatedNovel.id)}
                           style={{ fontFamily: "'Vollkorn', serif" }}
