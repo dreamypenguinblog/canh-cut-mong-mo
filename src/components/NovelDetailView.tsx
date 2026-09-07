@@ -26,23 +26,55 @@ export const NovelDetailView: React.FC = () => {
   if (!novel) {
     if (initializing) {
       return (
-        <div className="py-16 text-center max-w-xl mx-auto px-4">
-          <p className="text-sm text-[#8F7D85] opacity-70">Đang tải...</p>
+        <div className="py-20 text-center max-w-xl mx-auto px-4">
+          <div className="flex flex-col items-center gap-3">
+            <span
+              className="w-9 h-9 rounded-full border-2 animate-spin"
+              style={{ borderColor: isDark ? '#6B5261' : '#F5DFE7', borderTopColor: isDark ? ACCENT_DARK : ACCENT }}
+            />
+            <p
+              style={{ fontFamily: "'Vollkorn', serif" }}
+              className="not-italic text-base text-[#8F7D85] dark:text-[#D5CBD0]"
+            >
+              Đang tải thông tin tác phẩm...
+            </p>
+          </div>
         </div>
       );
     }
     return (
-      <div className="py-16 text-center max-w-xl mx-auto px-4">
-        <p style={{ fontFamily: "'Vollkorn', serif" }} className="not-italic text-lg text-[#8F7D85]">
-          Không tìm thấy thông tin tác phẩm
-        </p>
-        <button
-          onClick={() => setActiveView('home')}
-          className="mt-4 px-5 py-2 rounded-full text-xs uppercase tracking-wider font-semibold transition-colors"
-          style={{ background: isDark ? ACCENT_DARK : ACCENT, color: isDark ? ACCENT_TEXT_DARK : '#FFFFFF' }}
+      <div className="py-16 max-w-xl mx-auto px-4">
+        <div
+          className={`relative text-center py-12 rounded-2xl border p-6 overflow-visible ${
+            isDark ? 'bg-[#2B222C] border-[#6B5261]' : 'bg-white border-[#F0D9E3]'
+          }`}
         >
-          Quay lại trang chủ
-        </button>
+          <div
+            className={`pointer-events-none select-none absolute top-3 right-4 text-[9px] leading-[1.7] hidden sm:block ${
+              isDark ? 'text-[#7A5869]/60' : 'text-[#F2C7DA]/70'
+            }`}
+          >
+            ✧　⋆<br />
+            ⋆　✿
+          </div>
+          <span className="inline-block w-3 h-3 rounded-full bg-[#E8A0B8] mb-3" />
+          <p
+            style={{ fontFamily: "'Vollkorn', serif" }}
+            className="not-italic text-xl font-medium text-[#574D4C] dark:text-[#FAF5F6]"
+          >
+            Không tìm thấy thông tin tác phẩm
+          </p>
+          <p className="text-xs text-[#8F7D85] dark:text-[#D5CBD0] mt-1">
+            Tác phẩm này có thể đã bị gỡ hoặc đường dẫn không còn chính xác.
+          </p>
+          <button
+            onClick={() => setActiveView('home')}
+            className="mt-4 min-h-[38px] px-5 py-2 rounded-full text-xs uppercase tracking-wider font-semibold transition-colors"
+            style={{ background: isDark ? ACCENT_DARK : ACCENT, color: isDark ? ACCENT_TEXT_DARK : '#FFFFFF' }}
+          >
+            Quay lại trang chủ
+          </button>
+        </div>
       </div>
     );
   }
@@ -410,10 +442,28 @@ export const NovelDetailView: React.FC = () => {
             ))}
           </div>
         ) : (
-          <div className="py-8 text-center text-xs text-[#8F7D85] dark:text-[#D5CBD0]">
+          <div
+            className={`relative text-center py-10 rounded-2xl border overflow-visible ${
+              isDark ? 'bg-[#352936] border-[#6B5261]' : 'bg-[#FFF6FB] border-[#F5D2E0]'
+            }`}
+          >
+            <div
+              className={`pointer-events-none select-none absolute top-2.5 right-3.5 text-[8px] leading-[1.6] hidden sm:block ${
+                isDark ? 'text-[#7A5869]/60' : 'text-[#F2C7DA]/70'
+              }`}
+            >
+              ✧　⋆
+            </div>
             <span className="inline-block w-2 h-2 rounded-full bg-[#E8A0B8] mb-2" />
-            <br />
-            Chưa có chương nào được xuất bản.
+            <p
+              style={{ fontFamily: "'Vollkorn', serif" }}
+              className="not-italic text-sm font-medium text-[#574D4C] dark:text-[#FAF5F6]"
+            >
+              Chưa có chương nào được xuất bản
+            </p>
+            <p className="text-[11px] text-[#8F7D85] dark:text-[#D5CBD0] mt-1">
+              Tác giả sẽ sớm cập nhật chương mới nhé.
+            </p>
           </div>
         )}
       </div>

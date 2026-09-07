@@ -174,8 +174,11 @@ export const ReaderView: React.FC = () => {
       return (
         <div className="min-h-screen flex items-center justify-center p-8 text-center bg-[#FFF7FB] text-[#A45E78]">
           <div className="flex flex-col items-center gap-3">
-            <span className="w-10 h-10 rounded-full border-2 border-[#E8B8C5] border-t-[#D985A2] animate-spin" />
-            <p style={{ fontFamily: "'Vollkorn', serif" }} className="not-italic text-xl">
+            <span
+              className="w-10 h-10 rounded-full border-2 border-[#F5DFE7] animate-spin"
+              style={{ borderTopColor: ACCENT }}
+            />
+            <p style={{ fontFamily: "'Vollkorn', serif" }} className="not-italic text-xl font-medium">
               Đang mở trình đọc...
             </p>
           </div>
@@ -183,14 +186,24 @@ export const ReaderView: React.FC = () => {
       );
     }
     return (
-      <div className="min-h-screen flex items-center justify-center p-8 text-center bg-[#FFF7FB] text-[#1E1B1D]">
-        <div>
-          <p className="font-playfair text-xl">Không tìm thấy chương truyện này</p>
+      <div className="min-h-screen flex items-center justify-center p-8 text-center bg-[#FFF7FB] text-[#574D4C]">
+        <div className="relative max-w-sm w-full mx-auto rounded-[26px] border border-[#F5DFE7] bg-white p-8">
+          <div className="pointer-events-none select-none absolute top-3.5 right-4 text-[10px] leading-[1.7] text-[#F2C7DA]/80 hidden sm:block">
+            ✧　⋆
+          </div>
+          <span className="inline-block w-3 h-3 rounded-full bg-[#E8A0B8] mb-3" />
+          <p style={{ fontFamily: "'Vollkorn', serif" }} className="not-italic text-xl font-medium">
+            Không tìm thấy chương truyện này
+          </p>
+          <p className="text-xs text-[#8F7D85] mt-1.5">
+            Chương này có thể đã bị gỡ hoặc đường dẫn không còn chính xác.
+          </p>
           <button
             onClick={() => setActiveView('home')}
-            className="mt-4 px-5 py-2.5 rounded-lg bg-[#1E1B1D] text-white text-xs font-medium"
+            className="mt-5 min-h-[38px] px-5 py-2 rounded-full text-xs uppercase tracking-wider font-semibold transition-colors hover:opacity-90"
+            style={{ background: ACCENT, color: '#FFFFFF' }}
           >
-            Quay Về Trang Chủ
+            Quay về trang chủ
           </button>
         </div>
       </div>
@@ -549,56 +562,68 @@ export const ReaderView: React.FC = () => {
             </div>
 
             <div className="flex-1 overflow-y-auto pr-1 -mr-1 space-y-1">
-              {chapterListItems.map((ch) => {
-                const isActive = ch.id === chapter.id;
-                return (
-                  <button
-                    key={ch.id}
-                    onClick={() => {
-                      openReader(novel.id, ch.id);
-                      setShowChapterDrawer(false);
-                    }}
-                    className={`w-full text-left px-2.5 py-2 rounded-2xl flex items-center gap-3 transition-colors ${
-                      isActive ? '' : 'hover:bg-[#FFF1F6]'
-                    }`}
-                    style={isActive ? { background: '#FFF0F7' } : undefined}
-                  >
-                    <span
-                      className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-semibold"
-                      style={
-                        isActive
-                          ? { background: ACCENT, color: '#FFFFFF' }
-                          : { background: '#FFF5FA', color: '#D88AB3' }
-                      }
+              {chapterListItems.length > 0 ? (
+                chapterListItems.map((ch) => {
+                  const isActive = ch.id === chapter.id;
+                  return (
+                    <button
+                      key={ch.id}
+                      onClick={() => {
+                        openReader(novel.id, ch.id);
+                        setShowChapterDrawer(false);
+                      }}
+                      className={`w-full text-left px-2.5 py-2 rounded-2xl flex items-center gap-3 transition-colors ${
+                        isActive ? '' : 'hover:bg-[#FFF1F6]'
+                      }`}
+                      style={isActive ? { background: '#FFF0F7' } : undefined}
                     >
-                      {ch.chapterNumber}
-                    </span>
-
-                    <div className="min-w-0 flex-1">
                       <span
-                        style={{ fontFamily: "'Vollkorn', serif" }}
-                        className={`not-italic text-sm sm:text-base font-medium block truncate ${
-                          isActive ? 'text-[#A45E78]' : 'text-[#574D4C]'
-                        }`}
+                        className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-semibold"
+                        style={
+                          isActive
+                            ? { background: ACCENT, color: '#FFFFFF' }
+                            : { background: '#FFF5FA', color: '#D88AB3' }
+                        }
                       >
-                        {ch.title}
+                        {ch.chapterNumber}
                       </span>
-                      <span className="text-[11px] text-[#8F7D85]">
-                        {ch.wordCount.toLocaleString('vi-VN')} chữ
-                      </span>
-                    </div>
 
-                    {isActive && (
-                      <span
-                        className="shrink-0 text-[9px] font-semibold uppercase px-2 py-0.5 rounded-full"
-                        style={{ background: ACCENT, color: '#FFFFFF' }}
-                      >
-                        Đang đọc
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
+                      <div className="min-w-0 flex-1">
+                        <span
+                          style={{ fontFamily: "'Vollkorn', serif" }}
+                          className={`not-italic text-sm sm:text-base font-medium block truncate ${
+                            isActive ? 'text-[#A45E78]' : 'text-[#574D4C]'
+                          }`}
+                        >
+                          {ch.title}
+                        </span>
+                        <span className="text-[11px] text-[#8F7D85]">
+                          {ch.wordCount.toLocaleString('vi-VN')} chữ
+                        </span>
+                      </div>
+
+                      {isActive && (
+                        <span
+                          className="shrink-0 text-[9px] font-semibold uppercase px-2 py-0.5 rounded-full"
+                          style={{ background: ACCENT, color: '#FFFFFF' }}
+                        >
+                          Đang đọc
+                        </span>
+                      )}
+                    </button>
+                  );
+                })
+              ) : (
+                <div className="relative text-center py-10 rounded-2xl border border-[#F5D2E0] bg-[#FFF6FB] overflow-visible">
+                  <div className="pointer-events-none select-none absolute top-2.5 right-3.5 text-[8px] leading-[1.6] text-[#F2C7DA]/70 hidden sm:block">
+                    ✧　⋆
+                  </div>
+                  <span className="inline-block w-2 h-2 rounded-full bg-[#E8A0B8] mb-2" />
+                  <p style={{ fontFamily: "'Vollkorn', serif" }} className="not-italic text-sm font-medium text-[#574D4C]">
+                    Chưa có chương nào được xuất bản
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>
