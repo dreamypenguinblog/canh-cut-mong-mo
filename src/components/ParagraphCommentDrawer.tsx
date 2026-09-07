@@ -74,7 +74,12 @@ export const ParagraphCommentDrawer: React.FC<ParagraphCommentDrawerProps> = ({
           <div className="flex items-center gap-2">
             <MessageSquare className="w-4 h-4 text-[#D985A2] dark:text-[#F2B3C1]" />
             <div>
-              <h3 className="font-playfair font-semibold text-base text-[#1E1B1D] dark:text-[#FAF5F6]">Bình Luận Đoạn #{paragraphIndex + 1}</h3>
+              <h3
+                style={{ fontFamily: "'Vollkorn', serif" }}
+                className="not-italic font-semibold text-base text-[#1E1B1D] dark:text-[#FAF5F6]"
+              >
+                Bình Luận Đoạn #{paragraphIndex + 1}
+              </h3>
               <p className="text-[11px] text-[#8F7D85] dark:text-[#D5CBD0]">{paragraphComments.length} bình luận</p>
             </div>
           </div>
@@ -117,7 +122,12 @@ export const ParagraphCommentDrawer: React.FC<ParagraphCommentDrawerProps> = ({
                       ) : (
                         <div className="w-6 h-6 rounded-full border border-[#EADCE1] dark:border-[#38323D] bg-transparent" aria-hidden="true" />
                       )}
-                      <span className="font-playfair text-xs font-semibold text-[#1E1B1D] dark:text-[#FAF5F6]">{c.userName}</span>
+                      <span
+                        style={{ fontFamily: "'Vollkorn', serif" }}
+                        className="not-italic text-xs font-semibold text-[#1E1B1D] dark:text-[#FAF5F6]"
+                      >
+                        {c.userName}
+                      </span>
                       {c.userRole === 'author' && (
                         <span className="text-[9px] bg-neutral-200 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 px-1.5 py-0.2 rounded-md font-medium">
                           Tác Giả
@@ -161,7 +171,12 @@ export const ParagraphCommentDrawer: React.FC<ParagraphCommentDrawerProps> = ({
             })
           ) : (
             <div className="text-center py-12 text-[#8F7D85] dark:text-[#D5CBD0] space-y-1">
-              <p className="font-playfair text-sm text-[#1E1B1D] dark:text-[#FAF5F6]">Chưa có bình luận nào</p>
+              <p
+                style={{ fontFamily: "'Vollkorn', serif" }}
+                className="not-italic text-sm text-[#1E1B1D] dark:text-[#FAF5F6]"
+              >
+                Chưa có bình luận nào
+              </p>
               <p className="text-xs">Hãy là người đầu tiên chia sẻ cảm nghĩ của bạn!</p>
             </div>
           )}
@@ -202,17 +217,18 @@ export const ParagraphCommentDrawer: React.FC<ParagraphCommentDrawerProps> = ({
                 value={guestName}
                 onChange={(e) => setGuestName(e.target.value)}
                 placeholder="Tên hiển thị của bạn"
-                className={`w-full min-h-[38px] px-3.5 text-xs rounded-full border-2 font-medium focus:outline-none transition-colors ${
+                style={{ fontFamily: "'Vollkorn', serif" }}
+                className={`not-italic w-full min-h-[38px] px-3.5 text-xs font-medium rounded-full border focus:outline-none transition-colors ${
                   isDark
-                    ? 'bg-[#1F1C23] border-[#6B5261] text-white placeholder:text-[#8F7D85] focus:border-[#F2B3C1]'
-                    : 'bg-white border-[#F0D9E3] text-[#1E1B1D] placeholder:text-[#B79AA6] focus:border-[#E7B6C5]'
+                    ? 'bg-[#1F1C23] border-[#6B5261] text-[#FAF5F6] placeholder:text-[#8F7D85] placeholder:font-normal focus:border-[#F2B3C1]'
+                    : 'bg-white border-[#F0D9E3] text-[#4A3E44] placeholder:text-[#B5A0A8] placeholder:font-normal focus:border-[#E7B6C5]'
                 }`}
               />
             )}
 
-            {/* Khung lồng khung quanh textarea — cùng kiểu khung bìa truyện của NovelCard */}
+            {/* Khung lồng khung quanh textarea — cùng kiểu khung bìa truyện của NovelCard, viền mảnh 1px */}
             <div
-              className={`relative p-1 rounded-2xl border-2 transition-colors ${
+              className={`relative p-1 rounded-2xl border transition-colors ${
                 isDark
                   ? 'bg-gradient-to-b from-[#352936] to-[#2B222C] border-[#6B5261] focus-within:border-[#F2B3C1]'
                   : 'bg-gradient-to-b from-[#FFFAFD] to-white border-[#F0D9E3] focus-within:border-[#E7B6C5]'
@@ -225,7 +241,7 @@ export const ParagraphCommentDrawer: React.FC<ParagraphCommentDrawerProps> = ({
                 value={commentInput}
                 onChange={(e) => setCommentInput(e.target.value)}
                 className={`w-full min-h-[38px] p-2.5 text-xs font-lora leading-relaxed rounded-xl border-0 resize-none focus:outline-none focus:ring-0 ${
-                  isDark ? 'bg-[#1F1C23] text-white placeholder:text-[#8F7D85]' : 'bg-[#FFFDFE] text-[#1E1B1D] placeholder:text-[#B79AA6]'
+                  isDark ? 'bg-[#1F1C23] text-[#FAF5F6] placeholder:text-[#8F7D85]' : 'bg-[#FFFDFE] text-[#4A3E44] placeholder:text-[#B5A0A8]'
                 }`}
               />
               <span
@@ -241,7 +257,13 @@ export const ParagraphCommentDrawer: React.FC<ParagraphCommentDrawerProps> = ({
               <span className="text-[10px] leading-snug text-[#8F7D85] dark:text-[#D5CBD0]">
                 {currentUser ? (
                   <>
-                    Đăng bởi <span className="font-semibold text-[#B4587E] dark:text-[#F2B3C1]">{currentUser.name}</span>
+                    Đăng bởi{' '}
+                    <span
+                      style={{ fontFamily: "'Vollkorn', serif" }}
+                      className="not-italic font-semibold text-[#B4587E] dark:text-[#F2B3C1]"
+                    >
+                      {currentUser.name}
+                    </span>
                   </>
                 ) : (
                   'Bình luận ẩn danh · Tên sẽ được ghi nhớ trên thiết bị này'
