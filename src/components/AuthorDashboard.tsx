@@ -12,6 +12,80 @@ import {
 } from 'lucide-react';
 import { ProfileModal } from './ProfileModal';
 
+// Bảng màu hồng phẳng đồng bộ với NovelCard / NovelGrid / Leaderboard / Navbar / NovelDetailView.
+const ACCENT = '#F0A8C8';
+const ACCENT_DARK = '#EDA3B4';
+const ACCENT_TEXT_DARK = '#2B222C';
+
+// ---------------------------------------------------------------------------
+// Bìa mặc định khi tác giả KHÔNG dán link ảnh bìa — chỉ là một giá trị chuỗi
+// (data-URI SVG) được gán vào đúng field `coverImage` giống hệt như trước đây
+// (trước là link ảnh Unsplash cố định). Không đổi cách lưu/đọc coverImage ở
+// bất kỳ đâu khác, không đụng logic tạo/sửa truyện.
+const escapeXmlText = (text: string) =>
+  text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+
+const wrapTitleLines = (title: string, maxCharsPerLine = 12, maxLines = 3) => {
+  const words = title.trim().split(/\s+/).filter(Boolean);
+  const lines: string[] = [];
+  let current = '';
+  for (const word of words) {
+    const next = current ? `${current} ${word}` : word;
+    if (next.length > maxCharsPerLine && current) {
+      lines.push(current);
+      current = word;
+    } else {
+      current = next;
+    }
+    if (lines.length >= maxLines) break;
+  }
+  if (current && lines.length < maxLines) lines.push(current);
+  if (lines.length === 0) lines.push('Tiểu Thuyết Mới');
+  return lines.slice(0, maxLines);
+};
+
+const buildDefaultCoverImage = (title: string) => {
+  const lines = wrapTitleLines(title || 'Tiểu Thuyết Mới');
+  const titleTexts = lines
+    .map(
+      (line, i) =>
+        `<text x="240" y="${288 + i * 44}" font-family="Georgia, 'Times New Roman', serif" font-size="32" font-weight="700" fill="#FFFFFF" text-anchor="middle">${escapeXmlText(
+          line
+        )}</text>`
+    )
+    .join('');
+
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="480" height="640" viewBox="0 0 480 640">
+    <defs>
+      <linearGradient id="cover-bg" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#F6C9DE" />
+        <stop offset="55%" stop-color="#F0A8C8" />
+        <stop offset="100%" stop-color="#E58FB3" />
+      </linearGradient>
+    </defs>
+    <rect width="480" height="640" fill="url(#cover-bg)" />
+    <rect x="18" y="18" width="444" height="604" rx="22" fill="none" stroke="#FFFFFF" stroke-opacity="0.55" stroke-width="2" />
+    <text x="240" y="78" font-family="Georgia, serif" font-size="26" fill="#FFFFFF" fill-opacity="0.85" text-anchor="middle">${escapeXmlText(
+      '✧　⋆'
+    )}</text>
+    <text x="240" y="150" font-family="Georgia, serif" font-size="30" fill="#FFFFFF" fill-opacity="0.9" text-anchor="middle">𝜗𝜚</text>
+    ${titleTexts}
+    <text x="70" y="576" font-family="Georgia, serif" font-size="22" fill="#FFFFFF" fill-opacity="0.55" text-anchor="middle">♡</text>
+    <text x="240" y="596" font-family="Georgia, serif" font-size="20" fill="#FFFFFF" fill-opacity="0.65" text-anchor="middle">${escapeXmlText(
+      '⋆　✿　⋆'
+    )}</text>
+    <text x="410" y="576" font-family="Georgia, serif" font-size="22" fill="#FFFFFF" fill-opacity="0.55" text-anchor="middle">✧</text>
+  </svg>`;
+
+  return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+};
+// ---------------------------------------------------------------------------
+
 export const AuthorDashboard: React.FC = () => {
   const {
     currentUser,
@@ -114,7 +188,9 @@ export const AuthorDashboard: React.FC = () => {
     setEditingNovelId(null);
     setNovelTitle('');
     setNovelAuthorName(currentUser?.name || 'Canh Cụt Mộng Mơ');
-    setNovelCoverImage('https://images.unsplash.com/photo-1544816155-12df9643f363?w=800&auto=format&fit=crop&q=80');
+    // Để trống — nếu tác giả không dán link ảnh bìa, lúc lưu sẽ tự tạo bìa
+    // gradient hồng có tên truyện (xem buildDefaultCoverImage phía trên).
+    setNovelCoverImage('');
     setNovelSynopsis('');
     setNovelGenres('Lãng Mạn, Cung Đình');
     setNovelTags('Chữa Lành, Ngọt Sủng');
@@ -141,12 +217,13 @@ export const AuthorDashboard: React.FC = () => {
     const genresArr = novelGenres.split(',').map((s) => s.trim()).filter(Boolean);
     const tagsArr = novelTags.split(',').map((s) => s.trim()).filter(Boolean);
     const resolvedAuthorName = novelAuthorName.trim() || currentUser?.name || 'Canh Cụt Mộng Mơ';
+    const resolvedCoverImage = novelCoverImage.trim() || buildDefaultCoverImage(novelTitle.trim());
 
     if (editingNovelId) {
       updateNovel(editingNovelId, {
         title: novelTitle.trim(),
         authorName: resolvedAuthorName,
-        coverImage: novelCoverImage.trim() || 'https://images.unsplash.com/photo-1544816155-12df9643f363?w=800&auto=format&fit=crop&q=80',
+        coverImage: resolvedCoverImage,
         synopsis: novelSynopsis.trim(),
         genres: genresArr.length > 0 ? genresArr : ['Lãng Mạn'],
         tags: tagsArr.length > 0 ? tagsArr : ['Tiểu Thuyết'],
@@ -159,7 +236,7 @@ export const AuthorDashboard: React.FC = () => {
         authorId: currentUser?.id || 'admin_canhcut',
         authorName: resolvedAuthorName,
         authorEmail: currentUser?.email || 'canhcutmongmoeditor@gmail.com',
-        coverImage: novelCoverImage.trim() || 'https://images.unsplash.com/photo-1544816155-12df9643f363?w=800&auto=format&fit=crop&q=80',
+        coverImage: resolvedCoverImage,
         synopsis: novelSynopsis.trim(),
         genres: genresArr.length > 0 ? genresArr : ['Lãng Mạn'],
         tags: tagsArr.length > 0 ? tagsArr : ['Tiểu Thuyết'],
@@ -252,8 +329,15 @@ export const AuthorDashboard: React.FC = () => {
     <div className="py-6 sm:py-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
       {/* Feedback Toast Notification */}
       {feedbackMsg && (
-        <div className="fixed bottom-6 right-6 z-50 bg-[#1E1B1D] text-[#FAF5F6] dark:bg-[#FAF5F6] dark:text-[#121113] px-4 py-2.5 rounded-lg shadow-xl text-xs flex items-center gap-2 border border-neutral-700">
-          <Check className="w-3.5 h-3.5 text-emerald-400" />
+        <div
+          className="fixed bottom-6 right-6 z-50 px-4 py-2.5 rounded-full shadow-xl text-xs flex items-center gap-2 border"
+          style={{
+            background: isDark ? '#352936' : '#FFFFFF',
+            borderColor: isDark ? ACCENT_DARK : '#F0C7DE',
+            color: isDark ? '#FAF5F6' : '#574D4C',
+          }}
+        >
+          <Check className="w-3.5 h-3.5" style={{ color: isDark ? ACCENT_DARK : '#B4587E' }} />
           <span>{feedbackMsg}</span>
         </div>
       )}
@@ -261,14 +345,32 @@ export const AuthorDashboard: React.FC = () => {
       {/* Profile Modal */}
       <ProfileModal isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
 
-      {/* Dashboard Top Header — matches the centered style used on Bảng Xếp Hạng */}
-      <div className="text-center max-w-2xl mx-auto space-y-2 rounded-2xl border-2 border-[#E7C3CE] dark:border-[#6B5261] bg-[#FFF9FB] dark:bg-[#2B222C] px-5 py-5">
-        <div className="flex items-center justify-center gap-2 text-[10px] uppercase tracking-[0.2em] font-semibold text-[#B5798D] dark:text-[#E8B8C5]">
-          <span className="w-2 h-2 rounded-full bg-[#E8A0B8]" />
-          <span>Góc tác giả</span>
-          <span className="w-2 h-2 rounded-full bg-[#E8A0B8]" />
+      {/* Dashboard Top Header — khung gradient + sparkle đồng bộ Hero Card của NovelDetailView */}
+      <div
+        className={`relative overflow-visible text-center max-w-2xl mx-auto space-y-2 rounded-[28px] border p-6 sm:p-7 transition-colors ${
+          isDark
+            ? 'bg-gradient-to-b from-[#2B222C] via-[#241D26] to-[#2B222C] border-[#6B5261]'
+            : 'bg-gradient-to-b from-white via-[#FFF8FB] to-white border-[#F5DFE7]'
+        }`}
+      >
+        <div
+          className={`pointer-events-none select-none absolute top-4 right-5 text-[11px] leading-[1.7] hidden sm:block ${
+            isDark ? 'text-[#7A5869]/60' : 'text-[#F2C7DA]/70'
+          }`}
+        >
+          ✧　⋆<br />
+          ⋆　✿
         </div>
-        <h1 className="font-eb-garamond text-3xl sm:text-4xl font-medium text-[#574D4C] dark:text-[#FFFFFF]">
+
+        <div className="flex items-center justify-center gap-2 text-[10px] uppercase tracking-[0.2em] font-semibold text-[#B5798D] dark:text-[#E8B8C5]">
+          <span className={`text-[9px] ${isDark ? 'text-[#7A5869]' : 'text-[#E9B8C2]'}`}>𝜗𝜚</span>
+          <span>Góc tác giả</span>
+          <span className={`text-[9px] ${isDark ? 'text-[#7A5869]' : 'text-[#E9B8C2]'}`}>𝜗𝜚</span>
+        </div>
+        <h1
+          style={{ fontFamily: "'Vollkorn', serif" }}
+          className="not-italic text-3xl sm:text-4xl font-semibold text-[#6B4A57] dark:text-white"
+        >
           Quản Lý & Đăng Truyện
         </h1>
 
@@ -278,19 +380,23 @@ export const AuthorDashboard: React.FC = () => {
             <button
               type="button"
               onClick={() => setIsProfileOpen(true)}
-              className="flex items-center gap-2 p-1.5 pr-3 rounded-xl border border-[#E7B6C5] dark:border-[#6B5261] bg-[#FFFFFF] dark:bg-[#352936] hover:border-[#D985A2] dark:hover:border-[#F2B3C1] transition-colors text-left"
+              className={`flex items-center gap-2 p-1.5 pr-3 rounded-full border transition-colors text-left ${
+                isDark
+                  ? 'border-[#6B5261] bg-[#352936] hover:border-[#D79BAD]'
+                  : 'border-[#F5DFE7] bg-white hover:border-[#E7B6C5]'
+              }`}
               title="Nhấn để đổi tên và avatar tác giả"
             >
               <img
                 src={currentUser.avatar}
                 alt={currentUser.name}
-                className="w-7 h-7 rounded-lg object-cover"
+                className="w-7 h-7 rounded-full object-cover"
               />
               <div className="text-left">
-                <span className="text-[11px] font-bold block leading-tight truncate max-w-[100px] text-[#1E1B1D] dark:text-white">
+                <span className="text-[11px] font-bold block leading-tight truncate max-w-[100px] text-[#6B4A57] dark:text-white">
                   {currentUser.name}
                 </span>
-                <span className="text-[9px] text-[#8F7D85] block">
+                <span className="text-[9px] text-[#B79AA6] dark:text-[#D5CBD0] block">
                   Sửa hồ sơ
                 </span>
               </div>
@@ -299,13 +405,18 @@ export const AuthorDashboard: React.FC = () => {
 
           <button
             onClick={handleOpenNovelCreate}
-            className="min-h-[38px] px-4 py-1.5 rounded-lg bg-[#D985A2] text-white dark:bg-[#F2B3C1] dark:text-[#2B222C] text-xs font-medium hover:opacity-90 transition-opacity"
+            className="min-h-[38px] px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-opacity hover:opacity-90"
+            style={{ background: isDark ? ACCENT_DARK : ACCENT, color: isDark ? ACCENT_TEXT_DARK : '#FFFFFF' }}
           >
             <span>Đăng truyện mới</span>
           </button>
           <button
             onClick={() => handleOpenNewChapter(activeNovel?.id || novels[0]?.id)}
-            className="min-h-[38px] px-4 py-1.5 rounded-lg border border-[#E8B8C5] dark:border-[#6B5261] text-[#A45E78] dark:text-[#F2B3C1] text-xs font-medium hover:bg-[#FCEEF3] dark:hover:bg-[#3A2935] transition-colors"
+            className={`min-h-[38px] px-4 py-1.5 rounded-full border text-xs font-semibold uppercase tracking-wider transition-colors ${
+              isDark
+                ? 'border-[#6B5261] text-[#F2B3C1] hover:bg-[#3A2935]'
+                : 'border-[#E8B8C5] text-[#A45E78] hover:bg-[#FCEEF3]'
+            }`}
           >
             <span>Viết chương mới</span>
           </button>
@@ -321,50 +432,61 @@ export const AuthorDashboard: React.FC = () => {
             onClick={handleRebuildAllCommentCounts}
             disabled={isRebuildingCommentCounts}
             title="Tính lại chính xác số bình luận trên từng đoạn văn cho các bình luận đăng trước khi có tính năng này — chỉ cần bấm 1 lần"
-            className="min-h-[32px] px-3 py-1 rounded-lg border border-[#E8B8C5] dark:border-[#6B5261] text-[11px] font-medium text-[#A45E78] dark:text-[#D5CBD0] hover:border-[#D985A2] dark:hover:border-white disabled:opacity-50"
+            className={`min-h-[32px] px-3.5 py-1 rounded-full border text-[11px] font-medium transition-colors disabled:opacity-50 ${
+              isDark
+                ? 'border-[#6B5261] text-[#D5CBD0] hover:border-[#F2B3C1] hover:text-[#F2B3C1]'
+                : 'border-[#E8B8C5] text-[#A45E78] hover:border-[#D985A2]'
+            }`}
           >
             {isRebuildingCommentCounts ? 'Đang tính lại toàn bộ...' : 'Làm mới số bình luận theo đoạn văn (toàn web)'}
           </button>
         </div>
       )}
 
-      {/* Tabs */}
-      <div className="flex items-center gap-2 border border-[#E7C3CE] dark:border-[#594352] bg-[#FFF1F5] dark:bg-[#2B222C] p-2 rounded-xl overflow-x-auto no-scrollbar">
+      {/* Tabs — dạng pill phẳng, nút đang chọn dùng ACCENT */}
+      <div
+        className={`flex items-center gap-1.5 p-1.5 rounded-full overflow-x-auto no-scrollbar border ${
+          isDark ? 'border-[#6B5261] bg-[#2B222C]' : 'border-[#F5D2E0] bg-[#FFF5FA]'
+        }`}
+      >
         <button
           onClick={() => setActiveTab('analytics')}
-          className={`min-h-[36px] px-3.5 py-1.5 rounded-lg text-xs font-medium uppercase tracking-wider transition-all border ${
+          className="min-h-[36px] px-3.5 py-1.5 rounded-full text-xs font-medium uppercase tracking-wider transition-all whitespace-nowrap"
+          style={
             activeTab === 'analytics'
-              ? 'bg-[#D985A2] text-white border-[#D985A2] dark:bg-[#F2B3C1] dark:text-[#2B222C] dark:border-[#F2B3C1]'
+              ? { background: isDark ? ACCENT_DARK : ACCENT, color: isDark ? ACCENT_TEXT_DARK : '#FFFFFF' }
               : isDark
-              ? 'border-[#38323D] text-[#A69B9E] hover:border-white'
-              : 'border-[#DAC8CE] text-[#6E5D65] hover:border-[#1E1B1D]'
-          }`}
+              ? { color: '#E8DFE3' }
+              : { color: '#B4587E' }
+          }
         >
           <span>Thống kê chi tiết</span>
         </button>
 
         <button
           onClick={() => setActiveTab('novels')}
-          className={`min-h-[36px] px-3.5 py-1.5 rounded-lg text-xs font-medium uppercase tracking-wider transition-all border ${
+          className="min-h-[36px] px-3.5 py-1.5 rounded-full text-xs font-medium uppercase tracking-wider transition-all whitespace-nowrap"
+          style={
             activeTab === 'novels'
-              ? 'bg-[#D985A2] text-white border-[#D985A2] dark:bg-[#F2B3C1] dark:text-[#2B222C] dark:border-[#F2B3C1]'
+              ? { background: isDark ? ACCENT_DARK : ACCENT, color: isDark ? ACCENT_TEXT_DARK : '#FFFFFF' }
               : isDark
-              ? 'border-[#38323D] text-[#A69B9E] hover:border-white'
-              : 'border-[#DAC8CE] text-[#6E5D65] hover:border-[#1E1B1D]'
-          }`}
+              ? { color: '#E8DFE3' }
+              : { color: '#B4587E' }
+          }
         >
           <span>Quản lý truyện ({authoredNovels.length})</span>
         </button>
 
         <button
           onClick={() => setActiveTab('chapter_editor')}
-          className={`min-h-[36px] px-3.5 py-1.5 rounded-lg text-xs font-medium uppercase tracking-wider transition-all border ${
+          className="min-h-[36px] px-3.5 py-1.5 rounded-full text-xs font-medium uppercase tracking-wider transition-all whitespace-nowrap"
+          style={
             activeTab === 'chapter_editor'
-              ? 'bg-[#D985A2] text-white border-[#D985A2] dark:bg-[#F2B3C1] dark:text-[#2B222C] dark:border-[#F2B3C1]'
+              ? { background: isDark ? ACCENT_DARK : ACCENT, color: isDark ? ACCENT_TEXT_DARK : '#FFFFFF' }
               : isDark
-              ? 'border-[#38323D] text-[#A69B9E] hover:border-white'
-              : 'border-[#DAC8CE] text-[#6E5D65] hover:border-[#1E1B1D]'
-          }`}
+              ? { color: '#E8DFE3' }
+              : { color: '#B4587E' }
+          }
         >
           <span>Sửa chương</span>
         </button>
@@ -376,57 +498,69 @@ export const AuthorDashboard: React.FC = () => {
           {/* Master Overview Metric Cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <div
-                className={`p-4 rounded-xl border-2 ${
-                isDark ? 'bg-[#2B222C] border-[#6B5261]' : 'bg-[#FFF9FB] border-[#E7B6C5]'
+              className={`p-4 rounded-2xl border ${
+                isDark ? 'bg-[#2B222C] border-[#6B5261]' : 'bg-white border-[#F5DFE7]'
               }`}
             >
               <div className="flex items-center justify-between">
                 <span className="text-xs text-[#8F7D85] dark:text-[#D5CBD0]">Tổng lượt xem</span>
                 <Eye className="w-4 h-4 text-[#8F7D85] dark:text-[#D5CBD0]" />
               </div>
-              <div className="font-playfair text-xl sm:text-2xl font-semibold mt-2 text-[#1E1B1D] dark:text-[#FAF5F6]">
+              <div
+                style={{ fontFamily: "'Vollkorn', serif" }}
+                className="not-italic text-xl sm:text-2xl font-semibold mt-2 text-[#6B4A57] dark:text-white"
+              >
                 {totalViews.toLocaleString('vi-VN')}
               </div>
             </div>
 
             <div
-                className={`p-4 rounded-xl border-2 ${
-                isDark ? 'bg-[#2B222C] border-[#6B5261]' : 'bg-[#FFF9FB] border-[#E7B6C5]'
+              className={`p-4 rounded-2xl border ${
+                isDark ? 'bg-[#2B222C] border-[#6B5261]' : 'bg-white border-[#F5DFE7]'
               }`}
             >
               <div className="flex items-center justify-between">
                 <span className="text-xs text-[#8F7D85] dark:text-[#D5CBD0]">Lượt yêu thích</span>
-                <Heart className="w-4 h-4 text-[#E0A8B6]" />
+                <Heart className="w-4 h-4" style={{ color: isDark ? ACCENT_DARK : ACCENT }} />
               </div>
-              <div className="font-playfair text-xl sm:text-2xl font-semibold mt-2 text-[#E0A8B6]">
+              <div
+                style={{ fontFamily: "'Vollkorn', serif", color: isDark ? ACCENT_DARK : ACCENT }}
+                className="not-italic text-xl sm:text-2xl font-semibold mt-2"
+              >
                 {totalHearts.toLocaleString('vi-VN')}
               </div>
             </div>
 
             <div
-                className={`p-4 rounded-xl border-2 ${
-                isDark ? 'bg-[#2B222C] border-[#6B5261]' : 'bg-[#FFF9FB] border-[#E7B6C5]'
+              className={`p-4 rounded-2xl border ${
+                isDark ? 'bg-[#2B222C] border-[#6B5261]' : 'bg-white border-[#F5DFE7]'
               }`}
             >
               <div className="flex items-center justify-between">
                 <span className="text-xs text-[#8F7D85] dark:text-[#D5CBD0]">Bình luận đoạn văn</span>
                 <MessageSquare className="w-4 h-4 text-[#8F7D85] dark:text-[#D5CBD0]" />
               </div>
-              <div className="font-playfair text-xl sm:text-2xl font-semibold mt-2 text-[#1E1B1D] dark:text-[#FAF5F6]">
+              <div
+                style={{ fontFamily: "'Vollkorn', serif" }}
+                className="not-italic text-xl sm:text-2xl font-semibold mt-2 text-[#6B4A57] dark:text-white"
+              >
                 {totalComments.toLocaleString('vi-VN')}
               </div>
             </div>
 
             <div
-                className={`p-4 rounded-xl border-2 ${
-                isDark ? 'bg-[#2B222C] border-[#6B5261]' : 'bg-[#FFF9FB] border-[#E7B6C5]'
+              className={`p-4 rounded-2xl border ${
+                isDark ? 'bg-[#2B222C] border-[#6B5261]' : 'bg-white border-[#F5DFE7]'
               }`}
             >
               <div className="flex items-center justify-between">
                 <span className="text-xs text-[#8F7D85] dark:text-[#D5CBD0]">Tổng số chương</span>
                 <BookOpen className="w-4 h-4 text-[#8F7D85] dark:text-[#D5CBD0]" />
               </div>
-              <div className="font-playfair text-xl sm:text-2xl font-semibold mt-2 text-[#1E1B1D] dark:text-[#FAF5F6]">
+              <div
+                style={{ fontFamily: "'Vollkorn', serif" }}
+                className="not-italic text-xl sm:text-2xl font-semibold mt-2 text-[#6B4A57] dark:text-white"
+              >
                 {totalChaptersCount}
               </div>
             </div>
@@ -434,13 +568,20 @@ export const AuthorDashboard: React.FC = () => {
 
           {/* Chapter-by-Chapter In-Depth Analytics */}
           <div
-            className={`rounded-2xl border-2 overflow-hidden ${
-              isDark ? 'bg-[#2B222C] border-[#6B5261]' : 'bg-[#FFF9FB] border-[#E7B6C5]'
+            className={`rounded-2xl border overflow-hidden ${
+              isDark ? 'bg-[#2B222C] border-[#6B5261]' : 'bg-white border-[#F5DFE7]'
             }`}
           >
-            <div className="p-4 sm:p-5 border-b border-[#ECE0E4] dark:border-[#2E2833] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div
+              className={`p-4 sm:p-5 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                isDark ? 'border-[#594352]' : 'border-[#F0D9E3]'
+              }`}
+            >
               <div>
-                <h3 className="font-eb-garamond text-xl font-medium text-[#574D4C] dark:text-[#FAF5F6]">
+                <h3
+                  style={{ fontFamily: "'Vollkorn', serif" }}
+                  className="not-italic text-xl font-semibold text-[#6B4A57] dark:text-white"
+                >
                   Thống Kê Chi Tiết Từng Chương
                 </h3>
                 <p className="text-xs text-[#8F7D85] dark:text-[#D5CBD0]">
@@ -452,8 +593,8 @@ export const AuthorDashboard: React.FC = () => {
               <select
                 value={selectedNovelIdForChapter}
                 onChange={(e) => setSelectedNovelIdForChapter(e.target.value)}
-                className={`min-h-[36px] px-3 py-1 text-xs rounded-lg border focus:outline-none focus:border-[#1E1B1D] dark:focus:border-white font-medium ${
-                  isDark ? 'bg-[#352936] border-[#6B5261] text-[#FAF5F6]' : 'bg-[#FFF1F5] border-[#E8B8C5] text-[#A45E78]'
+                className={`min-h-[36px] px-3 py-1 text-xs rounded-full border focus:outline-none font-medium ${
+                  isDark ? 'bg-[#352936] border-[#6B5261] text-[#FAF5F6] focus:border-[#D79BAD]' : 'bg-[#FFF5FA] border-[#F5D2E0] text-[#B4587E] focus:border-[#E7B6C5]'
                 }`}
               >
                 {authoredNovels.map((n) => (
@@ -465,7 +606,7 @@ export const AuthorDashboard: React.FC = () => {
             </div>
 
             {/* Mobile View: Vertical cards (No horizontal scrolling!) */}
-            <div className="sm:hidden divide-y divide-[#ECE0E4] dark:divide-[#2E2833]">
+            <div className={`sm:hidden divide-y ${isDark ? 'divide-[#594352]' : 'divide-[#F0D9E3]'}`}>
               {activeNovelChapters.length > 0 ? (
                 activeNovelChapters.map((ch) => (
                   <div key={ch.id} className="p-4 space-y-3">
@@ -474,28 +615,31 @@ export const AuthorDashboard: React.FC = () => {
                         <span className="text-[11px] font-bold text-[#8F7D85] dark:text-[#D5CBD0] uppercase block">
                           Chương #{ch.chapterNumber}
                         </span>
-                        <h4 className="font-playfair font-medium text-sm text-[#1E1B1D] dark:text-[#FAF5F6]">
+                        <h4
+                          style={{ fontFamily: "'Vollkorn', serif" }}
+                          className="not-italic font-medium text-sm text-[#574D4C] dark:text-white"
+                        >
                           {ch.title}
                         </h4>
                       </div>
-                      <span className="text-[10px] px-2 py-0.5 rounded-md bg-[#FAF0F3] dark:bg-[#201C25] text-[#8F7D85] dark:text-[#D5CBD0]">
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#FFF5FA] dark:bg-[#352936] text-[#8F7D85] dark:text-[#D5CBD0]">
                         {ch.wordCount.toLocaleString('vi-VN')} chữ
                       </span>
                     </div>
 
                     {/* Stats Badges */}
-                    <div className="grid grid-cols-3 gap-2 bg-[#FAF5F6] dark:bg-[#151317] p-2.5 rounded-lg text-center text-xs">
+                    <div className="grid grid-cols-3 gap-2 bg-[#FFF6FB] dark:bg-[#352936] p-2.5 rounded-2xl text-center text-xs">
                       <div>
                         <span className="text-[10px] text-[#8F7D85] dark:text-[#D5CBD0] block">Lượt xem</span>
-                        <span className="font-semibold text-[#1E1B1D] dark:text-[#FAF5F6]">{ch.views.toLocaleString('vi-VN')}</span>
+                        <span className="font-semibold text-[#574D4C] dark:text-white">{ch.views.toLocaleString('vi-VN')}</span>
                       </div>
                       <div>
                         <span className="text-[10px] text-[#8F7D85] dark:text-[#D5CBD0] block">Lượt tim</span>
-                        <span className="font-semibold text-[#E0A8B6]">{ch.hearts.toLocaleString('vi-VN')}</span>
+                        <span className="font-semibold" style={{ color: isDark ? ACCENT_DARK : ACCENT }}>{ch.hearts.toLocaleString('vi-VN')}</span>
                       </div>
                       <div>
                         <span className="text-[10px] text-[#8F7D85] dark:text-[#D5CBD0] block">Bình luận</span>
-                        <span className="font-semibold text-[#1E1B1D] dark:text-[#FAF5F6]">{ch.commentsCount}</span>
+                        <span className="font-semibold text-[#574D4C] dark:text-white">{ch.commentsCount}</span>
                       </div>
                     </div>
 
@@ -503,13 +647,16 @@ export const AuthorDashboard: React.FC = () => {
                     <div className="flex items-center justify-end gap-2 pt-1">
                       <button
                         onClick={() => openReader(ch.novelId, ch.id)}
-                        className="min-h-[34px] px-3 py-1 rounded-md border border-current text-xs font-medium"
+                        className={`min-h-[34px] px-3 py-1 rounded-full border text-xs font-medium ${
+                          isDark ? 'border-[#6B5261] text-[#D5CBD0]' : 'border-[#E8B8C5] text-[#A45E78]'
+                        }`}
                       >
                         Đọc thử
                       </button>
                       <button
                         onClick={() => handleEditChapter(ch)}
-                        className="min-h-[34px] px-3 py-1 rounded-md bg-[#1E1B1D] text-white dark:bg-white dark:text-black text-xs font-medium"
+                        className="min-h-[34px] px-3 py-1 rounded-full text-xs font-medium"
+                        style={{ background: isDark ? ACCENT_DARK : ACCENT, color: isDark ? ACCENT_TEXT_DARK : '#FFFFFF' }}
                       >
                         Sửa
                       </button>
@@ -519,7 +666,7 @@ export const AuthorDashboard: React.FC = () => {
                             deleteChapter(ch.id);
                           }
                         }}
-                        className="min-h-[34px] px-2.5 py-1 rounded-md text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-xs"
+                        className="min-h-[34px] px-2.5 py-1 rounded-full text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-xs"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -537,7 +684,7 @@ export const AuthorDashboard: React.FC = () => {
             <div className="hidden sm:block">
               {activeNovelChapters.length > 0 ? (
                 <table className="w-full text-left text-xs">
-                  <thead className={`border-b ${isDark ? 'bg-[#141216] border-[#2E2833] text-[#D5CBD0]' : 'bg-[#FAF5F6] border-[#ECE0E4] text-[#6E5D65]'}`}>
+                  <thead className={`border-b ${isDark ? 'bg-[#241D26] border-[#594352] text-[#D5CBD0]' : 'bg-[#FFF6FB] border-[#F0D9E3] text-[#8B5D71]'}`}>
                     <tr>
                       <th className="py-3 px-4 uppercase font-medium">Chương</th>
                       <th className="py-3 px-4 uppercase font-medium">Tiêu Đề</th>
@@ -548,22 +695,22 @@ export const AuthorDashboard: React.FC = () => {
                       <th className="py-3 px-4 uppercase font-medium text-center">Thao Tác</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#ECE0E4] dark:divide-[#2E2833]">
+                  <tbody className={`divide-y ${isDark ? 'divide-[#594352]' : 'divide-[#F0D9E3]'}`}>
                     {activeNovelChapters.map((ch) => (
-                      <tr key={ch.id} className="hover:bg-[#FAF4F6] dark:hover:bg-[#1F1C23] transition-colors">
-                        <td className="py-3 px-4 font-bold font-playfair text-[#8F7D85] dark:text-[#D5CBD0]">
+                      <tr key={ch.id} className="hover:bg-[#FFF6FB] dark:hover:bg-[#241D26] transition-colors">
+                        <td className="py-3 px-4 font-bold text-[#8F7D85] dark:text-[#D5CBD0]" style={{ fontFamily: "'Vollkorn', serif" }}>
                           #{ch.chapterNumber}
                         </td>
-                        <td className="py-3 px-4 font-medium max-w-xs truncate text-[#1E1B1D] dark:text-[#FAF5F6]">
+                        <td className="py-3 px-4 font-medium max-w-xs truncate text-[#574D4C] dark:text-white">
                           {ch.title}
                         </td>
-                        <td className="py-3 px-4 text-right font-semibold text-[#1E1B1D] dark:text-[#FAF5F6]">
+                        <td className="py-3 px-4 text-right font-semibold text-[#574D4C] dark:text-white">
                           {ch.views.toLocaleString('vi-VN')}
                         </td>
-                        <td className="py-3 px-4 text-right text-[#E0A8B6] font-semibold">
+                        <td className="py-3 px-4 text-right font-semibold" style={{ color: isDark ? ACCENT_DARK : ACCENT }}>
                           {ch.hearts.toLocaleString('vi-VN')}
                         </td>
-                        <td className="py-3 px-4 text-right font-medium text-[#1E1B1D] dark:text-[#FAF5F6]">
+                        <td className="py-3 px-4 text-right font-medium text-[#574D4C] dark:text-white">
                           {ch.commentsCount}
                         </td>
                         <td className="py-3 px-4 text-right text-[#8F7D85] dark:text-[#D5CBD0]">
@@ -573,14 +720,17 @@ export const AuthorDashboard: React.FC = () => {
                           <div className="flex items-center justify-center gap-1.5">
                             <button
                               onClick={() => openReader(ch.novelId, ch.id)}
-                              className="px-2.5 py-1 rounded-md border border-current text-[11px]"
+                              className={`px-2.5 py-1 rounded-full border text-[11px] ${
+                                isDark ? 'border-[#6B5261] text-[#D5CBD0]' : 'border-[#E8B8C5] text-[#A45E78]'
+                              }`}
                               title="Xem trang đọc"
                             >
                               Đọc
                             </button>
                             <button
                               onClick={() => handleEditChapter(ch)}
-                              className="px-2.5 py-1 rounded-md bg-[#1E1B1D] text-white dark:bg-white dark:text-black text-[11px]"
+                              className="px-2.5 py-1 rounded-full text-[11px] font-medium"
+                              style={{ background: isDark ? ACCENT_DARK : ACCENT, color: isDark ? ACCENT_TEXT_DARK : '#FFFFFF' }}
                               title="Sửa chương"
                             >
                               Sửa
@@ -591,7 +741,7 @@ export const AuthorDashboard: React.FC = () => {
                                   deleteChapter(ch.id);
                                 }
                               }}
-                              className="p-1 rounded-md text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-[11px]"
+                              className="p-1 rounded-full text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-[11px]"
                               title="Xóa chương"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -604,10 +754,13 @@ export const AuthorDashboard: React.FC = () => {
                 </table>
               ) : (
                 <div className="p-8 text-center text-[#8F7D85] dark:text-[#D5CBD0]">
-                  <p className="font-playfair text-sm">Chưa có chương truyện nào</p>
+                  <p style={{ fontFamily: "'Vollkorn', serif" }} className="not-italic text-sm">
+                    Chưa có chương truyện nào
+                  </p>
                   <button
                     onClick={() => handleOpenNewChapter(activeNovel?.id || '')}
-                    className="mt-3 px-4 py-1.5 rounded-lg border border-[#1E1B1D] dark:border-white text-xs"
+                    className="mt-3 px-4 py-1.5 rounded-full border text-xs"
+                    style={isDark ? { borderColor: '#6B5261', color: '#F2B3C1' } : { borderColor: '#E8B8C5', color: '#A45E78' }}
                   >
                     Thêm chương đầu tiên
                   </button>
@@ -624,12 +777,15 @@ export const AuthorDashboard: React.FC = () => {
           {/* Left Column: Form Create / Edit Novel */}
           <div className="lg:col-span-5">
             <div
-                className={`p-5 rounded-2xl border-2 ${
-                isDark ? 'bg-[#2B222C] border-[#6B5261]' : 'bg-[#FFF9FB] border-[#E7B6C5]'
+              className={`p-5 rounded-2xl border ${
+                isDark ? 'bg-[#2B222C] border-[#6B5261]' : 'bg-white border-[#F5DFE7]'
               }`}
             >
-              <div className="flex items-center justify-between border-b pb-3 mb-4 border-[#ECE0E4] dark:border-[#2E2833]">
-                <h3 className="font-playfair font-semibold text-sm sm:text-base text-[#1E1B1D] dark:text-[#FAF5F6]">
+              <div className={`flex items-center justify-between border-b pb-3 mb-4 ${isDark ? 'border-[#594352]' : 'border-[#F0D9E3]'}`}>
+                <h3
+                  style={{ fontFamily: "'Vollkorn', serif" }}
+                  className="not-italic font-semibold text-sm sm:text-base text-[#6B4A57] dark:text-white"
+                >
                   {editingNovelId ? 'Sửa Thông Tin Tiểu Thuyết' : 'Đăng Tiểu Thuyết Mới'}
                 </h3>
                 {editingNovelId && (
@@ -655,8 +811,8 @@ export const AuthorDashboard: React.FC = () => {
                     placeholder="VD: Vương Miện Của Hoa Sơn Trà"
                     value={novelTitle}
                     onChange={(e) => setNovelTitle(e.target.value)}
-                    className={`w-full min-h-[38px] p-2.5 rounded-lg border focus:outline-none focus:border-[#1E1B1D] dark:focus:border-white text-xs ${
-                      isDark ? 'bg-[#1F1C23] border-[#38323D] text-[#FAF5F6]' : 'bg-[#FAF5F6] border-[#DED0D5]'
+                    className={`w-full min-h-[38px] p-2.5 rounded-xl border focus:outline-none text-xs ${
+                      isDark ? 'bg-[#241D26] border-[#594352] text-[#FAF5F6] focus:border-[#D79BAD]' : 'bg-[#FFF9FB] border-[#F0D9E3] focus:border-[#E7B6C5]'
                     }`}
                   />
                 </div>
@@ -669,8 +825,8 @@ export const AuthorDashboard: React.FC = () => {
                     placeholder="VD: Canh Cụt Mộng Mơ / Tác giả gốc"
                     value={novelAuthorName}
                     onChange={(e) => setNovelAuthorName(e.target.value)}
-                    className={`w-full min-h-[38px] p-2.5 rounded-lg border focus:outline-none focus:border-[#1E1B1D] dark:focus:border-white text-xs ${
-                      isDark ? 'bg-[#1F1C23] border-[#38323D] text-[#FAF5F6]' : 'bg-[#FAF5F6] border-[#DED0D5]'
+                    className={`w-full min-h-[38px] p-2.5 rounded-xl border focus:outline-none text-xs ${
+                      isDark ? 'bg-[#241D26] border-[#594352] text-[#FAF5F6] focus:border-[#D79BAD]' : 'bg-[#FFF9FB] border-[#F0D9E3] focus:border-[#E7B6C5]'
                     }`}
                   />
                 </div>
@@ -682,10 +838,13 @@ export const AuthorDashboard: React.FC = () => {
                     placeholder="https://..."
                     value={novelCoverImage}
                     onChange={(e) => setNovelCoverImage(e.target.value)}
-                    className={`w-full min-h-[38px] p-2.5 rounded-lg border focus:outline-none focus:border-[#1E1B1D] dark:focus:border-white text-xs ${
-                      isDark ? 'bg-[#1F1C23] border-[#38323D] text-[#FAF5F6]' : 'bg-[#FAF5F6] border-[#DED0D5]'
+                    className={`w-full min-h-[38px] p-2.5 rounded-xl border focus:outline-none text-xs ${
+                      isDark ? 'bg-[#241D26] border-[#594352] text-[#FAF5F6] focus:border-[#D79BAD]' : 'bg-[#FFF9FB] border-[#F0D9E3] focus:border-[#E7B6C5]'
                     }`}
                   />
+                  <p className="text-[10px] text-[#B79AA6] dark:text-[#D5CBD0] mt-1">
+                    Để trống ô này — hệ thống sẽ tự tạo một bìa gradient hồng có tên truyện cho bạn.
+                  </p>
                   {/* Presets */}
                   <div className="flex flex-wrap gap-1 mt-1.5">
                     {presetCovers.map((p, idx) => (
@@ -693,7 +852,9 @@ export const AuthorDashboard: React.FC = () => {
                         key={idx}
                         type="button"
                         onClick={() => setNovelCoverImage(p.url)}
-                        className="text-[10px] px-2 py-0.5 rounded-md border border-[#DAC8CE] dark:border-[#38323D] hover:border-[#1E1B1D] text-[#6E5D65] dark:text-[#D5CBD0]"
+                        className={`text-[10px] px-2 py-0.5 rounded-full border transition-colors ${
+                          isDark ? 'border-[#594352] text-[#D5CBD0] hover:border-[#D79BAD]' : 'border-[#F0D9E3] text-[#8B5D71] hover:border-[#E7B6C5]'
+                        }`}
                       >
                         {p.label}
                       </button>
@@ -709,8 +870,8 @@ export const AuthorDashboard: React.FC = () => {
                     placeholder="Mô tả ngắn gọn giới thiệu cốt truyện..."
                     value={novelSynopsis}
                     onChange={(e) => setNovelSynopsis(e.target.value)}
-                    className={`w-full p-2.5 rounded-lg border focus:outline-none focus:border-[#1E1B1D] dark:focus:border-white font-lora text-xs leading-relaxed ${
-                      isDark ? 'bg-[#1F1C23] border-[#38323D] text-[#FAF5F6]' : 'bg-[#FAF5F6] border-[#DED0D5]'
+                    className={`w-full p-2.5 rounded-xl border focus:outline-none font-lora text-xs leading-relaxed ${
+                      isDark ? 'bg-[#241D26] border-[#594352] text-[#FAF5F6] focus:border-[#D79BAD]' : 'bg-[#FFF9FB] border-[#F0D9E3] focus:border-[#E7B6C5]'
                     }`}
                   />
                 </div>
@@ -723,8 +884,8 @@ export const AuthorDashboard: React.FC = () => {
                       placeholder="Lãng Mạn, Quý Tộc"
                       value={novelGenres}
                       onChange={(e) => setNovelGenres(e.target.value)}
-                      className={`w-full min-h-[38px] p-2.5 rounded-lg border focus:outline-none focus:border-[#1E1B1D] dark:focus:border-white text-xs ${
-                        isDark ? 'bg-[#1F1C23] border-[#38323D] text-[#FAF5F6]' : 'bg-[#FAF5F6] border-[#DED0D5]'
+                      className={`w-full min-h-[38px] p-2.5 rounded-xl border focus:outline-none text-xs ${
+                        isDark ? 'bg-[#241D26] border-[#594352] text-[#FAF5F6] focus:border-[#D79BAD]' : 'bg-[#FFF9FB] border-[#F0D9E3] focus:border-[#E7B6C5]'
                       }`}
                     />
                   </div>
@@ -733,8 +894,8 @@ export const AuthorDashboard: React.FC = () => {
                     <select
                       value={novelStatus}
                       onChange={(e) => setNovelStatus(e.target.value as any)}
-                      className={`w-full min-h-[38px] p-2.5 rounded-lg border focus:outline-none focus:border-[#1E1B1D] dark:focus:border-white text-xs ${
-                        isDark ? 'bg-[#1F1C23] border-[#38323D] text-[#FAF5F6]' : 'bg-[#FAF5F6] border-[#DED0D5]'
+                      className={`w-full min-h-[38px] p-2.5 rounded-xl border focus:outline-none text-xs ${
+                        isDark ? 'bg-[#241D26] border-[#594352] text-[#FAF5F6] focus:border-[#D79BAD]' : 'bg-[#FFF9FB] border-[#F0D9E3] focus:border-[#E7B6C5]'
                       }`}
                     >
                       <option value="ongoing">Đang tiến hành</option>
@@ -746,7 +907,8 @@ export const AuthorDashboard: React.FC = () => {
                 <div className="pt-2">
                   <button
                     type="submit"
-                    className="w-full min-h-[40px] py-2 rounded-lg bg-[#D985A2] text-white dark:bg-[#F2B3C1] dark:text-[#2B222C] uppercase tracking-wider font-semibold hover:opacity-90 transition-opacity text-xs"
+                    className="w-full min-h-[40px] py-2 rounded-full uppercase tracking-wider font-semibold hover:opacity-90 transition-opacity text-xs"
+                    style={{ background: isDark ? ACCENT_DARK : ACCENT, color: isDark ? ACCENT_TEXT_DARK : '#FFFFFF' }}
                   >
                     {editingNovelId ? 'Lưu Cập Nhật' : 'Đăng Tác Phẩm'}
                   </button>
@@ -758,20 +920,33 @@ export const AuthorDashboard: React.FC = () => {
           {/* Right Column: Existing Novels List */}
           <div className="lg:col-span-7 space-y-3">
             <div className="flex items-center gap-2 mb-2">
-              <span className="w-2 h-2 rounded-full bg-[#E8A0B8]" />
-              <h3 className="font-eb-garamond font-medium text-xl text-[#574D4C] dark:text-[#FAF5F6]">
-              Danh Sách Truyện Của Bạn ({authoredNovels.length})
+              <span className={`text-[9px] ${isDark ? 'text-[#7A5869]' : 'text-[#E9B8C2]'}`}>𝜗𝜚</span>
+              <h3
+                style={{ fontFamily: "'Vollkorn', serif" }}
+                className="not-italic font-semibold text-xl text-[#6B4A57] dark:text-white"
+              >
+                Danh Sách Truyện Của Bạn ({authoredNovels.length})
               </h3>
             </div>
 
             <div className="space-y-3">
               {authoredNovels.length === 0 ? (
                 <div
-                    className={`p-8 text-center rounded-2xl border-2 ${
-                    isDark ? 'bg-[#2B222C] border-[#6B5261]' : 'bg-[#FFF9FB] border-[#E7B6C5]'
+                  className={`relative p-8 text-center rounded-2xl border overflow-visible ${
+                    isDark ? 'bg-[#2B222C] border-[#6B5261]' : 'bg-white border-[#F0D9E3]'
                   }`}
                 >
-                  <p className="font-playfair text-sm text-[#1E1B1D] dark:text-[#FAF5F6]">Chưa có tác phẩm nào</p>
+                  <div
+                    className={`pointer-events-none select-none absolute top-3 right-4 text-[9px] leading-[1.7] hidden sm:block ${
+                      isDark ? 'text-[#7A5869]/60' : 'text-[#F2C7DA]/70'
+                    }`}
+                  >
+                    ✧　⋆
+                  </div>
+                  <span className="inline-block w-3 h-3 rounded-full bg-[#E8A0B8] mb-3" />
+                  <p style={{ fontFamily: "'Vollkorn', serif" }} className="not-italic text-base font-medium text-[#574D4C] dark:text-white">
+                    Chưa có tác phẩm nào
+                  </p>
                   <p className="text-xs text-[#8F7D85] dark:text-[#D5CBD0] mt-1">
                     Điền biểu mẫu bên cạnh để xuất bản tác phẩm đầu tiên của bạn.
                   </p>
@@ -782,48 +957,62 @@ export const AuthorDashboard: React.FC = () => {
                   return (
                     <div
                       key={novel.id}
-                      className={`p-4 rounded-2xl border-2 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 ${
-                        isDark ? 'bg-[#2B222C] border-[#6B5261] hover:border-[#D79BAD]' : 'bg-[#FFF9FB] border-[#E7B6C5] hover:border-[#D79BAD]'
+                      className={`p-4 rounded-2xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 transition-colors ${
+                        isDark ? 'bg-[#2B222C] border-[#6B5261] hover:border-[#D79BAD]' : 'bg-white border-[#F5DFE7] hover:border-[#E7B6C5]'
                       }`}
                     >
                       <div className="flex items-center gap-3.5">
-                        <div className="w-12 h-16 rounded-xl overflow-hidden shrink-0 border-2 border-[#E8B8C5] dark:border-[#7A5869] bg-[#FCEEF3]">
-                          <img src={novel.coverImage} alt={novel.title} className="w-full h-full object-cover" />
+                        <div
+                          className={`relative p-1 rounded-xl border shrink-0 ${
+                            isDark ? 'bg-gradient-to-b from-[#352936] to-[#2B222C] border-[#6B5261]' : 'bg-gradient-to-b from-[#FFFAFD] to-white border-[#F5DFE7]'
+                          }`}
+                        >
+                          <img src={novel.coverImage} alt={novel.title} className="w-12 h-16 rounded-lg object-cover" />
                         </div>
                         <div>
-                          <h4 className="font-eb-garamond font-semibold text-lg text-[#574D4C] dark:text-[#FAF5F6]">{novel.title}</h4>
+                          <h4
+                            style={{ fontFamily: "'Vollkorn', serif" }}
+                            className="not-italic font-semibold text-lg text-[#6B4A57] dark:text-white"
+                          >
+                            {novel.title}
+                          </h4>
                           <div className="flex flex-wrap items-center gap-2 text-[11px] text-[#8F7D85] dark:text-[#D5CBD0] mt-0.5">
-                            <span className="font-medium text-[#A45E78] dark:text-[#F2B3C1]">Tác giả: {novel.authorName}</span>
+                            <span className="font-medium" style={{ color: isDark ? ACCENT_DARK : '#B4587E' }}>Tác giả: {novel.authorName}</span>
                             <span>•</span>
                             <span>{nChapters.length} chương</span>
                             <span>•</span>
                             <span>{novel.totalViews.toLocaleString('vi-VN')} lượt xem</span>
                             <span>•</span>
-                            <span className="text-[#E0A8B6]">{novel.totalHearts.toLocaleString('vi-VN')} tim</span>
+                            <span style={{ color: isDark ? ACCENT_DARK : ACCENT }}>{novel.totalHearts.toLocaleString('vi-VN')} tim</span>
                           </div>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                      <div className="flex items-center gap-2 w-full sm:w-auto justify-end flex-wrap">
                         {(novel.chapterIndex?.length || 0) !== novel.chaptersCount && novel.chaptersCount > 0 && (
                           <button
                             onClick={() => handleRebuildChapterIndex(novel)}
                             disabled={rebuildingNovelId === novel.id}
                             title="Truyện này đăng trước khi có tính năng mục lục nhẹ — bấm 1 lần để mục lục tải nhanh hơn, không cần đụng lại sau"
-                            className="min-h-[34px] px-3 py-1 rounded-full border border-[#E8B8C5] dark:border-[#6B5261] text-xs font-medium text-[#A45E78] dark:text-[#D5CBD0] hover:border-[#D985A2] disabled:opacity-50"
+                            className={`min-h-[34px] px-3 py-1 rounded-full border text-xs font-medium transition-colors disabled:opacity-50 ${
+                              isDark ? 'border-[#6B5261] text-[#D5CBD0] hover:border-[#D79BAD]' : 'border-[#E8B8C5] text-[#A45E78] hover:border-[#D985A2]'
+                            }`}
                           >
                             {rebuildingNovelId === novel.id ? 'Đang làm mới...' : 'Làm mới danh sách chương'}
                           </button>
                         )}
                         <button
                           onClick={() => handleOpenNewChapter(novel.id)}
-                          className="min-h-[34px] px-3 py-1 rounded-full border border-[#E8B8C5] dark:border-[#6B5261] text-[#A45E78] dark:text-[#F2B3C1] text-xs font-medium hover:bg-[#FCEEF3] dark:hover:bg-[#3A2935]"
+                          className={`min-h-[34px] px-3 py-1 rounded-full border text-xs font-medium transition-colors ${
+                            isDark ? 'border-[#6B5261] text-[#F2B3C1] hover:bg-[#3A2935]' : 'border-[#E8B8C5] text-[#A45E78] hover:bg-[#FCEEF3]'
+                          }`}
                         >
                           + Viết chương
                         </button>
                         <button
                           onClick={() => handleEditNovel(novel)}
-                          className="min-h-[34px] px-3 py-1 rounded-full bg-[#F7D9E5] dark:bg-[#4A2F3D] text-[#A45E78] dark:text-[#F2B3C1] text-xs font-medium border border-transparent hover:border-[#D985A2]"
+                          className="min-h-[34px] px-3 py-1 rounded-full text-xs font-medium transition-opacity hover:opacity-90"
+                          style={{ background: isDark ? ACCENT_DARK : ACCENT, color: isDark ? ACCENT_TEXT_DARK : '#FFFFFF' }}
                         >
                           Sửa
                         </button>
@@ -833,7 +1022,7 @@ export const AuthorDashboard: React.FC = () => {
                               deleteNovel(novel.id);
                             }
                           }}
-                          className="min-h-[34px] p-2 rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40"
+                          className="min-h-[34px] p-2 rounded-full text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40"
                           title="Xóa truyện"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -853,11 +1042,19 @@ export const AuthorDashboard: React.FC = () => {
         <div className="max-w-4xl mx-auto">
           {authoredNovels.length === 0 ? (
             <div
-              className={`p-8 text-center rounded-2xl border-2 ${
-                isDark ? 'bg-[#2B222C] border-[#6B5261]' : 'bg-[#FFF9FB] border-[#E7B6C5]'
+              className={`relative p-8 text-center rounded-2xl border overflow-visible ${
+                isDark ? 'bg-[#2B222C] border-[#6B5261]' : 'bg-white border-[#F0D9E3]'
               }`}
             >
-              <p className="font-playfair text-base font-medium text-[#1E1B1D] dark:text-[#FAF5F6]">
+              <div
+                className={`pointer-events-none select-none absolute top-3 right-4 text-[9px] leading-[1.7] hidden sm:block ${
+                  isDark ? 'text-[#7A5869]/60' : 'text-[#F2C7DA]/70'
+                }`}
+              >
+                ✧　⋆
+              </div>
+              <span className="inline-block w-3 h-3 rounded-full bg-[#E8A0B8] mb-3" />
+              <p style={{ fontFamily: "'Vollkorn', serif" }} className="not-italic text-base font-medium text-[#574D4C] dark:text-white">
                 Bạn chưa có tiểu thuyết nào để viết chương
               </p>
               <p className="text-xs text-[#8F7D85] dark:text-[#D5CBD0] mt-1 mb-4">
@@ -865,20 +1062,24 @@ export const AuthorDashboard: React.FC = () => {
               </p>
               <button
                 onClick={() => setActiveTab('novels')}
-                className="px-4 py-2 rounded-lg bg-[#D985A2] text-white dark:bg-[#F2B3C1] dark:text-[#2B222C] text-xs font-semibold hover:opacity-90 transition-opacity"
+                className="px-4 py-2 rounded-full text-xs font-semibold hover:opacity-90 transition-opacity"
+                style={{ background: isDark ? ACCENT_DARK : ACCENT, color: isDark ? ACCENT_TEXT_DARK : '#FFFFFF' }}
               >
                 Tạo tiểu thuyết ngay
               </button>
             </div>
           ) : (
             <div
-              className={`p-5 sm:p-7 rounded-2xl border-2 ${
-                isDark ? 'bg-[#2B222C] border-[#6B5261]' : 'bg-[#FFF9FB] border-[#E7B6C5]'
+              className={`p-5 sm:p-7 rounded-2xl border ${
+                isDark ? 'bg-[#2B222C] border-[#6B5261]' : 'bg-white border-[#F5DFE7]'
               }`}
             >
-              <div className="flex items-center justify-between border-b pb-4 mb-5 border-[#ECE0E4] dark:border-[#2E2833]">
+              <div className={`flex items-center justify-between border-b pb-4 mb-5 ${isDark ? 'border-[#594352]' : 'border-[#F0D9E3]'}`}>
                 <div>
-                  <h3 className="font-eb-garamond text-2xl font-medium text-[#574D4C] dark:text-[#FAF5F6]">
+                  <h3
+                    style={{ fontFamily: "'Vollkorn', serif" }}
+                    className="not-italic text-2xl font-semibold text-[#6B4A57] dark:text-white"
+                  >
                     {editingChapterId ? 'Chỉnh Sửa Chương Truyện' : 'Sửa & Viết Chương Mới'}
                   </h3>
                   <p className="text-xs text-[#8F7D85] dark:text-[#D5CBD0]">
@@ -896,44 +1097,47 @@ export const AuthorDashboard: React.FC = () => {
                 )}
               </div>
 
-              
+
               {/* DANH SÁCH CÁC CHƯƠNG ĐÃ ĐĂNG / ĐÃ CÓ */}
-              <div className="mb-5 rounded-xl border-2 border-[#E7B6C5] dark:border-[#6B5261] overflow-hidden">
-                <div className="px-4 py-3 bg-[#FFF1F5] dark:bg-[#352936] border-b border-[#E7C3CE] dark:border-[#594352]">
+              <div className={`mb-5 rounded-2xl border overflow-hidden ${isDark ? 'border-[#6B5261]' : 'border-[#F0D9E3]'}`}>
+                <div className={`px-4 py-3 border-b ${isDark ? 'bg-[#352936] border-[#594352]' : 'bg-[#FFF6FB] border-[#F0D9E3]'}`}>
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <h4 className="font-playfair font-semibold text-sm text-[#1E1B1D] dark:text-[#FAF5F6]">
+                      <h4
+                        style={{ fontFamily: "'Vollkorn', serif" }}
+                        className="not-italic font-semibold text-sm text-[#574D4C] dark:text-white"
+                      >
                         Các chương đã đăng
                       </h4>
                       <p className="text-[10px] text-[#8F7D85] dark:text-[#D5CBD0] mt-0.5">
                         Chọn <strong>Sửa</strong> để mở lại chương và cập nhật nội dung, hoặc <strong>Xóa</strong> để xóa chương khỏi Firebase.
                       </p>
                     </div>
-                    <span className="shrink-0 text-[10px] px-2 py-1 rounded-md bg-white dark:bg-[#1F1C23] border border-[#DAC8CE] dark:border-[#38323D] text-[#6E5D65] dark:text-[#D5CBD0]">
+                    <span className={`shrink-0 text-[10px] px-2 py-1 rounded-full border ${isDark ? 'bg-[#2B222C] border-[#6B5261] text-[#D5CBD0]' : 'bg-white border-[#F0D9E3] text-[#8B5D71]'}`}>
                       {activeNovelChapters.length} chương
                     </span>
                   </div>
                 </div>
 
                 {activeNovelChapters.length > 0 ? (
-                  <div className="divide-y divide-[#ECE0E4] dark:divide-[#2E2833] max-h-[360px] overflow-y-auto">
+                  <div className={`divide-y max-h-[360px] overflow-y-auto ${isDark ? 'divide-[#594352]' : 'divide-[#F0D9E3]'}`}>
                     {activeNovelChapters.map((ch) => (
                       <div
                         key={ch.id}
-                        className="p-3 sm:px-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-[#FCF8F9] dark:hover:bg-[#1C1920] transition-colors"
+                        className="p-3 sm:px-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-[#FFF6FB] dark:hover:bg-[#241D26] transition-colors"
                       >
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">
-                            <span className="shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#FAF0F3] dark:bg-[#201C25] text-[#8F7D85] dark:text-[#D5CBD0]">
+                            <span className="shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-[#FFF5FA] dark:bg-[#2B222C] text-[#8F7D85] dark:text-[#D5CBD0]">
                               Chương {ch.chapterNumber}
                             </span>
                             {!ch.isPublished && (
-                              <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-300">
+                              <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-300">
                                 Bản nháp
                               </span>
                             )}
                           </div>
-                          <p className="mt-1 text-xs font-medium truncate text-[#1E1B1D] dark:text-[#FAF5F6]" title={ch.title}>
+                          <p className="mt-1 text-xs font-medium truncate text-[#574D4C] dark:text-white" title={ch.title}>
                             {ch.title}
                           </p>
                           <p className="text-[10px] text-[#8F7D85] dark:text-[#D5CBD0] mt-0.5">
@@ -945,7 +1149,8 @@ export const AuthorDashboard: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => handleEditChapter(ch)}
-                            className="min-h-[34px] px-3 py-1.5 rounded-lg bg-[#1E1B1D] text-white dark:bg-white dark:text-black text-[11px] font-semibold hover:opacity-90"
+                            className="min-h-[34px] px-3 py-1.5 rounded-full text-[11px] font-semibold hover:opacity-90 transition-opacity"
+                            style={{ background: isDark ? ACCENT_DARK : ACCENT, color: isDark ? ACCENT_TEXT_DARK : '#FFFFFF' }}
                           >
                             Sửa chương
                           </button>
@@ -963,7 +1168,7 @@ export const AuthorDashboard: React.FC = () => {
                                 setChapterTitle('');
                               }
                             }}
-                            className="min-h-[34px] px-3 py-1.5 rounded-lg border border-rose-200 dark:border-rose-900/60 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-[11px] font-semibold"
+                            className="min-h-[34px] px-3 py-1.5 rounded-full border border-rose-200 dark:border-rose-900/60 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-[11px] font-semibold"
                           >
                             Xóa chương
                           </button>
@@ -978,7 +1183,7 @@ export const AuthorDashboard: React.FC = () => {
                 )}
               </div>
 
-<form onSubmit={handleSaveChapter} className="space-y-4 text-xs">
+              <form onSubmit={handleSaveChapter} className="space-y-4 text-xs">
                 {/* Novel Selector */}
                 <div>
                   <label className="block text-[#8F7D85] dark:text-[#D5CBD0] font-semibold uppercase mb-1">Thuộc Tiểu Thuyết *</label>
@@ -991,8 +1196,8 @@ export const AuthorDashboard: React.FC = () => {
                       setChapterNumber(nextNum);
                       setChapterTitle(`Chương ${nextNum}: `);
                     }}
-                    className={`w-full min-h-[38px] p-2.5 rounded-lg border focus:outline-none focus:border-[#1E1B1D] dark:focus:border-white font-medium ${
-                      isDark ? 'bg-[#1F1C23] border-[#38323D] text-[#FAF5F6]' : 'bg-[#FAF5F6] border-[#DED0D5] text-[#1E1B1D]'
+                    className={`w-full min-h-[38px] p-2.5 rounded-xl border focus:outline-none font-medium ${
+                      isDark ? 'bg-[#241D26] border-[#594352] text-[#FAF5F6] focus:border-[#D79BAD]' : 'bg-[#FFF9FB] border-[#F0D9E3] text-[#574D4C] focus:border-[#E7B6C5]'
                     }`}
                   >
                     {authoredNovels.map((n) => (
@@ -1003,91 +1208,92 @@ export const AuthorDashboard: React.FC = () => {
                   </select>
                 </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-                <div className="sm:col-span-1">
-                  <label className="block text-[#8F7D85] dark:text-[#D5CBD0] font-semibold uppercase mb-1">Số Thứ Tự Chương</label>
-                  <input
-                    type="number"
-                    min={1}
-                    value={chapterNumber}
-                    onChange={(e) => setChapterNumber(Number(e.target.value))}
-                    className={`w-full min-h-[38px] p-2.5 rounded-lg border focus:outline-none focus:border-[#1E1B1D] dark:focus:border-white text-xs font-semibold ${
-                      isDark ? 'bg-[#1F1C23] border-[#38323D] text-[#FAF5F6]' : 'bg-[#FAF5F6] border-[#DED0D5]'
-                    }`}
-                  />
-                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                  <div className="sm:col-span-1">
+                    <label className="block text-[#8F7D85] dark:text-[#D5CBD0] font-semibold uppercase mb-1">Số Thứ Tự Chương</label>
+                    <input
+                      type="number"
+                      min={1}
+                      value={chapterNumber}
+                      onChange={(e) => setChapterNumber(Number(e.target.value))}
+                      className={`w-full min-h-[38px] p-2.5 rounded-xl border focus:outline-none text-xs font-semibold ${
+                        isDark ? 'bg-[#241D26] border-[#594352] text-[#FAF5F6] focus:border-[#D79BAD]' : 'bg-[#FFF9FB] border-[#F0D9E3] focus:border-[#E7B6C5]'
+                      }`}
+                    />
+                  </div>
 
-                <div className="sm:col-span-3">
-                  <label className="block text-[#8F7D85] dark:text-[#D5CBD0] font-semibold uppercase mb-1">Tiêu Đề Chương *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="VD: Chương 5: Lời tỏ tình dưới ánh trăng..."
-                    value={chapterTitle}
-                    onChange={(e) => setChapterTitle(e.target.value)}
-                    className={`w-full min-h-[38px] p-2.5 rounded-lg border focus:outline-none focus:border-[#1E1B1D] dark:focus:border-white text-xs sm:text-sm ${
-                      isDark ? 'bg-[#1F1C23] border-[#38323D] text-[#FAF5F6]' : 'bg-[#FAF5F6] border-[#DED0D5]'
-                    }`}
-                  />
-                </div>
-              </div>
-
-              {/* Main Chapter Content Textarea */}
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="text-[#8F7D85] dark:text-[#D5CBD0] font-semibold uppercase">Nội Dung Chương Truyện *</label>
-                  <div className="text-[11px] text-[#8F7D85] dark:text-[#D5CBD0] flex items-center gap-3">
-                    <span>
-                      Đoạn văn:{' '}
-                      <strong className="text-[#1E1B1D] dark:text-[#FAF5F6]">
-                        {currentParagraphCount}
-                      </strong>
-                    </span>
-                    <span>
-                      Số từ:{' '}
-                      <strong className="text-[#1E1B1D] dark:text-[#FAF5F6]">
-                        {currentWordCount}
-                      </strong>
-                    </span>
+                  <div className="sm:col-span-3">
+                    <label className="block text-[#8F7D85] dark:text-[#D5CBD0] font-semibold uppercase mb-1">Tiêu Đề Chương *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="VD: Chương 5: Lời tỏ tình dưới ánh trăng..."
+                      value={chapterTitle}
+                      onChange={(e) => setChapterTitle(e.target.value)}
+                      className={`w-full min-h-[38px] p-2.5 rounded-xl border focus:outline-none text-xs sm:text-sm ${
+                        isDark ? 'bg-[#241D26] border-[#594352] text-[#FAF5F6] focus:border-[#D79BAD]' : 'bg-[#FFF9FB] border-[#F0D9E3] focus:border-[#E7B6C5]'
+                      }`}
+                    />
                   </div>
                 </div>
 
-                <textarea
-                  rows={14}
-                  required
-                  placeholder="Nhập nội dung chương truyện tại đây...&#10;&#10;Mỗi đoạn văn cách nhau bởi 1 dòng trống để tạo thành một khối bình luận tương tác riêng cho độc giả."
-                  value={chapterContentText}
-                  onChange={(e) => setChapterContentText(e.target.value)}
-                  className={`w-full p-3.5 rounded-lg border focus:outline-none focus:border-[#1E1B1D] dark:focus:border-white font-lora text-xs sm:text-sm leading-relaxed ${
-                    isDark ? 'bg-[#1F1C23] border-[#38323D] text-[#FAF5F6]' : 'bg-[#FAF5F6] border-[#DED0D5] text-[#1E1B1D]'
-                  }`}
-                />
-              </div>
+                {/* Main Chapter Content Textarea */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-[#8F7D85] dark:text-[#D5CBD0] font-semibold uppercase">Nội Dung Chương Truyện *</label>
+                    <div className="text-[11px] text-[#8F7D85] dark:text-[#D5CBD0] flex items-center gap-3">
+                      <span>
+                        Đoạn văn:{' '}
+                        <strong className="text-[#574D4C] dark:text-white">
+                          {currentParagraphCount}
+                        </strong>
+                      </span>
+                      <span>
+                        Số từ:{' '}
+                        <strong className="text-[#574D4C] dark:text-white">
+                          {currentWordCount}
+                        </strong>
+                      </span>
+                    </div>
+                  </div>
 
-              {/* Submit Buttons */}
-              <div className="pt-3 border-t border-[#ECE0E4] dark:border-[#2E2833] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <label className="flex items-center gap-2 cursor-pointer text-xs">
-                  <input
-                    type="checkbox"
-                    checked={isPublished}
-                    onChange={(e) => setIsPublished(e.target.checked)}
-                    className="accent-[#1E1B1D] dark:accent-white"
+                  <textarea
+                    rows={14}
+                    required
+                    placeholder="Nhập nội dung chương truyện tại đây...&#10;&#10;Mỗi đoạn văn cách nhau bởi 1 dòng trống để tạo thành một khối bình luận tương tác riêng cho độc giả."
+                    value={chapterContentText}
+                    onChange={(e) => setChapterContentText(e.target.value)}
+                    className={`w-full p-3.5 rounded-xl border focus:outline-none font-lora text-xs sm:text-sm leading-relaxed ${
+                      isDark ? 'bg-[#241D26] border-[#594352] text-[#FAF5F6] focus:border-[#D79BAD]' : 'bg-[#FFF9FB] border-[#F0D9E3] text-[#574D4C] focus:border-[#E7B6C5]'
+                    }`}
                   />
-                  <span className="text-[#1E1B1D] dark:text-[#FAF5F6]">Xuất bản ngay</span>
-                </label>
+                </div>
 
-                <button
-                  type="submit"
-                  className="min-h-[40px] px-6 py-2 rounded-lg bg-[#1E1B1D] text-[#FAF5F6] dark:bg-[#FAF5F6] dark:text-[#121113] uppercase tracking-wider font-semibold hover:opacity-90 shadow-xs text-xs"
-                >
-                  {editingChapterId ? 'Cập nhật chương' : 'Đăng chương'}
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
-      </div>
-    )}
-  </div>
-);
+                {/* Submit Buttons */}
+                <div className={`pt-3 border-t flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${isDark ? 'border-[#594352]' : 'border-[#F0D9E3]'}`}>
+                  <label className="flex items-center gap-2 cursor-pointer text-xs">
+                    <input
+                      type="checkbox"
+                      checked={isPublished}
+                      onChange={(e) => setIsPublished(e.target.checked)}
+                      style={{ accentColor: isDark ? ACCENT_DARK : ACCENT }}
+                    />
+                    <span className="text-[#574D4C] dark:text-white">Xuất bản ngay</span>
+                  </label>
+
+                  <button
+                    type="submit"
+                    className="min-h-[40px] px-6 py-2 rounded-full uppercase tracking-wider font-semibold hover:opacity-90 transition-opacity text-xs"
+                    style={{ background: isDark ? ACCENT_DARK : ACCENT, color: isDark ? ACCENT_TEXT_DARK : '#FFFFFF' }}
+                  >
+                    {editingChapterId ? 'Cập nhật chương' : 'Đăng chương'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
 };
