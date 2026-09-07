@@ -120,12 +120,12 @@ export const GlobalCommunityFeed: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Excerpt Quote block — nền mềm có dấu ngoặc kép lớn trang trí ở góc,
-                    đồng bộ với khung trích dẫn/quote trong ReaderView */}
+                {/* Excerpt Quote block — nền hồng phấn ngả lạnh nhạt, có dấu ngoặc kép lớn
+                    trang trí ở góc, đồng bộ với khung trích dẫn/quote trong ReaderView */}
                 {comment.paragraphExcerpt && (
                   <div
                     className={`relative px-4 py-3 rounded-xl mb-3 ${
-                      isDark ? 'bg-[#352936]' : 'bg-[#FFF1F5]'
+                      isDark ? 'bg-[#3A2E3D]' : 'bg-[#FCE9F2]'
                     }`}
                   >
                     <span
@@ -183,8 +183,8 @@ export const GlobalCommunityFeed: React.FC = () => {
                             className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full border"
                             style={
                               isDark
-                                ? { background: '#3A2935', color: '#F2B3C1', borderColor: '#7A5869' }
-                                : { background: '#FFF0F7', color: '#B4587E', borderColor: '#F0C7DE' }
+                                ? { background: '#3A2E3D', color: '#F2B3C1', borderColor: '#6B5261' }
+                                : { background: '#FCE9F2', color: '#B4587E', borderColor: '#F3D0E4' }
                             }
                           >
                             Admin

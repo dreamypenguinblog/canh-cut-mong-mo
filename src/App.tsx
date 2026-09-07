@@ -89,20 +89,24 @@ const MainLayout: React.FC = () => {
         </Suspense>
       </div>
 
-      {/* Footer with Site-wide View Statistics */}
+      {/* Footer with Site-wide View Statistics — đồng bộ font Vollkorn và bảng màu
+          pastel/ACCENT đang dùng xuyên suốt site (Navbar/NovelGrid/Leaderboard) */}
       <footer
-        className={`border-t-2 transition-colors mt-12 py-8 text-center ${
+        className={`border-t transition-colors mt-12 py-8 text-center ${
           isDark
             ? 'bg-[#2B222C] border-[#6B5261] text-[#D5CBD0]'
-            : 'bg-[#FCE4EC] border-[#E8B8C5] text-[#8B6873]'
+            : 'bg-[#FFF6FB] border-[#F0D9E3] text-[#8B6873]'
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
-          <div className="space-y-1 rounded-2xl border border-[#E8B8C5] dark:border-[#6B5261] bg-[#FFF9FB]/70 dark:bg-[#352936]/70 px-5 py-4">
-            <p className="font-eb-garamond text-lg font-medium tracking-wide text-[#574D4C] dark:text-[#FAF5F6]">
+          <div className="space-y-1 rounded-2xl border border-[#F5DFE7] dark:border-[#6B5261] bg-white/70 dark:bg-[#352936]/70 px-5 py-4">
+            <p
+              style={{ fontFamily: "'Vollkorn', serif" }}
+              className="not-italic text-lg font-medium tracking-wide text-[#8B5D71] dark:text-[#F7E4EC]"
+            >
               Cánh Cụt Mộng Mơ
             </p>
-            <p className="font-pinyon text-xl text-[#8F7D85] dark:text-[#E8DFE3]">
+            <p className="font-pinyon text-xl text-[#D88AB3] dark:text-[#F2B3C1]">
               Dreamy Penguin
             </p>
           </div>
