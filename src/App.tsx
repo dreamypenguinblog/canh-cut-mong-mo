@@ -21,13 +21,13 @@ const MainLayout: React.FC = () => {
 
   const isDark = globalTheme === 'dark';
 
-  // If in Reader view, reader has its own dedicated reading interface
+  // If in Reader view, reader has its own dedicated reading interface.
+  // Trang đọc TÁCH BIỆT khỏi darkmode toàn site theo yêu cầu — không còn bọc
+  // trong class "dark" theo globalTheme, màu sắc trang đọc luôn cố định.
   if (activeView === 'reader') {
     return (
-      <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-[#FFF7FB] dark:bg-[#2B222C] text-[#A45E78] dark:text-[#F2B3C1]"><div className="flex flex-col items-center gap-3"><span className="w-10 h-10 rounded-full border-2 border-[#E8B8C5] border-t-[#D985A2] animate-spin" /><span className="font-eb-garamond text-xl">Đang mở trình đọc...</span></div></div>}>
-        <div className={isDark ? 'dark' : ''}>
-          <ReaderView />
-        </div>
+      <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-[#FFF7FB] text-[#A45E78]"><div className="flex flex-col items-center gap-3"><span className="w-10 h-10 rounded-full border-2 border-[#E8B8C5] border-t-[#D985A2] animate-spin" /><span className="font-eb-garamond text-xl">Đang mở trình đọc...</span></div></div>}>
+        <ReaderView />
       </Suspense>
     );
   }
@@ -99,15 +99,22 @@ const MainLayout: React.FC = () => {
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
-          <div className="space-y-1 rounded-2xl border border-[#F5DFE7] dark:border-[#6B5261] bg-white/70 dark:bg-[#352936]/70 px-5 py-4">
+          <div className="relative inline-flex flex-col items-center gap-1">
+            <span
+              className={`pointer-events-none select-none text-[10px] leading-none ${
+                isDark ? 'text-[#7A5869]/60' : 'text-[#F2C7DA]/80'
+              }`}
+            >
+              ✧　⋆
+            </span>
+            <p className="font-pinyon text-3xl sm:text-4xl text-[#D88AB3] dark:text-[#F2B3C1]">
+              Dreamy Penguin
+            </p>
             <p
               style={{ fontFamily: "'Vollkorn', serif" }}
-              className="not-italic text-lg font-medium tracking-wide text-[#8B5D71] dark:text-[#F7E4EC]"
+              className="not-italic text-xs uppercase tracking-[0.2em] text-[#8B5D71] dark:text-[#F7E4EC]"
             >
               Cánh Cụt Mộng Mơ
-            </p>
-            <p className="font-pinyon text-xl text-[#D88AB3] dark:text-[#F2B3C1]">
-              Dreamy Penguin
             </p>
           </div>
 

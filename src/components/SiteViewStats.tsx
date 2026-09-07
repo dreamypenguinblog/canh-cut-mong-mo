@@ -11,8 +11,6 @@ interface SiteStats {
 }
 
 // Bảng màu hồng phẳng đồng bộ với NovelCard / NovelGrid / Leaderboard / Navbar / Footer.
-const ACCENT = '#F0A8C8';
-const ACCENT_DARK = '#EDA3B4';
 
 export const SiteViewStats: React.FC = () => {
   const { globalTheme } = useApp();
@@ -71,19 +69,12 @@ export const SiteViewStats: React.FC = () => {
   return (
     <div className="pt-4 pb-2">
       <div className="max-w-4xl mx-auto px-4">
-        <div className="flex items-center justify-center gap-2 mb-3">
-          <span className="w-2 h-2 rounded-full" style={{ background: isDark ? ACCENT_DARK : ACCENT }} />
-          <span className="text-[11px] uppercase tracking-[0.2em] font-semibold text-[#B5798D] dark:text-[#E8B8C5]">
-            Lượt Xem Toàn Trang
-          </span>
-          <span className="w-2 h-2 rounded-full" style={{ background: isDark ? ACCENT_DARK : ACCENT }} />
-        </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
           {items.map((item) => (
             <div
               key={item.label}
               className={`rounded-2xl border p-3 text-center ${
-                isDark ? 'bg-[#352936] border-[#6B5261]' : 'bg-[#FFF9FB] border-[#F0D9E3]'
+                isDark ? 'bg-[#352936] border-[#6B5261]' : 'bg-[#FFF6FB] border-[#F5D2E0]'
               }`}
             >
               <div className="font-eb-garamond font-medium text-xl text-[#A45E78] dark:text-[#F2B3C1]">

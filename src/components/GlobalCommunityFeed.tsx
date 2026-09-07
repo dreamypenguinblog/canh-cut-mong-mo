@@ -125,7 +125,7 @@ export const GlobalCommunityFeed: React.FC = () => {
                 {comment.paragraphExcerpt && (
                   <div
                     className={`relative px-4 py-3 rounded-xl mb-3 ${
-                      isDark ? 'bg-[#3A2E3D]' : 'bg-[#FCE9F2]'
+                      isDark ? 'bg-[#3A2E3D]' : 'bg-[#FDF2F8]'
                     }`}
                   >
                     <span
@@ -184,7 +184,7 @@ export const GlobalCommunityFeed: React.FC = () => {
                             style={
                               isDark
                                 ? { background: '#3A2E3D', color: '#F2B3C1', borderColor: '#6B5261' }
-                                : { background: '#FCE9F2', color: '#B4587E', borderColor: '#F3D0E4' }
+                                : { background: '#FCE9F2', color: '#A45E78', borderColor: '#F3D0E4' }
                             }
                           >
                             Admin
@@ -249,7 +249,6 @@ export const GlobalCommunityFeed: React.FC = () => {
               ✧　⋆<br />
               ⋆　✿
             </div>
-            <span className="inline-block w-3 h-3 rounded-full bg-[#E8A0B8] mb-3" />
             <p
               style={{ fontFamily: "'Vollkorn', serif" }}
               className="not-italic text-xl font-medium text-[#574D4C] dark:text-[#FAF5F6]"
