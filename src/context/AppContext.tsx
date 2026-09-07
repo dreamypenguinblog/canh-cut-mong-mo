@@ -1447,83 +1447,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const isParagraphBookmarked = (chapterId: string, paragraphIndex: number) =>
     bookmarks.some((bm) => bm.chapterId === chapterId && bm.paragraphIndex === paragraphIndex);
 
-  // ---------------------------------------------------------------------
-  // Màn hình tải trang (khi Firebase Auth chưa sẵn sàng). Đây là phần GIAO
-  // DIỆN DUY NHẤT được chỉnh — không đụng tới bất kỳ logic auth/Firestore
-  // nào ở trên. Đồng bộ đúng vibe hiện tại của web: nền #FFF7FB/#2B222C
-  // (khớp Navbar), khung "lồng khung" kiểu NovelCard/Leaderboard, font
-  // Vollkorn cho tên thương hiệu, tông ACCENT #F0A8C8/#EDA3B4, sparkle
-  // ✧⋆✿ và dải nơ 𝜗𝜚 — không dùng chấm hồng phẳng như bản cũ.
   if (!authReady) {
-    const isDark = globalTheme === 'dark';
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#FFF7FB] dark:bg-[#2B222C] px-4">
-        <div
-          className={`relative flex flex-col items-center gap-4 rounded-[26px] border px-8 py-9 sm:px-10 sm:py-10 overflow-visible ${
-            isDark
-              ? 'bg-gradient-to-b from-[#2B222C] via-[#241D26] to-[#2B222C] border-[#6B5261] shadow-[0_18px_34px_-22px_rgba(0,0,0,0.55)]'
-              : 'bg-gradient-to-b from-white via-[#FFF8FB] to-white border-[#F5DFE7] shadow-[0_18px_34px_-22px_rgba(247,184,210,0.35)]'
-          }`}
-        >
-          {/* Sparkle decoration — góc trên phải khung, đồng bộ NovelCard/Leaderboard */}
-          <div
-            className={`pointer-events-none select-none absolute top-3 right-4 text-[9px] leading-[1.7] ${
-              isDark ? 'text-[#7A5869]/60' : 'text-[#F2C7DA]/70'
-            }`}
-          >
-            ✧　⋆<br />
-            ⋆　✿
-          </div>
-
-          {/* Khung trong "lồng khung" bọc vòng loading — cùng ngôn ngữ khung ảnh bìa NovelCard */}
-          <div
-            className={`p-2 rounded-full border ${
-              isDark
-                ? 'bg-gradient-to-b from-[#352936] to-[#2B222C] border-[#6B5261]'
-                : 'bg-gradient-to-b from-[#FFFAFD] to-white border-[#F5DFE7]'
-            }`}
-          >
-            <span
-              className="block w-10 h-10 rounded-full border-2 animate-spin"
-              style={{
-                borderColor: isDark ? '#6B5261' : '#F2C7DA',
-                borderTopColor: isDark ? '#EDA3B4' : '#F0A8C8',
-              }}
-            />
-          </div>
-
-          <div className="flex flex-col items-center gap-1.5 text-center">
-            <span
-              style={{ fontFamily: "'Vollkorn', serif" }}
-              className={`not-italic text-2xl font-semibold ${isDark ? 'text-white' : 'text-[#6B4A57]'}`}
-            >
-              Cánh Cụt Mộng Mơ
-            </span>
-
-            {/* Dải phân cách có ký hiệu 𝜗𝜚 — đồng bộ NovelCard */}
-            <div className="flex items-center justify-center gap-1.5 w-full">
-              <div
-                className={`w-6 h-px ${
-                  isDark ? 'bg-gradient-to-r from-transparent to-[#6B5261]' : 'bg-gradient-to-r from-transparent to-[#F3C6DD]'
-                }`}
-              />
-              <span className={`text-[9px] ${isDark ? 'text-[#7A5869]' : 'text-[#E9B8C2]'}`}>𝜗𝜚</span>
-              <div
-                className={`w-6 h-px ${
-                  isDark ? 'bg-gradient-to-l from-transparent to-[#6B5261]' : 'bg-gradient-to-l from-transparent to-[#F3C6DD]'
-                }`}
-              />
-            </div>
-
-            <span className={`text-xs uppercase tracking-wider ${isDark ? 'text-[#D5CBD0]' : 'text-[#D88AB3]'}`}>
-              Đang tải...
-            </span>
-          </div>
-
-          {/* Dấu trang trí góc dưới khung — cùng ngôn ngữ NovelCard/Leaderboard */}
-          <span className="pointer-events-none select-none absolute -bottom-1 -right-1 text-[11px] text-[#E9B8C2] dark:text-[#7A5869]">
-            𝜗𝜚
-          </span>
+      <div className="min-h-screen flex items-center justify-center bg-[#FFF1F5] dark:bg-[#211B22] text-[#A45E78] dark:text-[#F2B3C1]">
+        <div className="flex flex-col items-center gap-3 rounded-2xl border-2 border-[#E8B8C5] dark:border-[#6B5261] bg-[#FFF9FB] dark:bg-[#352936] px-8 py-7">
+          <span className="w-10 h-10 rounded-full border-2 border-[#E8B8C5] border-t-[#D985A2] animate-spin" />
+          <span className="font-eb-garamond text-2xl font-medium">Cánh Cụt Mộng Mơ</span>
+          <span className="text-sm text-[#B5798D] dark:text-[#E8B8C5]">Đang tải...</span>
         </div>
       </div>
     );
