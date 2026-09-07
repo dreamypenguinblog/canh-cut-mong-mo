@@ -287,6 +287,26 @@ export const NovelDetailView: React.FC = () => {
             Tóm Tắt Tác Phẩm
           </h2>
         </div>
+
+        {/* Divider nơ — cùng kiểu dải phân cách 𝜗𝜚 đang dùng ở NovelCard/Navbar mobile */}
+        <div className="flex items-center gap-1.5">
+          <div
+            className={`flex-1 h-px ${
+              isDark
+                ? 'bg-gradient-to-r from-transparent to-[#6B5261]'
+                : 'bg-gradient-to-r from-transparent to-[#F3C6DD]'
+            }`}
+          />
+          <span className={`text-[9px] ${isDark ? 'text-[#7A5869]' : 'text-[#E9B8C2]'}`}>𝜗𝜚</span>
+          <div
+            className={`flex-1 h-px ${
+              isDark
+                ? 'bg-gradient-to-l from-transparent to-[#6B5261]'
+                : 'bg-gradient-to-l from-transparent to-[#F3C6DD]'
+            }`}
+          />
+        </div>
+
         <p className="font-lora text-sm sm:text-[15px] leading-relaxed whitespace-pre-line break-words text-justify text-[#4A3E44] dark:text-[#E8DFE3]">
           {novel.synopsis}
         </p>
@@ -310,17 +330,38 @@ export const NovelDetailView: React.FC = () => {
           ✧　⋆
         </div>
 
-        <div className="flex items-center justify-between border-b pb-3 border-[#F0D9E3] dark:border-[#594352]">
-          <div className="flex items-center gap-2">
-            <span className={`text-[9px] ${isDark ? 'text-[#7A5869]' : 'text-[#E9B8C2]'}`}>𝜗𝜚</span>
-            <h2
-              style={{ fontFamily: "'Vollkorn', serif" }}
-              className="not-italic text-xl sm:text-2xl font-semibold tracking-wide text-[#6B4A57] dark:text-white"
-            >
-              Danh Sách Chương ({chapterListItems.length})
-            </h2>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className={`text-[9px] ${isDark ? 'text-[#7A5869]' : 'text-[#E9B8C2]'}`}>𝜗𝜚</span>
+              <h2
+                style={{ fontFamily: "'Vollkorn', serif" }}
+                className="not-italic text-xl sm:text-2xl font-semibold tracking-wide text-[#6B4A57] dark:text-white"
+              >
+                Danh Sách Chương ({chapterListItems.length})
+              </h2>
+            </div>
+            <span className="text-[11px] text-[#B5798D] dark:text-[#E8B8C5] hidden sm:inline">Nhấn chương để đọc</span>
           </div>
-          <span className="text-[11px] text-[#B5798D] dark:text-[#E8B8C5] hidden sm:inline">Nhấn chương để đọc</span>
+
+          {/* Divider nơ — thay cho đường kẻ thẳng border-b, đồng bộ dải phân cách 𝜗𝜚 ở NovelCard/Navbar mobile */}
+          <div className="flex items-center gap-1.5">
+            <div
+              className={`flex-1 h-px ${
+                isDark
+                  ? 'bg-gradient-to-r from-transparent to-[#6B5261]'
+                  : 'bg-gradient-to-r from-transparent to-[#F3C6DD]'
+              }`}
+            />
+            <span className={`text-[9px] ${isDark ? 'text-[#7A5869]' : 'text-[#E9B8C2]'}`}>𝜗𝜚</span>
+            <div
+              className={`flex-1 h-px ${
+                isDark
+                  ? 'bg-gradient-to-l from-transparent to-[#6B5261]'
+                  : 'bg-gradient-to-l from-transparent to-[#F3C6DD]'
+              }`}
+            />
+          </div>
         </div>
 
         {chapterListItems.length > 0 ? (
