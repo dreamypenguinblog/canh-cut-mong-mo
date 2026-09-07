@@ -25,29 +25,13 @@ export const GlobalCommunityFeed: React.FC = () => {
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
-      {/* Header — cùng kiểu với header Bảng xếp hạng / Danh Sách Truyện, có thêm sparkle trang trí */}
-      <div className="relative text-center max-w-2xl mx-auto space-y-3">
-        {/* Sparkle decoration góc trên phải — cùng ngôn ngữ trang trí với HomeHero/NovelCard */}
-        <div
-          className={`pointer-events-none select-none absolute -top-3 right-2 sm:right-6 text-[9px] leading-[1.7] hidden sm:block ${
-            isDark ? 'text-[#7A5869]/60' : 'text-[#F2C7DA]/70'
-          }`}
-        >
-          ✧　⋆<br />
-          ⋆　✿
-        </div>
-
-        <div className="flex items-center justify-center gap-2 text-[10px] uppercase tracking-[0.2em] font-semibold text-[#B5798D] dark:text-[#E8B8C5]">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#E8A0B8]" />
-          <span>Góc cộng đồng</span>
-          <span className="w-1.5 h-1.5 rounded-full bg-[#E8A0B8]" />
-        </div>
+      {/* Header — tiêu đề đơn giản, không thêm trang trí */}
+      <div className="text-center max-w-2xl mx-auto space-y-3">
         <h1
           style={{ fontFamily: "'Vollkorn', serif" }}
-          className="not-italic text-2xl sm:text-3xl font-medium text-[#8B5D71] dark:text-[#F7E4EC] inline-flex items-baseline gap-1.5"
+          className="not-italic text-2xl sm:text-3xl font-medium text-[#8B5D71] dark:text-[#F7E4EC]"
         >
-          Tổng Hợp Bình Luận Toàn Web
-          <span className="relative top-0.5 text-sm font-normal text-[#E9B8C2] dark:text-[#7A5869]">𝜗𝜚</span>
+          Bình Luận Đoạn
         </h1>
 
         {/* Filter controls — dạng pill có mũi tên, đồng bộ với khung sắp xếp trong Danh Sách Truyện */}
@@ -99,7 +83,7 @@ export const GlobalCommunityFeed: React.FC = () => {
                 </div>
 
                 {/* Header: Novel and chapter meta */}
-                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#F0D9E3] dark:border-[#594352] pb-2.5 mb-2.5">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#F0D9E3] dark:border-[#594352] pb-2.5 mb-3">
                   <div className="flex items-center gap-2 text-xs">
                     <span
                       style={{ fontFamily: "'Vollkorn', serif" }}
@@ -136,31 +120,30 @@ export const GlobalCommunityFeed: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Dải phân cách trang trí — cùng ngôn ngữ với NovelCard/Navbar mobile, thay cho
-                    khoảng trắng đơn thuần giữa phần mục lục và nội dung bình luận */}
-                <div className="flex items-center justify-center gap-1.5 mb-3">
-                  <div
-                    className={`flex-1 h-px ${
-                      isDark ? 'bg-gradient-to-r from-transparent to-[#6B5261]' : 'bg-gradient-to-r from-transparent to-[#F3C6DD]'
-                    }`}
-                  />
-                  <span className={`text-[8px] ${isDark ? 'text-[#7A5869]' : 'text-[#E9B8C2]'}`}>𝜗𝜚</span>
-                  <div
-                    className={`flex-1 h-px ${
-                      isDark ? 'bg-gradient-to-l from-transparent to-[#6B5261]' : 'bg-gradient-to-l from-transparent to-[#F3C6DD]'
-                    }`}
-                  />
-                </div>
-
-                {/* Excerpt Quote block */}
+                {/* Excerpt Quote block — nền mềm có dấu ngoặc kép lớn trang trí ở góc,
+                    đồng bộ với khung trích dẫn/quote trong ReaderView */}
                 {comment.paragraphExcerpt && (
                   <div
-                    className={`relative p-3 rounded-xl text-xs font-lora italic leading-relaxed border-l-2 border-[#E0A8B6] mb-3 ${
-                      isDark ? 'bg-[#352936] text-[#FAF5F6]' : 'bg-[#FFF1F5] text-[#6E5660]'
+                    className={`relative px-4 py-3 rounded-xl mb-3 ${
+                      isDark ? 'bg-[#352936]' : 'bg-[#FFF1F5]'
                     }`}
                   >
-                    “{comment.paragraphExcerpt}”
-                    <span className="pointer-events-none select-none absolute bottom-1 right-2 text-[10px] text-[#E9B8C2]/80 dark:text-[#7A5869]/80">
+                    <span
+                      style={{ fontFamily: "'Vollkorn', serif" }}
+                      className={`pointer-events-none select-none absolute top-1 left-2 text-2xl leading-none ${
+                        isDark ? 'text-[#5E4148]' : 'text-[#F2C7DA]'
+                      }`}
+                    >
+                      "
+                    </span>
+                    <p
+                      className={`font-lora italic text-xs leading-relaxed pl-3 ${
+                        isDark ? 'text-[#FAF5F6]' : 'text-[#6E5660]'
+                      }`}
+                    >
+                      {comment.paragraphExcerpt}
+                    </p>
+                    <span className="pointer-events-none select-none absolute bottom-1.5 right-2.5 text-[10px] text-[#E9B8C2]/80 dark:text-[#7A5869]/80">
                       𝜗𝜚
                     </span>
                   </div>

@@ -171,7 +171,7 @@ export const ReaderView: React.FC = () => {
   if (!novel || !chapter) {
     if (initializing) {
       return (
-        <div className="min-h-screen flex items-center justify-center p-8 text-center bg-[#FFF1F5] dark:bg-[#211B22] text-[#A45E78] dark:text-[#F2B3C1]">
+        <div className="min-h-screen flex items-center justify-center p-8 text-center bg-[#FFF7FB] dark:bg-[#2B222C] text-[#A45E78] dark:text-[#F2B3C1]">
           <div className="flex flex-col items-center gap-3">
             <span className="w-10 h-10 rounded-full border-2 border-[#E8B8C5] border-t-[#D985A2] animate-spin" />
             <p style={{ fontFamily: "'Vollkorn', serif" }} className="not-italic text-xl">
@@ -182,7 +182,7 @@ export const ReaderView: React.FC = () => {
       );
     }
     return (
-      <div className="min-h-screen flex items-center justify-center p-8 text-center bg-[#FAF5F6] dark:bg-[#121113] text-[#1E1B1D] dark:text-[#FAF5F6]">
+      <div className="min-h-screen flex items-center justify-center p-8 text-center bg-[#FFF7FB] dark:bg-[#2B222C] text-[#1E1B1D] dark:text-[#FAF5F6]">
         <div>
           <p className="font-playfair text-xl">Không tìm thấy chương truyện này</p>
           <button
@@ -258,10 +258,10 @@ export const ReaderView: React.FC = () => {
         };
       case 'light-rose':
       default:
-        // Đổi từ #FCEEF3 sang #FFF3F8 — cùng tông hồng nhạt với khung dropdown
-        // menu tài khoản và khung bình luận, thay vì tông hồng đậm hơn trước đó.
+        // Nền mặc định trang đọc — đồng bộ đúng màu Navbar (#FFF7FB) thay vì
+        // tông hồng nhạt riêng #FFF3F8 trước đó.
         return {
-          wrapper: 'bg-[#FFF3F8] text-[#574D4C]',
+          wrapper: 'bg-[#FFF7FB] text-[#574D4C]',
           card: 'bg-white border-[#F5DFE7] text-[#574D4C]',
           subtext: 'text-[#8F7D85]',
           border: 'border-[#F5DFE7]',
@@ -411,17 +411,26 @@ export const ReaderView: React.FC = () => {
                   </p>
 
                   {/* Compact circular comment button — chỉ chiếm đúng khoảng icon,
-                      số lượng bình luận hiện dạng badge nhỏ ở góc để không mở rộng chiều ngang */}
+                      số lượng bình luận hiện dạng badge nhỏ ở góc để không mở rộng chiều ngang.
+                      Màu khi có bình luận đổi sang ACCENT hồng phẳng đồng bộ site
+                      (thay vì #D985A2 lệch tông trước đó), không đụng cách đếm/tải bình luận. */}
                   <div className="shrink-0 pt-0.5 relative">
                     <button
                       onClick={() => setActiveParagraphCommentIdx(idx)}
                       className={`relative min-h-[26px] min-w-[26px] sm:min-h-[28px] sm:min-w-[28px] rounded-full border transition-all flex items-center justify-center ${
                         paragraphCommentsCount > 0
-                          ? 'border-[#D985A2] bg-[#F7D9E5] dark:bg-[#4A2F3D] opacity-100'
+                          ? 'opacity-100'
                           : hoveredParagraphIdx === idx
                           ? 'border-[#E8B8C5] bg-[#FFF1F5] dark:bg-[#3A2935] opacity-100'
                           : 'border-transparent opacity-30 sm:opacity-0 group-hover:opacity-100 group-hover:border-[#E8B8C5]'
                       }`}
+                      style={
+                        paragraphCommentsCount > 0
+                          ? isDark
+                            ? { borderColor: ACCENT_DARK, background: '#4A2F3D', color: ACCENT_DARK }
+                            : { borderColor: ACCENT, background: '#FCE6F0', color: '#B4587E' }
+                          : undefined
+                      }
                       title={paragraphCommentsCount > 0 ? `${paragraphCommentsCount} bình luận` : 'Bình luận đoạn này'}
                       aria-label="Bình luận đoạn này"
                     >
@@ -429,7 +438,7 @@ export const ReaderView: React.FC = () => {
                       {paragraphCommentsCount > 0 && (
                         <span
                           className="absolute -top-1 -right-1 min-w-[15px] h-[15px] px-[3px] rounded-full text-[9px] font-bold leading-[15px] text-white flex items-center justify-center"
-                          style={{ background: isDark ? ACCENT_DARK : '#D985A2' }}
+                          style={{ background: isDark ? ACCENT_DARK : ACCENT }}
                         >
                           {paragraphCommentsCount}
                         </span>
