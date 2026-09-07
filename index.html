@@ -10,9 +10,95 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400;1,600&family=EB+Garamond:wght@500&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Pinyon+Script&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Vollkorn:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+
+    <style>
+      /* Khung splash tĩnh — chỉ hiện trong khoảnh khắc trình duyệt vừa tải
+         xong HTML, trước khi bundle JS kịp chạy. Không liên quan gì tới
+         React/Firebase, tự ẩn ngay khi #root có nội dung (xem script cuối body). */
+      #initial-splash {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        background: #FCEEF3;
+        transition: opacity 0.25s ease;
+      }
+      #initial-splash.is-hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+      #initial-splash .splash-spinner {
+        width: 38px;
+        height: 38px;
+        border-radius: 9999px;
+        border: 2px solid #E8B8C5;
+        border-top-color: #D985A2;
+        animation: splash-spin 0.8s linear infinite;
+      }
+      #initial-splash .splash-title {
+        margin: 0;
+        font-family: 'Vollkorn', serif;
+        font-size: 1.15rem;
+        font-weight: 500;
+        color: #A45E78;
+        letter-spacing: 0.02em;
+      }
+      #initial-splash .splash-sub {
+        margin: 0;
+        font-family: 'Pinyon Script', cursive;
+        font-size: 1rem;
+        color: #D88AB3;
+      }
+      @keyframes splash-spin {
+        to { transform: rotate(360deg); }
+      }
+    </style>
   </head>
-  <body class="bg-[#FFF1F5] text-[#1E1B1D] antialiased selection:bg-[#F3D7DF] selection:text-[#121113] transition-colors duration-300">
+  <body class="bg-[#FCEEF3] text-[#1E1B1D] antialiased selection:bg-[#F3D7DF] selection:text-[#121113] transition-colors duration-300">
+    <div id="initial-splash">
+      <span class="splash-spinner"></span>
+      <p class="splash-title">Cánh Cụt Mộng Mơ <span style="color:#E9B8C2;">𝜗𝜚</span></p>
+      <p class="splash-sub">Dreamy Penguin</p>
+    </div>
+
     <div id="root"></div>
+
+    <script>
+      // Ẩn khung splash tĩnh ngay khi React bắt đầu render nội dung vào #root.
+      // Chỉ theo dõi DOM của #root để biết lúc nào cần ẩn — không đụng gì tới
+      // logic app, không import/gọi bất kỳ hàm nào của AppContext hay Firebase.
+      (function () {
+        var root = document.getElementById('root');
+        var splash = document.getElementById('initial-splash');
+        if (!root || !splash) return;
+
+        var hideSplash = function () {
+          splash.classList.add('is-hidden');
+          window.setTimeout(function () {
+            if (splash.parentNode) splash.parentNode.removeChild(splash);
+          }, 300);
+        };
+
+        var observer = new MutationObserver(function () {
+          if (root.childNodes.length > 0) {
+            hideSplash();
+            observer.disconnect();
+          }
+        });
+        observer.observe(root, { childList: true });
+
+        // Phòng trường hợp React mount cực nhanh trước khi observer kịp gắn
+        if (root.childNodes.length > 0) {
+          hideSplash();
+          observer.disconnect();
+        }
+      })();
+    </script>
+
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
