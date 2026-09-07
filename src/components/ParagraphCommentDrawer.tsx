@@ -4,6 +4,11 @@ import { auth } from '../lib/firebase';
 import { MessageSquare, Heart, X, Send, Trash2 } from 'lucide-react';
 import { formatRelativeTime } from '../lib/formatTime';
 
+// Bảng màu hồng phẳng đồng bộ với NovelCard / NovelGrid / Leaderboard / GlobalCommunityFeed.
+const ACCENT = '#F0A8C8';
+const ACCENT_DARK = '#EDA3B4';
+const ACCENT_TEXT_DARK = '#2B222C';
+
 interface ParagraphCommentDrawerProps {
   isOpen: boolean;
   onClose: () => void;
@@ -172,8 +177,23 @@ export const ParagraphCommentDrawer: React.FC<ParagraphCommentDrawerProps> = ({
         </div>
 
         {/* New Comment Input Box */}
-          <div className="p-4 border-t border-[#E7C3CE] dark:border-[#594352] bg-[#FFF1F5] dark:bg-[#352936]">
-          <form onSubmit={handleSubmit} className="space-y-2">
+        <div
+          className={`relative p-4 sm:p-5 border-t overflow-visible ${
+            isDark
+              ? 'border-[#594352] bg-gradient-to-b from-[#2B222C] to-[#352936]'
+              : 'border-[#E7C3CE] bg-gradient-to-b from-[#FFF8FB] to-[#FFF1F5]'
+          }`}
+        >
+          {/* Sparkle decoration — cùng ngôn ngữ trang trí với NovelCard/Leaderboard */}
+          <div
+            className={`pointer-events-none select-none absolute top-2 right-4 text-[8px] leading-[1.6] hidden sm:block ${
+              isDark ? 'text-[#7A5869]/60' : 'text-[#F2C7DA]/70'
+            }`}
+          >
+            ✧　⋆
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-2.5">
             {!currentUser && (
               <input
                 type="text"
@@ -182,28 +202,55 @@ export const ParagraphCommentDrawer: React.FC<ParagraphCommentDrawerProps> = ({
                 value={guestName}
                 onChange={(e) => setGuestName(e.target.value)}
                 placeholder="Tên hiển thị của bạn"
-                className={`w-full min-h-[38px] px-2.5 text-xs rounded-lg border focus:outline-none focus:border-[#1E1B1D] dark:focus:border-white ${
-                  isDark ? 'bg-[#1F1C23] border-[#38323D] text-white' : 'bg-[#FAF5F6] border-[#DED0D5] text-[#1E1B1D]'
+                className={`w-full min-h-[38px] px-3.5 text-xs rounded-full border-2 font-medium focus:outline-none transition-colors ${
+                  isDark
+                    ? 'bg-[#1F1C23] border-[#6B5261] text-white placeholder:text-[#8F7D85] focus:border-[#F2B3C1]'
+                    : 'bg-white border-[#F0D9E3] text-[#1E1B1D] placeholder:text-[#B79AA6] focus:border-[#E7B6C5]'
                 }`}
               />
             )}
-            <textarea
-              rows={2}
-              required
-              placeholder={currentUser ? 'Viết cảm nghĩ về đoạn văn này...' : 'Nhập bình luận...'}
-              value={commentInput}
-              onChange={(e) => setCommentInput(e.target.value)}
-              className={`w-full min-h-[38px] p-2.5 text-xs rounded-lg border focus:outline-none focus:border-[#1E1B1D] dark:focus:border-white resize-none ${
-                isDark ? 'bg-[#1F1C23] border-[#38323D] text-white' : 'bg-[#FAF5F6] border-[#DED0D5] text-[#1E1B1D]'
+
+            {/* Khung lồng khung quanh textarea — cùng kiểu khung bìa truyện của NovelCard */}
+            <div
+              className={`relative p-1 rounded-2xl border-2 transition-colors ${
+                isDark
+                  ? 'bg-gradient-to-b from-[#352936] to-[#2B222C] border-[#6B5261] focus-within:border-[#F2B3C1]'
+                  : 'bg-gradient-to-b from-[#FFFAFD] to-white border-[#F0D9E3] focus-within:border-[#E7B6C5]'
               }`}
-            />
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] text-[#8F7D85] dark:text-[#D5CBD0]">
-                {currentUser ? `Đăng bởi ${currentUser.name}` : 'Bình luận ẩn danh · Tên sẽ được ghi nhớ trên thiết bị này'}
+            >
+              <textarea
+                rows={2}
+                required
+                placeholder={currentUser ? 'Viết cảm nghĩ về đoạn văn này...' : 'Nhập bình luận...'}
+                value={commentInput}
+                onChange={(e) => setCommentInput(e.target.value)}
+                className={`w-full min-h-[38px] p-2.5 text-xs font-lora leading-relaxed rounded-xl border-0 resize-none focus:outline-none focus:ring-0 ${
+                  isDark ? 'bg-[#1F1C23] text-white placeholder:text-[#8F7D85]' : 'bg-[#FFFDFE] text-[#1E1B1D] placeholder:text-[#B79AA6]'
+                }`}
+              />
+              <span
+                className={`pointer-events-none select-none absolute -bottom-1 -right-0.5 text-[10px] ${
+                  isDark ? 'text-[#7A5869]' : 'text-[#E9B8C2]'
+                }`}
+              >
+                𝜗𝜚
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between gap-2 pt-0.5">
+              <span className="text-[10px] leading-snug text-[#8F7D85] dark:text-[#D5CBD0]">
+                {currentUser ? (
+                  <>
+                    Đăng bởi <span className="font-semibold text-[#B4587E] dark:text-[#F2B3C1]">{currentUser.name}</span>
+                  </>
+                ) : (
+                  'Bình luận ẩn danh · Tên sẽ được ghi nhớ trên thiết bị này'
+                )}
               </span>
               <button
                 type="submit"
-                className="min-h-[34px] px-3.5 py-1 rounded-full bg-[#D985A2] text-white dark:bg-[#F2B3C1] dark:text-[#2B222C] text-xs uppercase tracking-wider font-semibold hover:opacity-90 transition-opacity flex items-center gap-1.5"
+                className="min-h-[34px] shrink-0 px-4 py-1 rounded-full text-xs uppercase tracking-wider font-semibold flex items-center gap-1.5 hover:opacity-90 transition-opacity"
+                style={{ background: isDark ? ACCENT_DARK : ACCENT, color: isDark ? ACCENT_TEXT_DARK : '#FFFFFF' }}
               >
                 <span>Gửi</span>
                 <Send className="w-3 h-3" />
