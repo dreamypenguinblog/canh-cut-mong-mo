@@ -1,17 +1,15 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
-import { Camera, Upload, X, Shield, Link as LinkIcon, Image as ImageIcon } from 'lucide-react';
+import { X, Shield, Link as LinkIcon, Image as ImageIcon } from 'lucide-react';
 
 export const ProfileModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
   isOpen,
   onClose,
 }) => {
   const { currentUser, updateUserProfile, globalTheme } = useApp();
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const [name, setName] = useState('');
   const [avatar, setAvatar] = useState('');
-  const [avatarMode, setAvatarMode] = useState<'upload' | 'url'>('upload');
   const [customUrl, setCustomUrl] = useState('');
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -30,32 +28,9 @@ export const ProfileModal: React.FC<{ isOpen: boolean; onClose: () => void }> = 
 
   const isDark = globalTheme === 'dark';
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (!file.type.startsWith('image/')) {
-      setErrorMsg('Vui lòng chọn một tệp hình ảnh hợp lệ (PNG, JPG, WEBP).');
-      return;
-    }
-
-    if (file.size > 3 * 1024 * 1024) {
-      setErrorMsg('Dung lượng ảnh không được vượt quá 3MB.');
-      return;
-    }
-
-    setErrorMsg(null);
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      if (typeof event.target?.result === 'string') {
-        setAvatar(event.target.result);
-      }
-    };
-    reader.readAsDataURL(file);
-  };
-
   const handleApplyUrl = () => {
     if (!customUrl.trim()) return;
+    setErrorMsg(null);
     setAvatar(customUrl.trim());
   };
 
@@ -111,27 +86,17 @@ export const ProfileModal: React.FC<{ isOpen: boolean; onClose: () => void }> = 
 
         {/* Live Avatar Preview */}
         <div className="flex flex-col items-center justify-center mb-6">
-          <div className="relative group">
-            <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden border-2 border-[#D985A2] dark:border-[#F2B3C1] bg-[#FCEEF3] dark:bg-[#352936] flex items-center justify-center">
-              {avatar ? (
-                <img
-                  src={avatar}
-                  alt={name}
-                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                  onError={() => setErrorMsg('Không thể tải ảnh từ đường dẫn này, vui lòng thử ảnh khác.')}
-                />
-              ) : (
-                <ImageIcon className="w-10 h-10 text-[#8F7D85]" />
-              )}
-            </div>
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="absolute -bottom-2 -right-2 p-2 rounded-xl bg-[#D985A2] text-white dark:bg-[#F2B3C1] dark:text-[#2B222C] hover:scale-110 transition-transform"
-              title="Tải ảnh mới từ máy"
-            >
-              <Camera className="w-3.5 h-3.5" />
-            </button>
+          <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden border-2 border-[#D985A2] dark:border-[#F2B3C1] bg-[#FCEEF3] dark:bg-[#352936] flex items-center justify-center">
+            {avatar ? (
+              <img
+                src={avatar}
+                alt={name}
+                className="w-full h-full object-cover"
+                onError={() => setErrorMsg('Không thể tải ảnh từ đường dẫn này, vui lòng thử ảnh khác.')}
+              />
+            ) : (
+              <ImageIcon className="w-10 h-10 text-[#8F7D85]" />
+            )}
           </div>
 
           <div className="flex items-center gap-2 mt-3">
@@ -175,97 +140,33 @@ export const ProfileModal: React.FC<{ isOpen: boolean; onClose: () => void }> = 
             />
           </div>
 
-          {/* Avatar Upload / URL Options */}
+          {/* Avatar URL — chỉ còn dán link ảnh, đã bỏ tính năng tải ảnh từ máy để tiết kiệm dung lượng lưu trữ */}
           <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="block text-[#8F7D85] dark:text-[#D5CBD0] font-semibold uppercase">
-                Thay Đổi Ảnh Đại Diện (Avatar)
-              </label>
-              <div className="flex items-center gap-1.5 text-[11px]">
-                <button
-                  type="button"
-                  onClick={() => setAvatarMode('upload')}
-                  className={`px-2.5 py-1 rounded-lg font-medium transition-colors flex items-center gap-1 border ${
-                    avatarMode === 'upload'
-                      ? 'bg-[#D985A2] text-white dark:bg-[#F2B3C1] dark:text-[#2B222C] border-[#D985A2] dark:border-[#F2B3C1]'
-                      : 'border-transparent text-[#8F7D85] hover:text-[#1E1B1D] dark:hover:text-white'
-                  }`}
-                >
-                  <Upload className="w-3 h-3" />
-                  <span>Tải ảnh lên</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setAvatarMode('url')}
-                  className={`px-2.5 py-1 rounded-lg font-medium transition-colors flex items-center gap-1 border ${
-                    avatarMode === 'url'
-                      ? 'bg-[#D985A2] text-white dark:bg-[#F2B3C1] dark:text-[#2B222C] border-[#D985A2] dark:border-[#F2B3C1]'
-                      : 'border-transparent text-[#8F7D85] hover:text-[#1E1B1D] dark:hover:text-white'
-                  }`}
-                >
-                  <LinkIcon className="w-3 h-3" />
-                  <span>Dán link URL</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Mode 1: Upload File from Device */}
-            {avatarMode === 'upload' && (
-              <div
-                onClick={() => fileInputRef.current?.click()}
-                className={`p-6 rounded-xl border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-colors text-center ${
-                  isDark
-                    ? 'border-[#38323D] hover:border-white bg-[#1F1C22]/60'
-                    : 'border-[#DAC8CE] hover:border-[#1E1B1D] bg-[#FAF5F6]/60'
+            <label className="block text-[#8F7D85] dark:text-[#D5CBD0] font-semibold uppercase mb-2 flex items-center gap-1.5">
+              <LinkIcon className="w-3 h-3" />
+              <span>Đường Dẫn Ảnh Đại Diện (URL)</span>
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="url"
+                placeholder="https://example.com/avatar.jpg"
+                value={customUrl}
+                onChange={(e) => setCustomUrl(e.target.value)}
+                className={`flex-1 px-3.5 py-2.5 text-xs rounded-xl border focus:outline-none focus:border-[#1E1B1D] dark:focus:border-white ${
+                  isDark ? 'bg-[#1F1C22] border-[#38323D]' : 'bg-[#FAF5F6] border-[#DED0D5]'
                 }`}
+              />
+              <button
+                type="button"
+                onClick={handleApplyUrl}
+                className="px-4 py-2.5 rounded-xl bg-[#FAF0F3] dark:bg-[#251E28] border border-[#DAC8CE] dark:border-[#38323D] font-semibold text-xs hover:border-[#1E1B1D] dark:hover:border-white transition-colors"
               >
-                <div className="w-10 h-10 rounded-full bg-[#EADCE1]/40 dark:bg-[#2D2633] flex items-center justify-center mb-2.5">
-                  <Upload className="w-5 h-5 text-[#8F7D85] dark:text-[#E0D8DC]" />
-                </div>
-                <p className="font-semibold text-xs text-[#1E1B1D] dark:text-[#FAF5F6]">
-                  Nhấn vào đây để tải ảnh từ máy tính hoặc điện thoại
-                </p>
-                <p className="text-[11px] text-[#8F7D85] mt-1">
-                  Định dạng hỗ trợ: JPG, PNG, GIF, WebP (Dung lượng tối đa 3MB)
-                </p>
-              </div>
-            )}
-
-            {/* Mode 2: Custom URL */}
-            {avatarMode === 'url' && (
-              <div className="space-y-2">
-                <div className="flex gap-2">
-                  <input
-                    type="url"
-                    placeholder="https://example.com/avatar.jpg"
-                    value={customUrl}
-                    onChange={(e) => setCustomUrl(e.target.value)}
-                    className={`flex-1 px-3.5 py-2.5 text-xs rounded-xl border focus:outline-none focus:border-[#1E1B1D] dark:focus:border-white ${
-                      isDark ? 'bg-[#1F1C22] border-[#38323D]' : 'bg-[#FAF5F6] border-[#DED0D5]'
-                    }`}
-                  />
-                  <button
-                    type="button"
-                    onClick={handleApplyUrl}
-                    className="px-4 py-2.5 rounded-xl bg-[#FAF0F3] dark:bg-[#251E28] border border-[#DAC8CE] dark:border-[#38323D] font-semibold text-xs hover:border-[#1E1B1D] dark:hover:border-white transition-colors"
-                  >
-                    Áp dụng
-                  </button>
-                </div>
-                <p className="text-[11px] text-[#8F7D85]">
-                  Dán đường link ảnh trực tiếp từ internet rồi nhấn "Áp dụng".
-                </p>
-              </div>
-            )}
-
-            {/* Hidden File Input */}
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleFileUpload}
-            />
+                Áp dụng
+              </button>
+            </div>
+            <p className="text-[11px] text-[#8F7D85] mt-1.5">
+              Dán đường link ảnh trực tiếp từ internet rồi nhấn "Áp dụng" để xem trước.
+            </p>
           </div>
 
           {/* Email Info (Read-only) */}
