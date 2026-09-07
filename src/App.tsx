@@ -24,7 +24,7 @@ const MainLayout: React.FC = () => {
   // If in Reader view, reader has its own dedicated reading interface
   if (activeView === 'reader') {
     return (
-      <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-[#FCEEF3] dark:bg-[#211B22] text-[#A45E78] dark:text-[#F2B3C1]"><div className="flex flex-col items-center gap-3"><span className="w-10 h-10 rounded-full border-2 border-[#E8B8C5] border-t-[#D985A2] animate-spin" /><span className="font-eb-garamond text-xl">Đang mở trình đọc...</span></div></div>}>
+      <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-[#FFF3F8] dark:bg-[#211B22] text-[#A45E78] dark:text-[#F2B3C1]"><div className="flex flex-col items-center gap-3"><span className="w-10 h-10 rounded-full border-2 border-[#E8B8C5] border-t-[#D985A2] animate-spin" /><span className="font-eb-garamond text-xl">Đang mở trình đọc...</span></div></div>}>
         <div className={isDark ? 'dark' : ''}>
           <ReaderView />
         </div>
@@ -37,7 +37,7 @@ const MainLayout: React.FC = () => {
       className={`min-h-screen flex flex-col transition-colors duration-200 ${
         isDark
           ? 'dark bg-[#121113] text-[#F3EEF0]'
-          : 'bg-[#FCEEF3] text-[#1E1B1D]'
+          : 'bg-[#FFF3F8] text-[#1E1B1D]'
       }`}
     >
       {/* Top Navbar */}

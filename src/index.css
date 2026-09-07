@@ -16,8 +16,8 @@
   html,
   body {
     font-family: var(--font-lora), Georgia, serif;
-    /* Nền hồng baby mát cho toàn web — đồng bộ với Navbar và nền đọc mặc định trong ReaderView */
-    background-color: #FCEEF3;
+    /* Nền hồng nhạt cho toàn web — đồng bộ với khung dropdown menu/bình luận và nền đọc mặc định trong ReaderView */
+    background-color: #FFF3F8;
   }
 
   .dark html,

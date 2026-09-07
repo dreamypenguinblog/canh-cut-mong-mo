@@ -122,7 +122,7 @@ export const Navbar: React.FC<{ onOpenAuth: () => void; onOpenProfile?: () => vo
       className={`sticky top-0 z-40 border-b backdrop-blur-xl transition-all duration-300 ${
         isDark
           ? 'bg-[#2B222C]/95 border-[#6B5261] text-[#FAF5F6]'
-          : 'bg-[#FCEEF3]/95 border-[#F5DFE7] text-[#574D4C]'
+          : 'bg-[#FFF7FB]/95 border-[#F3D9E4] text-[#574D4C]'
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -390,7 +390,7 @@ export const Navbar: React.FC<{ onOpenAuth: () => void; onOpenProfile?: () => vo
                   />
                 </button>
 
-                {/* Popover Dropdown on Laptop — màu/style chỉnh lại đồng bộ ACCENT mới */}
+                {/* Popover Dropdown on Laptop */}
                 {userDropdownOpen && (
                   <div
                     className={`absolute right-0 mt-2 w-64 rounded-2xl border overflow-visible z-50 animate-in fade-in-50 zoom-in-95 duration-150 ${
@@ -538,7 +538,7 @@ export const Navbar: React.FC<{ onOpenAuth: () => void; onOpenProfile?: () => vo
               className={`md:hidden min-h-[38px] min-w-[38px] p-2 rounded-full border ${
                 isDark
                   ? 'border-[#6B5261] text-[#FAF5F6] bg-[#352936]'
-                  : 'border-[#F5DFE7] text-[#8B5D71] bg-white'
+                  : 'border-[#F3D9E4] text-[#8B5D71] bg-white'
               }`}
               aria-label="Mở menu"
             >
@@ -547,11 +547,11 @@ export const Navbar: React.FC<{ onOpenAuth: () => void; onOpenProfile?: () => vo
           </div>
         </div>
 
-        {/* Mobile Navigation Drawer — khung planner pastel, viền hồng, trang trí kiểu WordPress */}
+        {/* Mobile Navigation Drawer */}
         {mobileMenuOpen && (
           <div
             className={`md:hidden relative mb-4 rounded-[24px] border overflow-hidden animate-in slide-in-from-top-2 duration-150 ${
-              isDark ? 'border-[#6B5261] bg-[#2B222C]' : 'border-[#F5DFE7] bg-[#FFFDFD]'
+              isDark ? 'border-[#6B5261] bg-[#2B222C]' : 'border-[#F3D9E4] bg-[#FFFDFD]'
             }`}
           >
             {/* Sparkle decoration góc trên phải khung */}
@@ -568,7 +568,7 @@ export const Navbar: React.FC<{ onOpenAuth: () => void; onOpenProfile?: () => vo
               {/* Mobile Search input */}
               <div
                 className={`flex items-center gap-2 px-3.5 py-2 rounded-full border ${
-                  isDark ? 'border-[#6B5261] bg-[#352936]' : 'border-[#F5DFE7] bg-white'
+                  isDark ? 'border-[#6B5261] bg-[#352936]' : 'border-[#F3D9E4] bg-white'
                 }`}
               >
                 <Search className="w-3.5 h-3.5 text-[#D88AB3]" />
@@ -583,7 +583,7 @@ export const Navbar: React.FC<{ onOpenAuth: () => void; onOpenProfile?: () => vo
               {searchQuery.trim() && searchResults.length > 0 && (
                 <div
                   className={`rounded-2xl border p-2 space-y-1 ${
-                    isDark ? 'border-[#6B5261] bg-[#352936]' : 'border-[#F5DFE7] bg-white'
+                    isDark ? 'border-[#6B5261] bg-[#352936]' : 'border-[#F3D9E4] bg-white'
                   }`}
                 >
                   {searchResults.map((novel) => (
@@ -602,7 +602,7 @@ export const Navbar: React.FC<{ onOpenAuth: () => void; onOpenProfile?: () => vo
                 </div>
               )}
 
-              {/* Dải phân cách trang trí — cùng kiểu 𝜗𝜚 như code WordPress */}
+              {/* Dải phân cách trang trí */}
               <div className="flex items-center justify-center py-1">
                 <div
                   className={`flex-1 h-px ${isDark ? 'bg-gradient-to-r from-transparent to-[#6B5261]' : 'bg-gradient-to-r from-transparent to-[#F3C6DD]'}`}
@@ -677,7 +677,7 @@ export const Navbar: React.FC<{ onOpenAuth: () => void; onOpenProfile?: () => vo
                       ? { background: isDark ? ACCENT_DARK : ACCENT, borderColor: isDark ? ACCENT_DARK : ACCENT, color: isDark ? ACCENT_TEXT_DARK : '#FFFFFF' }
                       : isDark
                       ? { borderColor: '#6B5261', color: '#E8DFE3', background: '#352936' }
-                      : { borderColor: '#F5DFE7', color: '#8B5D71', background: '#FFF6FB' }
+                      : { borderColor: '#F3D9E4', color: '#8B5D71', background: '#FFF6FB' }
                   }
                 >
                   <span>Quản trị tác giả</span>
@@ -694,7 +694,7 @@ export const Navbar: React.FC<{ onOpenAuth: () => void; onOpenProfile?: () => vo
                   style={
                     isDark
                       ? { borderColor: '#6B5261', color: '#E8DFE3', background: '#352936' }
-                      : { borderColor: '#F5DFE7', color: '#8B5D71', background: '#FFF6FB' }
+                      : { borderColor: '#F3D9E4', color: '#8B5D71', background: '#FFF6FB' }
                   }
                 >
                   <span>Chỉnh sửa hồ sơ (Tên & Avatar)</span>
