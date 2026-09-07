@@ -16,13 +16,14 @@
   html,
   body {
     font-family: var(--font-lora), Georgia, serif;
-    /* Nền hồng nhạt cho toàn web — đồng bộ với khung dropdown menu/bình luận và nền đọc mặc định trong ReaderView */
-    background-color: #FFF3F8;
+    /* Nền toàn web — đồng bộ đúng màu Navbar (bg-[#FFF7FB]/95 ở light mode) */
+    background-color: #FFF7FB;
   }
 
   .dark html,
   .dark body {
-    background-color: #211B22;
+    /* Đồng bộ đúng màu Navbar dark mode (bg-[#2B222C]/95) */
+    background-color: #2B222C;
   }
 
   input,
