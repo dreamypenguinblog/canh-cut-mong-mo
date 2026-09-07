@@ -1187,6 +1187,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // remains the real source of truth for whether a view actually counts;
   // this is only an optimization to avoid asking it questions we already
   // know the answer to.
+  //
+  // Alongside the real per-chapter/per-novel view counters, this same
+  // transaction also bumps 4 site-wide counter documents under `siteStats`
+  // (day/month/year/allTime). These are what the SiteViewStats footer
+  // reads — 4 plain getDoc() reads instead of 4 aggregation queries that
+  // scan the whole `viewEvents` collection. The day/month/year documents
+  // are keyed by date, so a new period automatically gets a brand-new
+  // document — nothing needs a reset job. The writes below are blind
+  // increments (merge:true creates the doc at count 1 the first time),
+  // so they cost no extra reads.
   const recordedViewKeysRef = React.useRef<Set<string>>(new Set());
   const recordView = (chapterId: string, attempt = 0) => {
     const firebaseUser = auth.currentUser;
@@ -1203,6 +1213,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const chapterRef = doc(db, 'chapters', chapterId);
     const novelRef = doc(db, 'novels', chapter.novelId);
 
+    const now = new Date();
+    const dayKey = now.toISOString().slice(0, 10); // e.g. 2026-09-08
+    const monthKey = dayKey.slice(0, 7); // e.g. 2026-09
+    const yearKey = dayKey.slice(0, 4); // e.g. 2026
+    const dayRef = doc(db, 'siteStats', `day-${dayKey}`);
+    const monthRef = doc(db, 'siteStats', `month-${monthKey}`);
+    const yearRef = doc(db, 'siteStats', `year-${yearKey}`);
+    const allTimeRef = doc(db, 'siteStats', 'allTime');
+
     runTransaction(db, async (tx) => {
       const eventSnap = await tx.get(eventRef);
       if (eventSnap.exists()) return;
@@ -1216,6 +1235,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       });
       tx.update(chapterRef, { views: increment(1) });
       tx.update(novelRef, { totalViews: increment(1) });
+
+      tx.set(dayRef, { count: increment(1) }, { merge: true });
+      tx.set(monthRef, { count: increment(1) }, { merge: true });
+      tx.set(yearRef, { count: increment(1) }, { merge: true });
+      tx.set(allTimeRef, { count: increment(1) }, { merge: true });
     })
       .then(() => {
         recordedViewKeysRef.current.add(eventId);
@@ -1448,12 +1472,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     bookmarks.some((bm) => bm.chapterId === chapterId && bm.paragraphIndex === paragraphIndex);
 
   // ---------------------------------------------------------------------
-  // Màn hình tải trang (khi Firebase Auth chưa sẵn sàng). Đây là phần GIAO
-  // DIỆN DUY NHẤT được chỉnh — không đụng tới bất kỳ logic auth/Firestore
-  // nào ở trên. Đồng bộ đúng vibe hiện tại của web: nền #FFF7FB/#2B222C
-  // (khớp Navbar), khung "lồng khung" kiểu NovelCard/Leaderboard, font
-  // Vollkorn cho tên thương hiệu, tông ACCENT #F0A8C8/#EDA3B4, sparkle
-  // ✧⋆✿ và dải nơ 𝜗𝜚 — không dùng chấm hồng phẳng như bản cũ.
+  // Màn hình tải trang (khi Firebase Auth chưa sẵn sàng). CHỈ chỉnh phần
+  // GIAO DIỆN — bỏ 2 vòng tròn tải (khung viền tròn + vòng xoay bên trong)
+  // theo yêu cầu, không đụng tới bất kỳ logic auth/Firestore nào ở trên.
+  // Vẫn giữ nguyên nền #FFF7FB/#2B222C, khung "lồng khung" kiểu
+  // NovelCard/Leaderboard, font Vollkorn, tông ACCENT, sparkle ✧⋆✿ và dải
+  // nơ 𝜗𝜚 — chỉ thay phần vòng xoay bằng hiệu ứng mờ-dần nhẹ trên dòng chữ
+  // "Đang tải..." để màn hình vẫn có cảm giác "đang chạy" mà không dùng
+  // vòng tròn.
   if (!authReady) {
     const isDark = globalTheme === 'dark';
     return (
@@ -1475,21 +1501,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             ⋆　✿
           </div>
 
-          {/* Khung trong "lồng khung" bọc vòng loading — cùng ngôn ngữ khung ảnh bìa NovelCard */}
+          {/* Huy hiệu thương hiệu tĩnh — thay cho khung vòng tròn xoay trước đó */}
           <div
-            className={`p-2 rounded-full border ${
+            className={`w-14 h-14 rounded-full flex items-center justify-center text-lg border ${
               isDark
-                ? 'bg-gradient-to-b from-[#352936] to-[#2B222C] border-[#6B5261]'
-                : 'bg-gradient-to-b from-[#FFFAFD] to-white border-[#F5DFE7]'
+                ? 'bg-gradient-to-br from-[#5E4148] to-[#7A5869] text-[#F7D9E5] border-[#6B5261]'
+                : 'bg-gradient-to-br from-[#F5C9DE] to-[#E79FC3] text-white border-[#F5DFE7]'
             }`}
           >
-            <span
-              className="block w-10 h-10 rounded-full border-2 animate-spin"
-              style={{
-                borderColor: isDark ? '#6B5261' : '#F2C7DA',
-                borderTopColor: isDark ? '#EDA3B4' : '#F0A8C8',
-              }}
-            />
+            𐙚
           </div>
 
           <div className="flex flex-col items-center gap-1.5 text-center">
@@ -1515,7 +1535,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               />
             </div>
 
-            <span className={`text-xs uppercase tracking-wider ${isDark ? 'text-[#D5CBD0]' : 'text-[#D88AB3]'}`}>
+            <span className={`text-xs uppercase tracking-wider animate-pulse ${isDark ? 'text-[#D5CBD0]' : 'text-[#D88AB3]'}`}>
               Đang tải...
             </span>
           </div>
