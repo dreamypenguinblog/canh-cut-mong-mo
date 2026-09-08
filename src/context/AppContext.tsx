@@ -115,6 +115,12 @@ interface AppContextType {
 
   novels: Novel[];
   chapters: Chapter[];
+  // Loads the full novels catalog if it isn't already cached. Exposed so
+  // components that need site-wide totals (e.g. the SiteViewStats footer,
+  // which can render on pages that only ever loaded one novel — Reader,
+  // Novel Detail) can guarantee they're summing over every novel, not just
+  // whichever ones happen to already be in memory.
+  ensureNovelsLoaded: () => Promise<void>;
   comments: ParagraphComment[];
   loadCommentsForChapter: (chapterId: string) => Promise<void>;
   // Loads the full chapter list of a novel (title/date/word count for
@@ -196,7 +202,7 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | null>(null);
 
 const DEFAULT_READER_SETTINGS: ReaderSettings = {
-  font: 'lora',
+  font: 'vollkorn',
   fontSize: 18,
   lineHeight: 1.85,
   paragraphSpacing: 1.6,
@@ -1286,15 +1292,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // this is only an optimization to avoid asking it questions we already
   // know the answer to.
   //
-  // Alongside the real per-chapter/per-novel view counters, this same
-  // transaction also bumps 4 site-wide counter documents under `siteStats`
-  // (day/month/year/allTime). These are what the SiteViewStats footer
-  // reads — 4 plain getDoc() reads instead of 4 aggregation queries that
-  // scan the whole `viewEvents` collection. The day/month/year documents
-  // are keyed by date, so a new period automatically gets a brand-new
-  // document — nothing needs a reset job. The writes below are blind
-  // increments (merge:true creates the doc at count 1 the first time),
-  // so they cost no extra reads.
+  // NOTE: this used to also bump 4 site-wide `siteStats` counter documents
+  // (day/month/year/allTime) for the SiteViewStats footer. Those have been
+  // removed — SiteViewStats now instead sums novel.totalViews/totalHearts
+  // straight from the already-loaded `novels` array, which needs no extra
+  // writes here and no extra reads there, and — unlike the siteStats
+  // counters, which start from 0 the moment they're introduced — reflects
+  // the real historical totals that have been accumulating on each novel
+  // document all along.
   const recordedViewKeysRef = React.useRef<Set<string>>(new Set());
   const recordView = (chapterId: string, attempt = 0) => {
     const firebaseUser = auth.currentUser;
@@ -1311,15 +1316,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const chapterRef = doc(db, 'chapters', chapterId);
     const novelRef = doc(db, 'novels', chapter.novelId);
 
-    const now = new Date();
-    const dayKey = now.toISOString().slice(0, 10); // e.g. 2026-09-08
-    const monthKey = dayKey.slice(0, 7); // e.g. 2026-09
-    const yearKey = dayKey.slice(0, 4); // e.g. 2026
-    const dayRef = doc(db, 'siteStats', `day-${dayKey}`);
-    const monthRef = doc(db, 'siteStats', `month-${monthKey}`);
-    const yearRef = doc(db, 'siteStats', `year-${yearKey}`);
-    const allTimeRef = doc(db, 'siteStats', 'allTime');
-
     runTransaction(db, async (tx) => {
       const eventSnap = await tx.get(eventRef);
       if (eventSnap.exists()) return;
@@ -1333,11 +1329,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       });
       tx.update(chapterRef, { views: increment(1) });
       tx.update(novelRef, { totalViews: increment(1) });
-
-      tx.set(dayRef, { count: increment(1) }, { merge: true });
-      tx.set(monthRef, { count: increment(1) }, { merge: true });
-      tx.set(yearRef, { count: increment(1) }, { merge: true });
-      tx.set(allTimeRef, { count: increment(1) }, { merge: true });
     })
       .then(() => {
         recordedViewKeysRef.current.add(eventId);
@@ -1659,6 +1650,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       toggleGlobalTheme,
       novels,
       chapters,
+      ensureNovelsLoaded,
       comments,
       loadCommentsForChapter,
       ensureChaptersForNovel,

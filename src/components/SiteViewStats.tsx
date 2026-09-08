@@ -1,75 +1,44 @@
-import React, { useEffect, useState } from 'react';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import React, { useEffect, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
 
-interface SiteStats {
-  today: number;
-  month: number;
-  year: number;
-  allTime: number;
-}
-
 // Bảng màu hồng phẳng đồng bộ với NovelCard / NovelGrid / Leaderboard / Navbar / Footer.
-// Đọc từ các document đếm sẵn trong `siteStats` (được AppContext.recordView cập nhật
-// mỗi khi có 1 view thật) — 4 getDoc cố định thay vì 4 aggregation query quét cả
-// collection viewEvents, nên chi phí không tăng theo thời gian nữa.
 //
-// Giao diện: gộp lại thành 1 khung gradient duy nhất (thay vì 4 ô rời trước đây),
-// chia 4 cột bằng đường kẻ mảnh — gọn và dịu hơn, dùng đúng ngôn ngữ trang trí
-// (gradient nền, sparkle ✧⋆, dải 𝜗𝜚, font Vollkorn) như NovelCard/Leaderboard.
-
+// Đổi hướng hoàn toàn so với bản trước: KHÔNG còn đọc một collection
+// `siteStats` riêng nữa (day/month/year/allTime). Lý do — những document đó
+// bắt đầu đếm từ 0 kể từ lúc tính năng được thêm vào, nên "Tổng" hiển thị
+// bị lệch hẳn so với lượt xem thật đã tích lũy từ trước (nhìn như bị
+// "reset"). Thay vào đó, 3 số ở đây được cộng thẳng từ field
+// `totalViews` / `totalHearts` đã có sẵn trên từng novel — dữ liệu này
+// chưa từng bị đụng vào, luôn phản ánh đúng số liệu thật, và không tốn
+// thêm bất kỳ lần đọc Firestore nào ngoài việc đảm bảo danh sách novels đã
+// được tải đủ (ensureNovelsLoaded tự cache, gọi lại ở trang đã tải rồi thì
+// không tốn thêm read nào).
 export const SiteViewStats: React.FC = () => {
-  const { globalTheme } = useApp();
+  const { globalTheme, novels, ensureNovelsLoaded } = useApp();
   const isDark = globalTheme === 'dark';
-  const [stats, setStats] = useState<SiteStats>({ today: 0, month: 0, year: 0, allTime: 0 });
 
-  // Loads exactly once per page load/tab open. No timer, no re-fetch on tab
-  // focus — this footer widget is decorative, so it only needs to reflect
-  // whatever the numbers were when the reader opened the site, not stay
-  // continuously live for as long as a tab happens to stay open.
+  // SiteViewStats can render on pages that only ever loaded a single novel
+  // (Reader, Novel Detail) — this guarantees the full catalog is in memory
+  // before summing, regardless of which page the footer happens to be on.
   useEffect(() => {
-    let cancelled = false;
-
-    const load = async () => {
-      try {
-        const now = new Date();
-        const dayKey = now.toISOString().slice(0, 10);
-        const monthKey = dayKey.slice(0, 7);
-        const yearKey = dayKey.slice(0, 4);
-
-        const [daySnap, monthSnap, yearSnap, allTimeSnap] = await Promise.all([
-          getDoc(doc(db, 'siteStats', `day-${dayKey}`)),
-          getDoc(doc(db, 'siteStats', `month-${monthKey}`)),
-          getDoc(doc(db, 'siteStats', `year-${yearKey}`)),
-          getDoc(doc(db, 'siteStats', 'allTime')),
-        ]);
-
-        if (!cancelled) {
-          setStats({
-            today: daySnap.data()?.count || 0,
-            month: monthSnap.data()?.count || 0,
-            year: yearSnap.data()?.count || 0,
-            allTime: allTimeSnap.data()?.count || 0,
-          });
-        }
-      } catch (error) {
-        console.error('Không thể tải thống kê view:', error);
-      }
-    };
-
-    load();
-
-    return () => {
-      cancelled = true;
-    };
+    void ensureNovelsLoaded();
   }, []);
 
+  const stats = useMemo(() => {
+    return novels.reduce(
+      (acc, n) => ({
+        novelCount: acc.novelCount + 1,
+        totalHearts: acc.totalHearts + (n.totalHearts || 0),
+        totalViews: acc.totalViews + (n.totalViews || 0),
+      }),
+      { novelCount: 0, totalHearts: 0, totalViews: 0 }
+    );
+  }, [novels]);
+
   const items = [
-    { label: 'Ngày', value: stats.today },
-    { label: 'Tháng', value: stats.month },
-    { label: 'Năm', value: stats.year },
-    { label: 'Tổng', value: stats.allTime },
+    { label: 'Truyện', value: stats.novelCount },
+    { label: 'Yêu thích', value: stats.totalHearts },
+    { label: 'Lượt xem', value: stats.totalViews },
   ];
 
   return (
@@ -91,7 +60,7 @@ export const SiteViewStats: React.FC = () => {
             ✧　⋆
           </div>
 
-          <div className="grid grid-cols-4 gap-2 sm:gap-3">
+          <div className="grid grid-cols-3 gap-2 sm:gap-3">
             {items.map((item, idx) => (
               <div
                 key={item.label}
