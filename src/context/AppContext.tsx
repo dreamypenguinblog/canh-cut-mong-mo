@@ -42,20 +42,20 @@ import { auth, db, googleProvider } from '../lib/firebase';
 
 export type AppView = 'home' | 'leaderboard' | 'library' | 'community' | 'author_dashboard' | 'reader' | 'novel_detail';
 
-// --- Lightweight hash-based routing -----------------------------------
-// No server rewrite is required for hash URLs, so refreshing the page
-// (or sharing a link) always lands back on the exact same screen instead
-// of resetting to Home. Parsing the URL also tells the initial data-load
-// effect exactly which Firestore documents are actually needed, instead
-// of eagerly loading the entire catalog on every boot.
+// --- Path-based routing (SEO-friendly URLs, no # fragment) -------------
+// Real paths (e.g. /truyen/id) instead of hash fragments (#/truyen/id) so
+// search engines and shared links show clean URLs. This requires the
+// hosting layer to serve index.html for every path (an SPA rewrite) —
+// see the accompanying firebase.json note. Without that server-side
+// rewrite, a hard refresh or a fresh visit to a deep link like
+// /truyen/abc will 404, because there is no physical file at that path.
 type AppRoute =
   | { view: 'home' | 'leaderboard' | 'community' | 'library' | 'author_dashboard' }
   | { view: 'novel_detail'; novelId: string }
   | { view: 'reader'; novelId: string; chapterId?: string };
 
-const parseHash = (hash: string): AppRoute => {
-  const clean = hash.replace(/^#\/?/, '');
-  const parts = clean.split('/').filter(Boolean).map((p) => {
+const parsePath = (pathname: string): AppRoute => {
+  const parts = pathname.split('/').filter(Boolean).map((p) => {
     try {
       return decodeURIComponent(p);
     } catch {
@@ -72,29 +72,33 @@ const parseHash = (hash: string): AppRoute => {
   return { view: 'home' };
 };
 
-const buildHash = (route: AppRoute): string => {
+const buildPath = (route: AppRoute): string => {
   switch (route.view) {
     case 'novel_detail':
-      return `#/truyen/${encodeURIComponent(route.novelId)}`;
+      return `/truyen/${encodeURIComponent(route.novelId)}`;
     case 'reader':
-      return `#/doc/${encodeURIComponent(route.novelId)}${route.chapterId ? `/${encodeURIComponent(route.chapterId)}` : ''}`;
+      return `/doc/${encodeURIComponent(route.novelId)}${route.chapterId ? `/${encodeURIComponent(route.chapterId)}` : ''}`;
     case 'leaderboard':
-      return '#/bang-xep-hang';
+      return '/bang-xep-hang';
     case 'community':
-      return '#/cong-dong';
+      return '/cong-dong';
     case 'library':
-      return '#/tu-sach';
+      return '/tu-sach';
     case 'author_dashboard':
-      return '#/tac-gia';
+      return '/tac-gia';
     default:
-      return '#/';
+      return '/';
   }
 };
 
-const updateHash = (hash: string) => {
+// Pushes a new browsing-history entry so back/forward still works, exactly
+// like assigning window.location.hash used to. Does nothing if the path
+// is already current (avoids piling up duplicate history entries when a
+// screen re-renders without an actual navigation).
+const updatePath = (path: string) => {
   if (typeof window === 'undefined') return;
-  if (window.location.hash !== hash) {
-    window.location.hash = hash;
+  if (window.location.pathname !== path) {
+    window.history.pushState(null, '', path);
   }
 };
 
@@ -120,6 +124,15 @@ interface AppContextType {
   ensureChaptersForNovel: (novelId: string) => Promise<Chapter[]>;
   loadMoreCommentsForChapter: (chapterId: string) => Promise<void>;
   hasMoreCommentsForChapter: (chapterId: string) => boolean;
+  // Loads comments scoped to one exact paragraph — used by
+  // ParagraphCommentDrawer so the comments shown are guaranteed to belong
+  // to the paragraph being viewed, ordered by when they were posted.
+  // Kept separate from loadCommentsForChapter (which caches per whole
+  // chapter, used for admin/whole-chapter contexts) since the two have
+  // different Firestore queries and different cache keys.
+  loadCommentsForParagraph: (chapterId: string, paragraphIndex: number) => Promise<void>;
+  loadMoreCommentsForParagraph: (chapterId: string, paragraphIndex: number) => Promise<void>;
+  hasMoreCommentsForParagraph: (chapterId: string, paragraphIndex: number) => boolean;
   loadAllComments: () => Promise<void>;
   loadMoreAllComments: () => Promise<void>;
   hasMoreAllComments: boolean;
@@ -255,7 +268,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // from the URL hash so a page reload re-opens exactly where the reader
   // left off, instead of always bouncing back to Home.
   const initialRouteRef = React.useRef<AppRoute>(
-    parseHash(typeof window !== 'undefined' ? window.location.hash : '')
+    parsePath(typeof window !== 'undefined' ? window.location.pathname : '')
   );
 
   const [activeView, setActiveViewState] = useState<AppView>(() => initialRouteRef.current.view);
@@ -639,11 +652,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (authoredIds.length > 0) void ensureChaptersForNovels(authoredIds);
   }, [activeView, currentUser, novels]);
 
-  // Keeps the app in sync with browser back/forward and manually-edited
-  // hash URLs.
+  // Keeps the app in sync with browser back/forward navigation. With real
+  // paths + pushState, back/forward fires a 'popstate' event (hash routing
+  // used 'hashchange' for the same purpose).
   useEffect(() => {
-    const handleHashChange = () => {
-      const route = parseHash(window.location.hash);
+    const handlePopState = () => {
+      const route = parsePath(window.location.pathname);
       if (route.view === 'reader') {
         setSelectedNovelId(route.novelId);
         setSelectedChapterId(route.chapterId || null);
@@ -655,8 +669,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setActiveViewState(route.view);
       }
     };
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
   const COMMENT_PAGE_SIZE = 5;
@@ -670,6 +684,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const hasMoreCommentsForChapter = (chapterId: string) => chapterCommentHasMore.current.get(chapterId) ?? false;
 
+  // NOTE: ordering was previously orderBy(documentId(), 'asc') — that sorts
+  // by Firestore's internal auto-generated ID, which has no relationship to
+  // posting time or which paragraph a comment belongs to. For a chapter
+  // with more than COMMENT_PAGE_SIZE comments spread across paragraphs,
+  // this meant "the first 5 comments by random ID" — not "the most recent"
+  // or anything a reader would expect. Fixed to order by createdAt.
+  // Requires a composite index (comments: chapterId ASC, createdAt ASC) —
+  // see firestore.indexes.json.
   const loadCommentsForChapter = async (chapterId: string) => {
     if (!chapterId || loadedCommentChapters.current.has(chapterId) || loadingCommentChapters.current.has(chapterId)) return;
     loadingCommentChapters.current.add(chapterId);
@@ -677,7 +699,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const snap = await getDocs(query(
         collection(db, 'comments'),
         where('chapterId', '==', chapterId),
-        orderBy(documentId(), 'asc'),
+        orderBy('createdAt', 'asc'),
         limit(COMMENT_PAGE_SIZE),
       ));
       const loaded = snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<ParagraphComment, 'id'>) }));
@@ -704,7 +726,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const snap = await getDocs(query(
         collection(db, 'comments'),
         where('chapterId', '==', chapterId),
-        orderBy(documentId(), 'asc'),
+        orderBy('createdAt', 'asc'),
         startAfter(cursor),
         limit(COMMENT_PAGE_SIZE),
       ));
@@ -719,6 +741,82 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       console.error('More chapter comments load:', e);
     } finally {
       loadingCommentChapters.current.delete(chapterId);
+    }
+  };
+
+  // --- Per-paragraph comment loading (ParagraphCommentDrawer) ------------
+  // The drawer shows comments for one exact paragraph. Filtering that from
+  // whatever loadCommentsForChapter happened to fetch is unreliable (that
+  // loader's page may not include this paragraph's comments at all). This
+  // queries chapterId + paragraphIndex directly, ordered by createdAt, with
+  // its own cache/cursor keyed by "chapterId:paragraphIndex" — independent
+  // of the chapter-level loader above. Requires a composite index
+  // (comments: chapterId ASC, paragraphIndex ASC, createdAt ASC) — see
+  // firestore.indexes.json.
+  const PARAGRAPH_COMMENT_PAGE_SIZE = 5;
+  const loadedCommentParagraphs = React.useRef<Set<string>>(new Set());
+  const loadingCommentParagraphs = React.useRef<Set<string>>(new Set());
+  const paragraphCommentCursors = React.useRef<Map<string, any>>(new Map());
+  const paragraphCommentHasMore = React.useRef<Map<string, boolean>>(new Map());
+
+  const paragraphKey = (chapterId: string, paragraphIndex: number) => `${chapterId}:${paragraphIndex}`;
+
+  const hasMoreCommentsForParagraph = (chapterId: string, paragraphIndex: number) =>
+    paragraphCommentHasMore.current.get(paragraphKey(chapterId, paragraphIndex)) ?? false;
+
+  const loadCommentsForParagraph = async (chapterId: string, paragraphIndex: number) => {
+    const key = paragraphKey(chapterId, paragraphIndex);
+    if (!chapterId || loadedCommentParagraphs.current.has(key) || loadingCommentParagraphs.current.has(key)) return;
+    loadingCommentParagraphs.current.add(key);
+    try {
+      const snap = await getDocs(query(
+        collection(db, 'comments'),
+        where('chapterId', '==', chapterId),
+        where('paragraphIndex', '==', paragraphIndex),
+        orderBy('createdAt', 'asc'),
+        limit(PARAGRAPH_COMMENT_PAGE_SIZE),
+      ));
+      const loaded = snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<ParagraphComment, 'id'>) }));
+      setComments(prev => {
+        const ids = new Set(prev.map(c => c.id));
+        return [...prev, ...loaded.filter(c => !ids.has(c.id))];
+      });
+      paragraphCommentCursors.current.set(key, snap.docs.at(-1) || null);
+      paragraphCommentHasMore.current.set(key, snap.size === PARAGRAPH_COMMENT_PAGE_SIZE);
+      loadedCommentParagraphs.current.add(key);
+    } catch (e) {
+      console.error('Paragraph comments load:', e);
+    } finally {
+      loadingCommentParagraphs.current.delete(key);
+    }
+  };
+
+  const loadMoreCommentsForParagraph = async (chapterId: string, paragraphIndex: number) => {
+    const key = paragraphKey(chapterId, paragraphIndex);
+    if (!chapterId || loadingCommentParagraphs.current.has(key) || !hasMoreCommentsForParagraph(chapterId, paragraphIndex)) return;
+    const cursor = paragraphCommentCursors.current.get(key);
+    if (!cursor) return;
+    loadingCommentParagraphs.current.add(key);
+    try {
+      const snap = await getDocs(query(
+        collection(db, 'comments'),
+        where('chapterId', '==', chapterId),
+        where('paragraphIndex', '==', paragraphIndex),
+        orderBy('createdAt', 'asc'),
+        startAfter(cursor),
+        limit(PARAGRAPH_COMMENT_PAGE_SIZE),
+      ));
+      const loaded = snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<ParagraphComment, 'id'>) }));
+      setComments(prev => {
+        const ids = new Set(prev.map(c => c.id));
+        return [...prev, ...loaded.filter(c => !ids.has(c.id))];
+      });
+      paragraphCommentCursors.current.set(key, snap.docs.at(-1) || cursor);
+      paragraphCommentHasMore.current.set(key, snap.size === PARAGRAPH_COMMENT_PAGE_SIZE);
+    } catch (e) {
+      console.error('More paragraph comments load:', e);
+    } finally {
+      loadingCommentParagraphs.current.delete(key);
     }
   };
 
@@ -852,14 +950,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const targetChId = await loadReaderChapter(novelId, chapterId);
 
     setSelectedChapterId(targetChId || null);
-    updateHash(buildHash({ view: 'reader', novelId, chapterId: targetChId || undefined }));
+    updatePath(buildPath({ view: 'reader', novelId, chapterId: targetChId || undefined }));
   };
 
   const openNovelDetail = async (novelId: string) => {
     setSelectedNovelId(novelId);
     setModalNovelId(null);
     setActiveViewState('novel_detail');
-    updateHash(buildHash({ view: 'novel_detail', novelId }));
+    updatePath(buildPath({ view: 'novel_detail', novelId }));
     window.scrollTo({ top: 0, behavior: 'smooth' });
     const novel = await ensureNovelById(novelId);
     if (!hasCompleteChapterIndex(novel)) {
@@ -874,7 +972,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Keeps the URL hash in sync so a reload lands back on the same screen.
   const setActiveView = (view: AppView) => {
     setActiveViewState(view);
-    updateHash(buildHash({ view } as AppRoute));
+    updatePath(buildPath({ view } as AppRoute));
   };
 
   // Deep-linking makes the author dashboard reachable by typing its URL
@@ -1187,6 +1285,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // remains the real source of truth for whether a view actually counts;
   // this is only an optimization to avoid asking it questions we already
   // know the answer to.
+  //
+  // Alongside the real per-chapter/per-novel view counters, this same
+  // transaction also bumps 4 site-wide counter documents under `siteStats`
+  // (day/month/year/allTime). These are what the SiteViewStats footer
+  // reads — 4 plain getDoc() reads instead of 4 aggregation queries that
+  // scan the whole `viewEvents` collection. The day/month/year documents
+  // are keyed by date, so a new period automatically gets a brand-new
+  // document — nothing needs a reset job. The writes below are blind
+  // increments (merge:true creates the doc at count 1 the first time),
+  // so they cost no extra reads.
   const recordedViewKeysRef = React.useRef<Set<string>>(new Set());
   const recordView = (chapterId: string, attempt = 0) => {
     const firebaseUser = auth.currentUser;
@@ -1203,6 +1311,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const chapterRef = doc(db, 'chapters', chapterId);
     const novelRef = doc(db, 'novels', chapter.novelId);
 
+    const now = new Date();
+    const dayKey = now.toISOString().slice(0, 10); // e.g. 2026-09-08
+    const monthKey = dayKey.slice(0, 7); // e.g. 2026-09
+    const yearKey = dayKey.slice(0, 4); // e.g. 2026
+    const dayRef = doc(db, 'siteStats', `day-${dayKey}`);
+    const monthRef = doc(db, 'siteStats', `month-${monthKey}`);
+    const yearRef = doc(db, 'siteStats', `year-${yearKey}`);
+    const allTimeRef = doc(db, 'siteStats', 'allTime');
+
     runTransaction(db, async (tx) => {
       const eventSnap = await tx.get(eventRef);
       if (eventSnap.exists()) return;
@@ -1216,6 +1333,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       });
       tx.update(chapterRef, { views: increment(1) });
       tx.update(novelRef, { totalViews: increment(1) });
+
+      tx.set(dayRef, { count: increment(1) }, { merge: true });
+      tx.set(monthRef, { count: increment(1) }, { merge: true });
+      tx.set(yearRef, { count: increment(1) }, { merge: true });
+      tx.set(allTimeRef, { count: increment(1) }, { merge: true });
     })
       .then(() => {
         recordedViewKeysRef.current.add(eventId);
@@ -1448,12 +1570,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     bookmarks.some((bm) => bm.chapterId === chapterId && bm.paragraphIndex === paragraphIndex);
 
   // ---------------------------------------------------------------------
-  // Màn hình tải trang (khi Firebase Auth chưa sẵn sàng). Đây là phần GIAO
-  // DIỆN DUY NHẤT được chỉnh — không đụng tới bất kỳ logic auth/Firestore
-  // nào ở trên. Đồng bộ đúng vibe hiện tại của web: nền #FFF7FB/#2B222C
-  // (khớp Navbar), khung "lồng khung" kiểu NovelCard/Leaderboard, font
-  // Vollkorn cho tên thương hiệu, tông ACCENT #F0A8C8/#EDA3B4, sparkle
-  // ✧⋆✿ và dải nơ 𝜗𝜚 — không dùng chấm hồng phẳng như bản cũ.
+  // Màn hình tải trang (khi Firebase Auth chưa sẵn sàng). CHỈ chỉnh phần
+  // GIAO DIỆN — bỏ 2 vòng tròn tải (khung viền tròn + vòng xoay bên trong)
+  // theo yêu cầu, không đụng tới bất kỳ logic auth/Firestore nào ở trên.
+  // Vẫn giữ nguyên nền #FFF7FB/#2B222C, khung "lồng khung" kiểu
+  // NovelCard/Leaderboard, font Vollkorn, tông ACCENT, sparkle ✧⋆✿ và dải
+  // nơ 𝜗𝜚 — chỉ thay phần vòng xoay bằng hiệu ứng mờ-dần nhẹ trên dòng chữ
+  // "Đang tải..." để màn hình vẫn có cảm giác "đang chạy" mà không dùng
+  // vòng tròn.
   if (!authReady) {
     const isDark = globalTheme === 'dark';
     return (
@@ -1475,21 +1599,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             ⋆　✿
           </div>
 
-          {/* Khung trong "lồng khung" bọc vòng loading — cùng ngôn ngữ khung ảnh bìa NovelCard */}
+          {/* Huy hiệu thương hiệu tĩnh — thay cho khung vòng tròn xoay trước đó */}
           <div
-            className={`p-2 rounded-full border ${
+            className={`w-14 h-14 rounded-full flex items-center justify-center text-lg border ${
               isDark
-                ? 'bg-gradient-to-b from-[#352936] to-[#2B222C] border-[#6B5261]'
-                : 'bg-gradient-to-b from-[#FFFAFD] to-white border-[#F5DFE7]'
+                ? 'bg-gradient-to-br from-[#5E4148] to-[#7A5869] text-[#F7D9E5] border-[#6B5261]'
+                : 'bg-gradient-to-br from-[#F5C9DE] to-[#E79FC3] text-white border-[#F5DFE7]'
             }`}
           >
-            <span
-              className="block w-10 h-10 rounded-full border-2 animate-spin"
-              style={{
-                borderColor: isDark ? '#6B5261' : '#F2C7DA',
-                borderTopColor: isDark ? '#EDA3B4' : '#F0A8C8',
-              }}
-            />
+            𐙚
           </div>
 
           <div className="flex flex-col items-center gap-1.5 text-center">
@@ -1515,7 +1633,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
               />
             </div>
 
-            <span className={`text-xs uppercase tracking-wider ${isDark ? 'text-[#D5CBD0]' : 'text-[#D88AB3]'}`}>
+            <span className={`text-xs uppercase tracking-wider animate-pulse ${isDark ? 'text-[#D5CBD0]' : 'text-[#D88AB3]'}`}>
               Đang tải...
             </span>
           </div>
@@ -1546,6 +1664,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       ensureChaptersForNovel,
       loadMoreCommentsForChapter,
       hasMoreCommentsForChapter,
+      loadCommentsForParagraph,
+      loadMoreCommentsForParagraph,
+      hasMoreCommentsForParagraph,
       loadAllComments,
       loadMoreAllComments,
       hasMoreAllComments: allCommentsHasMore,

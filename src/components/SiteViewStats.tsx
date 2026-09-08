@@ -91,21 +91,6 @@ export const SiteViewStats: React.FC = () => {
             ✧　⋆
           </div>
 
-          {/* Dải phân cách nhỏ phía trên các ô số liệu — ký hiệu 𝜗𝜚 như divider NovelCard */}
-          <div className="flex items-center justify-center gap-1.5 mb-3">
-            <div
-              className={`w-8 h-px ${
-                isDark ? 'bg-gradient-to-r from-transparent to-[#6B5261]' : 'bg-gradient-to-r from-transparent to-[#F3C6DD]'
-              }`}
-            />
-            <span className={`text-[9px] ${isDark ? 'text-[#7A5869]' : 'text-[#E9B8C2]'}`}>𝜗𝜚</span>
-            <div
-              className={`w-8 h-px ${
-                isDark ? 'bg-gradient-to-l from-transparent to-[#6B5261]' : 'bg-gradient-to-l from-transparent to-[#F3C6DD]'
-              }`}
-            />
-          </div>
-
           <div className="grid grid-cols-4 gap-2 sm:gap-3">
             {items.map((item, idx) => (
               <div

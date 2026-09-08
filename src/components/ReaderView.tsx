@@ -14,14 +14,26 @@ import {
 } from 'lucide-react';
 
 // Bảng màu hồng phẳng đồng bộ với NovelCard / NovelGrid / Leaderboard / Navbar / HomeHero.
-// Dùng riêng cho khung "Danh Sách Chương" (mục lục) để đồng bộ toàn site.
-// LƯU Ý: toàn bộ giao diện trang đọc (header, thanh bar cấu hình, khung danh
-// sách chương, icon bình luận đoạn, đoạn được đánh dấu, nút chuyển chương)
-// KHÔNG còn phụ thuộc vào darkmode toàn site (globalTheme) — luôn hiển thị
-// cố định theo đúng yêu cầu "mục darkmode phải tách biệt với chương truyện".
-// Riêng khu vực nội dung đoạn văn (màu nền/chữ đọc) vẫn do readerSettings.theme
-// (Cài đặt đọc truyện) quyết định như trước, không bị ảnh hưởng bởi thay đổi này.
+// Dùng riêng cho khung "Danh Sách Chương" (mục lục) và thanh cấu hình để đồng bộ
+// toàn site. LƯU Ý: toàn bộ giao diện trang đọc (header, thanh bar cấu hình, khung
+// danh sách chương, icon bình luận đoạn, đoạn được đánh dấu, nút chuyển chương)
+// KHÔNG còn phụ thuộc vào darkmode toàn site (globalTheme) — luôn hiển thị cố định
+// theo đúng yêu cầu "mục darkmode phải tách biệt với chương truyện". Riêng khu vực
+// nội dung đoạn văn (màu nền/chữ đọc) vẫn do readerSettings.theme (Cài đặt đọc
+// truyện) quyết định như trước, không bị ảnh hưởng bởi thay đổi này.
+//
+// Đợt chỉnh này: đồng bộ lại toàn bộ token màu của thanh bar cấu hình + nút chuyển
+// chương về đúng bộ màu chuẩn đang dùng ở NovelCard/NovelDetailView/Leaderboard
+// (viền #F0C7DE/#F5DFE7, chữ #B4587E/#A45E78, nền hover #FFEEF6/#FFF6FB) thay vì
+// các mã màu #E8B8C5/#E7C3CE/#F3D9E4 lệch tông trước đó — thuần giao diện, không
+// đổi bất kỳ hành vi/đường dữ liệu nào.
 const ACCENT = '#F0A8C8';
+const BORDER = '#F0C7DE';
+const BORDER_SOFT = '#F5DFE7';
+const TEXT_ACCENT = '#B4587E';
+const TEXT_ACCENT_DARK = '#A45E78';
+const HOVER_BG = '#FFEEF6';
+const PILL_BG = '#FFF6FB';
 
 export const ReaderView: React.FC = () => {
   const {
@@ -37,7 +49,6 @@ export const ReaderView: React.FC = () => {
     recordView,
     toggleLikeChapter,
     currentUser,
-    comments,
     recordReadingProgress,
     initializing,
     ensureChaptersForNovel,
@@ -272,7 +283,8 @@ export const ReaderView: React.FC = () => {
         };
       case 'light-rose':
       default:
-        // Nền mặc định trang đọc — đồng bộ đúng màu Navbar (#FFF7FB).
+        // Nền mặc định trang đọc — đồng bộ đúng màu nền mặc định của toàn site
+        // (#FFF7FB, giống Navbar/màn hình tải/trang chủ).
         return {
           wrapper: 'bg-[#FFF7FB] text-[#574D4C]',
           card: 'bg-white border-[#F5DFE7] text-[#574D4C]',
@@ -307,12 +319,21 @@ export const ReaderView: React.FC = () => {
 
   return (
     <div className={`min-h-screen transition-colors duration-200 pb-12 ${themeStyles.wrapper}`}>
-      {/* Sticky Reader Navigation Header — thanh bar cấu hình, cố định, không đổi theo darkmode */}
-      <div className="sticky top-0 z-30 border-b-2 backdrop-blur-md px-3 sm:px-8 py-2.5 flex items-center justify-between transition-colors bg-[#FFF7FB]/95 border-[#F3D9E4]">
+      {/* Sticky Reader Navigation Header — thanh bar cấu hình, cố định, không đổi theo
+          darkmode toàn site. Đồng bộ đúng bộ màu chuẩn của web (nền gradient hồng nhạt,
+          viền #F5DFE7, chữ/nút theo tông #B4587E-#A45E78) thay vì các mã màu lệch tông
+          trước đó. */}
+      <div
+        className="sticky top-0 z-30 border-b backdrop-blur-md px-3 sm:px-8 py-2.5 flex items-center justify-between transition-colors"
+        style={{ background: 'linear-gradient(to bottom, rgba(255,247,251,0.97), rgba(255,241,246,0.95))', borderColor: BORDER_SOFT }}
+      >
         <div className="flex items-center gap-2 sm:gap-3">
           <button
             onClick={() => setActiveView('home')}
-            className="min-h-[36px] px-3 py-1 rounded-full border border-[#E8B8C5] text-[#A45E78] hover:bg-[#FCEEF3] transition-colors flex items-center gap-1.5 text-xs font-medium"
+            className="min-h-[36px] px-3 py-1 rounded-full border transition-colors flex items-center gap-1.5 text-xs font-medium"
+            style={{ borderColor: BORDER, background: PILL_BG, color: TEXT_ACCENT }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = HOVER_BG)}
+            onMouseLeave={(e) => (e.currentTarget.style.background = PILL_BG)}
             title="Về trang chủ"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
@@ -321,8 +342,8 @@ export const ReaderView: React.FC = () => {
 
           <div className="hidden md:block">
             <h2
-              style={{ fontFamily: "'Vollkorn', serif" }}
-              className="not-italic text-lg font-medium truncate max-w-[280px] text-[#A45E78]"
+              style={{ fontFamily: "'Vollkorn', serif", color: TEXT_ACCENT_DARK }}
+              className="not-italic text-lg font-medium truncate max-w-[280px]"
             >
               {novel.title}
             </h2>
@@ -335,17 +356,23 @@ export const ReaderView: React.FC = () => {
           {/* Chapter drawer trigger */}
           <button
             onClick={() => setShowChapterDrawer(true)}
-            className="min-h-[36px] px-3 py-1 rounded-full text-xs border border-[#E8B8C5] text-[#A45E78] hover:bg-[#FCEEF3] flex items-center gap-1.5 font-medium"
+            className="min-h-[36px] px-3 py-1 rounded-full text-xs border flex items-center gap-1.5 font-medium transition-colors"
+            style={{ borderColor: BORDER, background: PILL_BG, color: TEXT_ACCENT }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = HOVER_BG)}
+            onMouseLeave={(e) => (e.currentTarget.style.background = PILL_BG)}
           >
             <List className="w-3.5 h-3.5" />
             <span>Chương {chapter.chapterNumber}</span>
           </button>
 
-          {/* Reader Appearance Settings Modal */}
+          {/* Reader Appearance Settings Modal trigger */}
           <button
             id="reader-settings-btn"
             onClick={() => setShowSettings(true)}
-            className="min-h-[36px] px-3 py-1 rounded-full text-xs border border-[#E8B8C5] text-[#A45E78] hover:bg-[#FCEEF3] flex items-center gap-1.5 font-medium"
+            className="min-h-[36px] px-3 py-1 rounded-full text-xs border flex items-center gap-1.5 font-medium transition-colors"
+            style={{ borderColor: BORDER, background: PILL_BG, color: TEXT_ACCENT }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = HOVER_BG)}
+            onMouseLeave={(e) => (e.currentTarget.style.background = PILL_BG)}
           >
             <SlidersHorizontal className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Cài đặt</span>
@@ -356,8 +383,8 @@ export const ReaderView: React.FC = () => {
       {/* Main Chapter Content Container */}
       <main ref={containerRef} className={`mx-auto px-4 sm:px-6 py-8 sm:py-12 ${getMaxWidthClass()}`}>
         {/* Chapter Title & Header */}
-        <header className="text-center space-y-2.5 pb-6 border-b mb-8 border-[#E7C3CE]">
-          <p className="text-xs uppercase tracking-[0.2em] text-[#B5798D]">
+        <header className="text-center space-y-2.5 pb-6 border-b mb-8" style={{ borderColor: BORDER_SOFT }}>
+          <p className="text-xs uppercase tracking-[0.2em]" style={{ color: '#B5798D' }}>
             {novel.title}
           </p>
           <h1
@@ -388,9 +415,13 @@ export const ReaderView: React.FC = () => {
         {/* Paragraphs with Comment Button in Right Center */}
         <article className="space-y-4 sm:space-y-6">
           {chapter.content.map((paragraph, idx) => {
-            const paragraphCommentsCount = comments.filter(
-              (c) => c.novelId === novel.id && c.chapterId === chapter.id && c.paragraphIndex === idx
-            ).length;
+            // Reads the authoritative per-paragraph tally already kept on
+            // the chapter document (incremented/decremented right alongside
+            // every addParagraphComment/deleteComment) instead of filtering
+            // whatever comments happen to be loaded in memory. This is both
+            // more accurate (counts every comment, not just a loaded page)
+            // and cheaper (no comment fetch needed just to show a number).
+            const paragraphCommentsCount = chapter.commentsByParagraph?.[idx] || 0;
             const isTargeted = targetParagraphIndex === idx;
 
             return (
@@ -432,12 +463,14 @@ export const ReaderView: React.FC = () => {
                         paragraphCommentsCount > 0
                           ? 'opacity-100'
                           : hoveredParagraphIdx === idx
-                          ? 'border-[#E8B8C5] bg-[#FFF1F5] opacity-100'
-                          : 'border-transparent opacity-30 sm:opacity-0 group-hover:opacity-100 group-hover:border-[#E8B8C5]'
+                          ? 'opacity-100'
+                          : 'border-transparent opacity-30 sm:opacity-0 group-hover:opacity-100'
                       }`}
                       style={
                         paragraphCommentsCount > 0
                           ? { borderColor: ACCENT, background: '#FCE9F2', color: '#A45E78' }
+                          : hoveredParagraphIdx === idx
+                          ? { borderColor: BORDER, background: PILL_BG, color: TEXT_ACCENT }
                           : undefined
                       }
                       title={paragraphCommentsCount > 0 ? `${paragraphCommentsCount} bình luận` : 'Bình luận đoạn này'}
@@ -461,19 +494,20 @@ export const ReaderView: React.FC = () => {
         </article>
 
         {/* Chapter Completion & Interaction Footer */}
-        <footer className="mt-12 pt-8 border-t border-current opacity-90 space-y-6">
+        <footer className="mt-12 pt-8 border-t opacity-90 space-y-6" style={{ borderColor: BORDER_SOFT }}>
           {/* Interactive Heart / Like Section */}
           <div className="text-center space-y-2">
             <button
               onClick={handleLike}
-              className={`min-h-[40px] relative px-5 py-2 rounded-lg border text-xs uppercase tracking-wider transition-all duration-200 ${
+              className="min-h-[40px] relative px-5 py-2 rounded-full border text-xs uppercase tracking-wider transition-all duration-200"
+              style={
                 isLiked
-                  ? 'bg-[#D985A2] text-white border-[#D985A2]'
-                  : 'bg-[#FFF9FB] border-[#E8B8C5] text-[#A45E78] hover:bg-[#FFF1F5]'
-              }`}
+                  ? { background: ACCENT, color: '#FFFFFF', borderColor: ACCENT }
+                  : { background: PILL_BG, borderColor: BORDER, color: TEXT_ACCENT }
+              }
             >
               <span className="flex items-center justify-center gap-2">
-                <Heart className={`w-4 h-4 text-[#E0A8B6] ${isLiked ? 'fill-current' : ''}`} />
+                <Heart className={`w-4 h-4 ${isLiked ? 'fill-current text-white' : 'text-[#E0A8B6]'}`} />
                 <span>{isLiked ? 'Đã thích chương' : 'Thả tim chương này'}</span>
                 <span className="font-bold">({chapter.hearts.toLocaleString('vi-VN')})</span>
               </span>
@@ -494,7 +528,8 @@ export const ReaderView: React.FC = () => {
             {prevChapter ? (
               <button
                 onClick={() => openReader(novel.id, prevChapter.id)}
-                className="min-h-[46px] p-3.5 rounded-lg border text-left transition-all hover:opacity-80 bg-[#FFF9FB] border-[#E8B8C5]"
+                className="min-h-[46px] p-3.5 rounded-2xl border text-left transition-all hover:opacity-80"
+                style={{ background: PILL_BG, borderColor: BORDER }}
               >
                 <span className="text-[10px] uppercase font-semibold block text-[#B79AA6]">
                   ← Chương trước
@@ -507,7 +542,7 @@ export const ReaderView: React.FC = () => {
                 </span>
               </button>
             ) : (
-              <div className={`p-3.5 rounded-lg border opacity-40 text-left ${themeStyles.card}`}>
+              <div className={`p-3.5 rounded-2xl border opacity-40 text-left ${themeStyles.card}`}>
                 <span className="text-xs">Đây là chương đầu tiên</span>
               </div>
             )}
@@ -515,7 +550,8 @@ export const ReaderView: React.FC = () => {
             {nextChapter ? (
               <button
                 onClick={() => openReader(novel.id, nextChapter.id)}
-                className="min-h-[46px] p-3.5 rounded-lg border text-right transition-all hover:opacity-80 bg-[#FFF9FB] border-[#E8B8C5]"
+                className="min-h-[46px] p-3.5 rounded-2xl border text-right transition-all hover:opacity-80"
+                style={{ background: PILL_BG, borderColor: BORDER }}
               >
                 <span className="text-[10px] uppercase font-semibold block text-[#B79AA6]">
                   Chương tiếp theo →
@@ -528,7 +564,7 @@ export const ReaderView: React.FC = () => {
                 </span>
               </button>
             ) : (
-              <div className={`p-3.5 rounded-lg border opacity-40 text-right ${themeStyles.card}`}>
+              <div className={`p-3.5 rounded-2xl border opacity-40 text-right ${themeStyles.card}`}>
                 <span className="text-xs">Đã đọc hết các chương hiện có</span>
               </div>
             )}
@@ -536,7 +572,8 @@ export const ReaderView: React.FC = () => {
         </footer>
       </main>
 
-      {/* Chapter Drawer Modal — "Danh Sách Chương" — cố định, không đổi theo darkmode toàn site */}
+      {/* Chapter Drawer Modal — "Danh Sách Chương" — cố định, không đổi theo darkmode
+          toàn site. Đây là khung mẫu mà thanh cấu hình phía trên giờ đồng bộ theo. */}
       {showChapterDrawer && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#F0A8C8]/20 backdrop-blur-sm animate-in fade-in duration-150">
           <div className="w-full max-w-lg max-h-[80vh] flex flex-col rounded-[26px] border p-5 bg-white border-[#F5DFE7] text-[#574D4C]">
