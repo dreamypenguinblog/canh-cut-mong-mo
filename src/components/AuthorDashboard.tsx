@@ -345,64 +345,48 @@ export const AuthorDashboard: React.FC = () => {
       {/* Profile Modal */}
       <ProfileModal isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
 
-      {/* Dashboard Top Header — khung gradient + sparkle đồng bộ Hero Card của NovelDetailView */}
-      <div
-        className={`relative overflow-visible text-center max-w-2xl mx-auto space-y-2 rounded-[28px] border p-6 sm:p-7 transition-colors ${
-          isDark
-            ? 'bg-gradient-to-b from-[#2B222C] via-[#241D26] to-[#2B222C] border-[#6B5261]'
-            : 'bg-gradient-to-b from-white via-[#FFF8FB] to-white border-[#F5DFE7]'
-        }`}
-      >
-        <div
-          className={`pointer-events-none select-none absolute top-4 right-5 text-[11px] leading-[1.7] hidden sm:block ${
-            isDark ? 'text-[#7A5869]/60' : 'text-[#F2C7DA]/70'
-          }`}
-        >
-          ✧　⋆<br />
-          ⋆　✿
-        </div>
-
-        <div className="flex items-center justify-center gap-2 text-[10px] uppercase tracking-[0.2em] font-semibold text-[#B5798D] dark:text-[#E8B8C5]">
-          <span className={`text-[9px] ${isDark ? 'text-[#7A5869]' : 'text-[#E9B8C2]'}`}>𝜗𝜚</span>
-          <span>Góc tác giả</span>
-          <span className={`text-[9px] ${isDark ? 'text-[#7A5869]' : 'text-[#E9B8C2]'}`}>𝜗𝜚</span>
-        </div>
+      {/* Header — bỏ khung "Góc tác giả" (eyebrow + card gradient + sparkle) trước
+          đây, đổi thành đúng cùng kiểu tiêu đề đơn giản đang dùng ở mọi trang khác
+          (GlobalCommunityFeed, Leaderboard, PersonalLibrary): tiêu đề căn giữa,
+          font Vollkorn, cỡ chữ/màu chữ giống hệt (#8B5D71 / dark:#F7E4EC), không
+          card bọc ngoài, không nhãn phụ. Khối thông tin tác giả + nút hành động
+          giữ nguyên, chỉ chuyển ra khỏi card cho nhẹ và đồng bộ. */}
+      <div className="text-center max-w-2xl mx-auto space-y-3">
         <h1
           style={{ fontFamily: "'Vollkorn', serif" }}
-          className="not-italic text-3xl sm:text-4xl font-semibold text-[#6B4A57] dark:text-white"
+          className="not-italic text-2xl sm:text-3xl font-medium text-[#8B5D71] dark:text-[#F7E4EC]"
         >
           Quản Lý & Đăng Truyện
         </h1>
 
-        {/* Author info & Quick action buttons */}
-        <div className="flex flex-wrap items-center justify-center gap-2.5 pt-2">
-          {currentUser && (
+        {currentUser && (
+          <div className="flex items-center justify-center pt-1">
             <button
               type="button"
               onClick={() => setIsProfileOpen(true)}
-              className={`flex items-center gap-2 p-1.5 pr-3 rounded-full border transition-colors text-left ${
-                isDark
-                  ? 'border-[#6B5261] bg-[#352936] hover:border-[#D79BAD]'
-                  : 'border-[#F5DFE7] bg-white hover:border-[#E7B6C5]'
+              className={`flex items-center gap-3 p-2.5 rounded-2xl border transition-colors text-left ${
+                isDark ? 'border-[#6B5261] bg-[#2B222C] hover:border-[#D79BAD]' : 'border-[#F5DFE7] bg-white hover:border-[#E7B6C5]'
               }`}
               title="Nhấn để đổi tên và avatar tác giả"
             >
               <img
                 src={currentUser.avatar}
                 alt={currentUser.name}
-                className="w-7 h-7 rounded-full object-cover"
+                className="w-9 h-9 rounded-full object-cover border border-[#F5DFE7] dark:border-[#6B5261]"
               />
-              <div className="text-left">
-                <span className="text-[11px] font-bold block leading-tight truncate max-w-[100px] text-[#6B4A57] dark:text-white">
+              <div className="text-left pr-2">
+                <span className="text-xs font-bold block leading-tight text-[#6B4A57] dark:text-[#FAF5F6]">
                   {currentUser.name}
                 </span>
-                <span className="text-[9px] text-[#B79AA6] dark:text-[#D5CBD0] block">
+                <span className="text-[10px] text-[#B79AA6] dark:text-[#D5CBD0] block">
                   Sửa hồ sơ
                 </span>
               </div>
             </button>
-          )}
+          </div>
+        )}
 
+        <div className="flex flex-wrap items-center justify-center gap-2.5 pt-1">
           <button
             onClick={handleOpenNovelCreate}
             className="min-h-[38px] px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-opacity hover:opacity-90"
@@ -443,15 +427,18 @@ export const AuthorDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* Tabs — dạng pill phẳng, nút đang chọn dùng ACCENT */}
+      {/* Tabs — đổi từ dạng pill cuộn ngang (overflow-x-auto) sang lưới 3 cột
+          chia đều chiều rộng. Trước đây trên mobile phải vuốt/cuộn ngang mới
+          bấm được tới tab "Sửa chương" vì các pill dài hơn khung màn hình; giờ
+          cả 3 tab luôn hiện đủ, không cần cuộn, ở mọi kích thước màn hình. */}
       <div
-        className={`flex items-center gap-1.5 p-1.5 rounded-full overflow-x-auto no-scrollbar border ${
+        className={`grid grid-cols-3 gap-1.5 p-1.5 rounded-full border ${
           isDark ? 'border-[#6B5261] bg-[#2B222C]' : 'border-[#F5D2E0] bg-[#FFF5FA]'
         }`}
       >
         <button
           onClick={() => setActiveTab('analytics')}
-          className="min-h-[36px] px-3.5 py-1.5 rounded-full text-xs font-medium uppercase tracking-wider transition-all whitespace-nowrap"
+          className="min-h-[36px] px-2 py-1.5 rounded-full text-[10.5px] sm:text-xs font-medium uppercase tracking-wide sm:tracking-wider transition-all text-center truncate"
           style={
             activeTab === 'analytics'
               ? { background: isDark ? ACCENT_DARK : ACCENT, color: isDark ? ACCENT_TEXT_DARK : '#FFFFFF' }
@@ -460,12 +447,12 @@ export const AuthorDashboard: React.FC = () => {
               : { color: '#B4587E' }
           }
         >
-          <span>Thống kê chi tiết</span>
+          <span>Thống kê</span>
         </button>
 
         <button
           onClick={() => setActiveTab('novels')}
-          className="min-h-[36px] px-3.5 py-1.5 rounded-full text-xs font-medium uppercase tracking-wider transition-all whitespace-nowrap"
+          className="min-h-[36px] px-2 py-1.5 rounded-full text-[10.5px] sm:text-xs font-medium uppercase tracking-wide sm:tracking-wider transition-all text-center truncate"
           style={
             activeTab === 'novels'
               ? { background: isDark ? ACCENT_DARK : ACCENT, color: isDark ? ACCENT_TEXT_DARK : '#FFFFFF' }
@@ -474,12 +461,12 @@ export const AuthorDashboard: React.FC = () => {
               : { color: '#B4587E' }
           }
         >
-          <span>Quản lý truyện ({authoredNovels.length})</span>
+          <span>Truyện ({authoredNovels.length})</span>
         </button>
 
         <button
           onClick={() => setActiveTab('chapter_editor')}
-          className="min-h-[36px] px-3.5 py-1.5 rounded-full text-xs font-medium uppercase tracking-wider transition-all whitespace-nowrap"
+          className="min-h-[36px] px-2 py-1.5 rounded-full text-[10.5px] sm:text-xs font-medium uppercase tracking-wide sm:tracking-wider transition-all text-center truncate"
           style={
             activeTab === 'chapter_editor'
               ? { background: isDark ? ACCENT_DARK : ACCENT, color: isDark ? ACCENT_TEXT_DARK : '#FFFFFF' }
