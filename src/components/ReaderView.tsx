@@ -409,6 +409,11 @@ export const ReaderView: React.FC = () => {
               <Heart className="w-3.5 h-3.5" />
               <span>{chapter.hearts.toLocaleString('vi-VN')}</span>
             </span>
+            <span>•</span>
+            <span className="flex items-center gap-1" style={{ color: TEXT_ACCENT }}>
+              <MessageSquare className="w-3.5 h-3.5" />
+              <span>{(chapter.commentsCount || 0).toLocaleString('vi-VN')}</span>
+            </span>
           </div>
         </header>
 
