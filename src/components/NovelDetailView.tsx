@@ -7,6 +7,21 @@ const ACCENT = '#F0A8C8';
 const ACCENT_DARK = '#EDA3B4';
 const ACCENT_TEXT_DARK = '#2B222C';
 
+// Một chương được coi là "Mới" trong đúng 7 ngày kể từ releaseDate (chuỗi
+// ngày dạng "YYYY-MM-DD" đã có sẵn trên mỗi chương, do createChapter ghi
+// lúc đăng). Đây thuần là so sánh ngày trên dữ liệu đã tải sẵn trong bộ
+// nhớ — không có Firestore read/write nào phát sinh thêm, và tag tự động
+// biến mất sau 7 ngày mà không cần bất kỳ job dọn dẹp hay ghi lại dữ liệu
+// nào — lần render tiếp theo (khi Date.now() đã qua mốc 7 ngày) tự tính
+// ra false.
+const isChapterNew = (releaseDate?: string): boolean => {
+  if (!releaseDate) return false;
+  const released = new Date(releaseDate);
+  if (Number.isNaN(released.getTime())) return false;
+  const diffDays = (Date.now() - released.getTime()) / (1000 * 60 * 60 * 24);
+  return diffDays >= 0 && diffDays <= 7;
+};
+
 export const NovelDetailView: React.FC = () => {
   const {
     selectedNovelId,
@@ -346,7 +361,9 @@ export const NovelDetailView: React.FC = () => {
 
       {/* Chapter List Section — thêm huy hiệu số chương tròn (đồng bộ khung "Danh Sách Chương"
           trong ReaderView) + khung gradient/sparkle đồng bộ Hero Card. Vẫn dùng đúng chapterListItems,
-          ch.id/chapterNumber/title/releaseDate/wordCount và openReader như cũ, không đổi dữ liệu. */}
+          ch.id/chapterNumber/title/releaseDate/wordCount và openReader như cũ, không đổi dữ liệu.
+          Mỗi chương đăng trong vòng 7 ngày gần nhất có thêm tag "Mới" (isChapterNew ở đầu file) —
+          thuần tính từ releaseDate đã có sẵn, tự hết hạn khi qua mốc 7 ngày, không cần job dọn dẹp. */}
       <div
         className={`relative overflow-hidden rounded-[26px] border p-5 sm:p-7 space-y-4 transition-colors ${
           isDark
@@ -420,12 +437,22 @@ export const NovelDetailView: React.FC = () => {
                 </span>
 
                 <div className="min-w-0 flex-1 space-y-0.5">
-                  <span
-                    style={{ fontFamily: "'Vollkorn', serif" }}
-                    className="not-italic text-base sm:text-lg font-medium block truncate text-[#574D4C] dark:text-white hover:underline"
-                  >
-                    {ch.title}
-                  </span>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <span
+                      style={{ fontFamily: "'Vollkorn', serif" }}
+                      className="not-italic text-base sm:text-lg font-medium truncate text-[#574D4C] dark:text-white hover:underline"
+                    >
+                      {ch.title}
+                    </span>
+                    {isChapterNew(ch.releaseDate) && (
+                      <span
+                        className="shrink-0 text-[9px] font-semibold uppercase tracking-wide px-1.5 py-[2px] rounded-full"
+                        style={{ background: isDark ? ACCENT_DARK : ACCENT, color: isDark ? ACCENT_TEXT_DARK : '#FFFFFF' }}
+                      >
+                        Mới
+                      </span>
+                    )}
+                  </div>
                   <span className="text-[11px] text-[#8F7D85] dark:text-[#D5CBD0]">
                     {ch.releaseDate} • {ch.wordCount.toLocaleString('vi-VN')} chữ
                   </span>
